@@ -1,0 +1,7 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/models">
+        <file>model/eye_model.onnx</file>
+        <file>model/face_model.onnx</file>
+    </qresource>
+</RCC>

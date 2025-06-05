@@ -1,0 +1,1 @@
+{"SqueezeThresholdV1":[0.07,0.5],"WidenThresholdV1":[0.6,1],"SqueezeThresholdV2":[0.07,-1],"WidenThresholdV2":[0.6,1.05],"OutputMultiplier":1,"ListeningAddress":"0.0.0.0","PortNumber":8889,"ShouldEmulateEyeWiden":false,"ShouldEmulateEyeSquint":false,"ShouldEmulateEyebrows":false,"EyebrowThresholdRising":0.8,"EyebrowThresholdLowering":0.15}
