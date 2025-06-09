@@ -1,0 +1,93 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🐛 Debug首次 (配置+DLL)",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/PaperTracker.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/build",
+      "environment": [
+        {
+          "name": "PATH",
+          "value": "${workspaceFolder}/build;${workspaceFolder}/3rdParty/opencv-mvsc/opencv/build/x64/vc16/bin;${env:PATH}"
+        }
+      ],
+      "console": "integratedTerminal",
+      "preLaunchTask": "Debug First Time",
+      "internalConsoleOptions": "neverOpen",
+      "logging": {
+        "moduleLoad": false,
+        "trace": false
+      }
+    },
+    {
+      "name": "🚀 Debug日常 (仅构建)",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/PaperTracker.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/build",
+      "environment": [
+        {
+          "name": "PATH",
+          "value": "${workspaceFolder}/build;${workspaceFolder}/3rdParty/opencv-mvsc/opencv/build/x64/vc16/bin;${env:PATH}"
+        }
+      ],
+      "console": "integratedTerminal",
+      "preLaunchTask": "Debug Quick Build",
+      "internalConsoleOptions": "neverOpen",
+      "logging": {
+        "moduleLoad": false,
+        "trace": false
+      }
+    },
+    {
+      "name": "⚡ Release首次 (配置+DLL)",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/PaperTracker.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/build",
+      "environment": [
+        {
+          "name": "PATH",
+          "value": "${workspaceFolder}/build;${workspaceFolder}/3rdParty/opencv-mvsc/opencv/build/x64/vc16/bin;${env:PATH}"
+        }
+      ],
+      "console": "integratedTerminal",
+      "preLaunchTask": "Release First Time",
+      "internalConsoleOptions": "neverOpen",
+      "logging": {
+        "moduleLoad": false,
+        "trace": false
+      }
+    },
+    {
+      "name": "🏃 Release日常 (仅构建)",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/PaperTracker.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/build",
+      "environment": [
+        {
+          "name": "PATH",
+          "value": "${workspaceFolder}/build;${workspaceFolder}/3rdParty/opencv-mvsc/opencv/build/x64/vc16/bin;${env:PATH}"
+        }
+      ],
+      "console": "integratedTerminal",
+      "preLaunchTask": "Release Quick Build",
+      "internalConsoleOptions": "neverOpen",
+      "logging": {
+        "moduleLoad": false,
+        "trace": false
+      }
+    }
+  ]
+}

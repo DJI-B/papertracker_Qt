@@ -1,0 +1,145 @@
+{
+  "version": "2.0.0",
+  "options": {
+    "env": {
+      "VSCMD_SKIP_SENDTELEMETRY": "1"
+    }
+  },
+  "windows": {
+    "options": {
+      "shell": {
+        "executable": "cmd.exe",
+        "args": [
+          "/c",
+          "chcp 65001 >nul &&",
+          "\"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
+          ">nul",
+          "2>&1",
+          "&&"
+        ]
+      }
+    }
+  },
+  "tasks": [
+    {
+      "label": "Debug First Time",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "-B",
+        "build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "&&",
+        "cmake",
+        "--build",
+        "build",
+        "&&",
+        "cmake",
+        "--install",
+        "build"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": ["$msCompile"],
+      "detail": "Debug首次：配置+构建+复制DLL"
+    },
+    {
+      "label": "Debug Quick Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "build"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": false
+      },
+      "problemMatcher": ["$msCompile"],
+      "detail": "Debug日常：仅构建"
+    },
+    {
+      "label": "Release First Time",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "-B",
+        "build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "&&",
+        "cmake",
+        "--build",
+        "build",
+        "&&",
+        "cmake",
+        "--install",
+        "build"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": ["$msCompile"],
+      "detail": "Release首次：配置+构建+复制DLL"
+    },
+    {
+      "label": "Release Quick Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "build", "--config", "Release"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": false
+      },
+      "problemMatcher": ["$msCompile"],
+      "detail": "Release日常：仅构建"
+    },
+    {
+      "label": "Clean Build",
+      "type": "shell",
+      "command": "rmdir",
+      "args": ["/s", "/q", "build"],
+      "options": {
+        "shell": {
+          "executable": "cmd.exe",
+          "args": ["/c"]
+        }
+      },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false
+      },
+      "detail": "清理build目录"
+    }
+  ]
+}

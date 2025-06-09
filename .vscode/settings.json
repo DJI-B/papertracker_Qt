@@ -1,0 +1,36 @@
+{
+  // .vscode/settings.json - 项目特定设置
+  "cmake.configureOnOpen": false,
+  "cmake.buildDirectory": "${workspaceFolder}/build",
+  "cmake.generator": "Ninja",
+  "cmake.configureSettings": {
+    "CMAKE_BUILD_TYPE": "Debug"
+  },
+  "cmake.preferredGenerators": ["Ninja", "Visual Studio 17 2022"],
+  "terminal.integrated.env.windows": {
+    "VSINSTALLDIR": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\",
+    "VCINSTALLDIR": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\",
+    "VCToolsInstallDir": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.42.34433\\",
+    "WindowsSdkDir": "C:\\Program Files (x86)\\Windows Kits\\10\\",
+    "WindowsSDKVersion": "10.0.22621.0\\"
+  },
+  "cmake.configureEnvironment": {
+    "VSINSTALLDIR": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\",
+    "VCINSTALLDIR": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\",
+    "VCToolsInstallDir": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.42.34433\\",
+    "WindowsSdkDir": "C:\\Program Files (x86)\\Windows Kits\\10\\",
+    "WindowsSDKVersion": "10.0.22621.0\\"
+  },
+  "terminal.integrated.shellArgs.windows": ["/c", "chcp 65001 >nul && cmd.exe"],
+  "terminal.integrated.defaultProfile.windows": "Command Prompt",
+  "terminal.integrated.profiles.windows": {
+    "Command Prompt": {
+      "path": "cmd.exe",
+      "args": ["/c", "chcp 65001 >nul && cmd.exe"],
+      "icon": "terminal-cmd"
+    }
+  },
+  "cmake.outputLogEncoding": "utf8",
+  "files.encoding": "utf8",
+  "files.autoGuessEncoding": true
+}
