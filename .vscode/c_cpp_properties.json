@@ -1,0 +1,35 @@
+{
+  // .vscode/c_cpp_properties.json - C++ 智能感知配置
+  "version": 4,
+  "configurations": [
+    {
+      "name": "Win32",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.42.34433/include",
+        "C:/Program Files (x86)/Windows Kits/10/Include/10.0.22621.0/ucrt",
+        "C:/Program Files (x86)/Windows Kits/10/Include/10.0.22621.0/um",
+        "C:/Program Files (x86)/Windows Kits/10/Include/10.0.22621.0/shared",
+        "${workspaceFolder}/3rdParty/opencv-mvsc/opencv/build/include",
+        "${workspaceFolder}/3rdParty/onnxruntime-win-x64-gpu-1.20.1/include",
+        "${workspaceFolder}/3rdParty/oscpack",
+        "E:/Qt/6.8.2/msvc2022_64/include"
+      ],
+      "defines": [
+        "_DEBUG",
+        "UNICODE",
+        "_UNICODE",
+        "WIN32",
+        "WIN64",
+        "_WIN64",
+        "DEBUG"
+      ],
+      "windowsSdkVersion": "10.0.22621.0",
+      "compilerPath": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.42.34433/bin/Hostx64/x64/cl.exe",
+      "cStandard": "c17",
+      "cppStandard": "c++20",
+      "intelliSenseMode": "windows-msvc-x64",
+      "compilerArgs": ["/Zc:preprocessor", "/utf-8"]
+    }
+  ]
+}
