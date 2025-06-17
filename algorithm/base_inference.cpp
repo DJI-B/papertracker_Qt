@@ -106,6 +106,12 @@ void BaseInference::AmpMapToOutput(std::vector<float>& output)
                 output[i] = std::min(1.0f, output[i]);
             }
         }
+        // 对tongueRight进行额外的2.5倍放大处理
+        if (blendShapes[i] == "tongueRight") {
+            output[i] = output[i] * 2.5f;
+            // 确保值不超过1.0（如果需要限制在[0,1]范围内）
+            output[i] = std::min(1.0f, output[i]);
+        }
         // // 应用偏置值
         // if (blendShapeOffsetMap.contains(blendShapes[i]))
         // {

@@ -176,3 +176,136 @@ bool Updater::updateApplicationSync(QWidget* window, const Version &remoteVersio
     // 运行安装程序
     return runInstaller(installerPath, window);
 }
+// 1. 首先在 updater.hpp 中添加版本比较函数声明
+#ifndef UPDATER_HPP
+#define UPDATER_HPP
+
+#include <iostream>
+#include <QObject>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QFile>
+#include <QProgressDialog>
+#include <QProcess>
+#include <QEventLoop>
+#include <QCoreApplication>
+#include <QDir>
+#include <QMessageBox>
+#include <QRegularExpression>
+#include <optional>
+
+// 定义版本相关结构体
+struct ClientVersion {
+    QString tag;
+    QString description;
+    QString firmware;
+};
+
+struct Version {
+    ClientVersion version;
+};
+
+class Updater : public QObject {
+public:
+    explicit Updater(QObject *parent = nullptr) : QObject(parent) {}
+
+    // 现有函数声明...
+    std::optional<Version> getClientVersionSync(QWidget* window);
+    std::optional<Version> getCurrentVersion();
+    bool downloadZipSync(QWidget* window, const QString &zipFilePath, const QString &downloadUrl);
+    bool runInstaller(const QString &installerPath, QWidget* parent);
+    bool updateApplicationSync(QWidget* window, const Version &remoteVersion);
+
+    // 新增版本比较函数
+    int compareVersions(const QString& version1, const QString& version2);
+    bool isVersionNewer(const QString& currentVersion, const QString& serverVersion);
+    void showBetaVersionDialog(QWidget* parent, const QString& currentVersion, const QString& serverVersion);
+};
+
+#endif // UPDATER_HPP
+
+// 2. 在 updater.cpp 中实现版本比较功能
+// 添加版本比较函数实现
+int Updater::compareVersions(const QString& version1, const QString& version2) {
+    // 移除版本号中的 'v' 前缀（如果存在）
+    QString v1 = version1.startsWith('v') ? version1.mid(1) : version1;
+    QString v2 = version2.startsWith('v') ? version2.mid(1) : version2;
+
+    // 分割版本号
+    QStringList parts1 = v1.split('.');
+    QStringList parts2 = v2.split('.');
+
+    // 确保两个版本号部分数量相同，不足的用0补齐
+    int maxParts = qMax(parts1.size(), parts2.size());
+    while (parts1.size() < maxParts) parts1.append("0");
+    while (parts2.size() < maxParts) parts2.append("0");
+
+    // 逐个比较版本号部分
+    for (int i = 0; i < maxParts; ++i) {
+        // 提取数字部分进行比较
+        QRegularExpression numRegex("(\\d+)");
+        QRegularExpressionMatch match1 = numRegex.match(parts1[i]);
+        QRegularExpressionMatch match2 = numRegex.match(parts2[i]);
+
+        int num1 = match1.hasMatch() ? match1.captured(1).toInt() : 0;
+        int num2 = match2.hasMatch() ? match2.captured(1).toInt() : 0;
+
+        if (num1 < num2) return -1;
+        if (num1 > num2) return 1;
+
+        // 如果数字部分相同，再比较字符串部分（用于处理如 "1.0.0-beta" 这样的版本）
+        QString suffix1 = parts1[i].mid(match1.capturedLength());
+        QString suffix2 = parts2[i].mid(match2.capturedLength());
+
+        if (suffix1 != suffix2) {
+            // beta 版本通常小于正式版本
+            if (suffix1.contains("beta") && !suffix2.contains("beta")) return 1;
+            if (!suffix1.contains("beta") && suffix2.contains("beta")) return -1;
+            return suffix1.compare(suffix2);
+        }
+    }
+
+    return 0; // 版本相同
+}
+
+bool Updater::isVersionNewer(const QString& currentVersion, const QString& serverVersion) {
+    return compareVersions(currentVersion, serverVersion) > 0;
+}
+
+void Updater::showBetaVersionDialog(QWidget* parent, const QString& currentVersion, const QString& serverVersion) {
+    QMessageBox msgBox(parent);
+    msgBox.setWindowTitle("测试版本提示");
+    msgBox.setIcon(QMessageBox::Information);
+
+    // 设置主要文本
+    msgBox.setText("当前运行的是测试版本");
+
+    // 设置详细信息
+    QString detailText = QString(
+        "当前版本: %1\n"
+        "服务器版本: %2\n\n"
+        "您正在使用的版本高于服务器上的稳定版本。\n"
+        "测试版本可能包含未经完全测试的功能，\n"
+        "如遇到问题请及时反馈。\n\n"
+        "建议在生产环境中使用稳定版本。"
+    ).arg(currentVersion, serverVersion);
+
+    msgBox.setInformativeText(detailText);
+
+    // 添加按钮
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setDefaultButton(QMessageBox::Ok);
+
+    // 设置样式（可选，让对话框更醒目）
+    msgBox.setStyleSheet(
+        "QMessageBox {"
+        "    background-color: #fffbf0;"
+        "}"
+        "QMessageBox QLabel {"
+        "    color: #8b4513;"
+        "    font-weight: bold;"
+        "}"
+    );
+
+    msgBox.exec();
+}
