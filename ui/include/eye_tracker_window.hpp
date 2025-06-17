@@ -117,6 +117,8 @@ public:
     void startCalibration();
     void centerCalibration();
     PaperEyeTrackerConfig generate_config() const;
+    void enableTestMode(bool enable) { test_mode_enabled = enable; }
+    bool isTestModeEnabled() const { return test_mode_enabled; }
 private slots:
     void onSendButtonClicked();
     void onRestartButtonClicked();
@@ -135,6 +137,10 @@ private slots:
     void onRightEyeValueIncrease();
     void onRightEyeValueDecrease();
 private:
+    double compensated_eye_openness[EYE_NUM] = {0.0, 0.0};
+    std::mutex compensated_data_mutex[EYE_NUM];
+    bool test_mode_enabled = false;
+    double test_time = 0.0;
     void connect_callbacks();
     double eye_fully_open[EYE_NUM] = {30.0, 30.0};    // 默认值
     double eye_fully_closed[EYE_NUM] = {10.0, 10.0};  // 默认值

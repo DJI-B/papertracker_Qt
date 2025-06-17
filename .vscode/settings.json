@@ -32,5 +32,9 @@
   },
   "cmake.outputLogEncoding": "utf8",
   "files.encoding": "utf8",
-  "files.autoGuessEncoding": true
+  "files.autoGuessEncoding": true,
+  "files.associations": {
+    "thread": "cpp"
+  },
+  "C_Cpp.errorSquiggles": "disabled"
 }

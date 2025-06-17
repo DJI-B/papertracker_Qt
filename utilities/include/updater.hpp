@@ -41,7 +41,9 @@ public:
 
     // 同步下载 zip 更新包，并返回下载是否成功
     bool downloadZipSync(QWidget* window, const QString &zipFilePath, const QString &downloadUrl);
-
+    int compareVersions(const QString& version1, const QString& version2);
+    bool isVersionNewer(const QString& currentVersion, const QString& serverVersion);
+    void showBetaVersionDialog(QWidget* parent, const QString& currentVersion, const QString& serverVersion);
     // 解压 zip 文件到目标目录（使用 QuaZip 或其他方式实现）
     // 下面给出使用 QuaZip 的示例伪代码，实际使用时需要确保引入并配置好 QuaZip 库
     //bool extractZip(const QString &zipFilePath, const QString &destinationPath);
