@@ -1,81 +1,204 @@
-本软件使用了以下第三方组件：
+# 第三方组件许可证声明
 
-1. projectbabble
-   版权所有 2023 Sameer Suri
-   使用部分：代码和模型
-   许可证：Apache License 2.0
-   许可证文本：见下文
+本软件PaperTracker使用了以下第三方组件，特此声明各组件的许可证信息和使用范围。
 
-2. OpenCV
-   许可证：BSD 3-Clause License
+## 主要第三方组件
 
-3. ONNX Runtime
-   许可证：MIT License
+### 1. Project Babble 2.0.7
+- **版权所有**: © 2024 Project Babble Team
+- **使用部分**: 面部表情识别深度学习模型、相关算法代码
+- **许可证**: Babble Software Distribution License 1.0
+- **使用限制**: 非商业使用（与本项目许可证一致）
+- **项目地址**: https://github.com/Project-Babble/ProjectBabble
+- **版本**: v2.0.7
+- **许可证特点**:
+  - ✅ 个人使用、学习、研究：完全免费
+  - ✅ 开源项目：允许
+  - ❌ 商业硬件集成：禁止
+  - ❌ 商业服务提供：禁止
 
-4. Qt
-   许可证：GPL/LGPL
+### 2. EyeTrackVR (ETVR)
+- **版权所有**: © EyeTrackVR Team
+- **使用部分**: 眼部追踪算法、校准系统、数据处理代码
+- **许可证**: MIT License（早期开源版本）
+- **使用说明**: 基于许可证更新前的开源版本使用，符合MIT许可证条款
+- **项目地址**: https://github.com/EyeTrackVR
+- **使用模块**:
+  - 眼部追踪核心算法
+  - 校准数据处理
+  - ETVR设备通信协议
 
-=========================================================================
-Apache License 2.0 (projectbabble)
-=========================================================================
- Apache License
-                       Version 2.0, January 2004
-                    http://www.apache.org/licenses/
-TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+### 3. OpenCV
+- **版权所有**: © OpenCV Team
+- **使用部分**: 计算机视觉处理库
+- **许可证**: BSD 3-Clause License
+- **项目地址**: https://opencv.org/
+- **版本**: 4.x
+- **使用模块**:
+  - 图像处理和变换
+  - 摄像头接口
+  - 特征检测和追踪
 
-Definitions.
+### 4. ONNX Runtime
+- **版权所有**: © Microsoft Corporation
+- **使用部分**: 机器学习推理引擎
+- **许可证**: MIT License
+- **项目地址**: https://onnxruntime.ai/
+- **版本**: 1.20.1
+- **使用场景**:
+  - 深度学习模型推理
+  - GPU加速计算
+  - 模型优化
 
-"License" shall mean the terms and conditions for use, reproduction, and distribution as defined by Sections 1 through 9 of this document.
+### 5. Qt Framework
+- **版权所有**: © The Qt Company Ltd.
+- **使用部分**: GUI框架、网络组件、串口通信
+- **许可证**: GPL v3 / LGPL v3（双重许可）
+- **使用的模块**:
+  - Qt6::Core - 核心功能
+  - Qt6::Gui - 图形界面基础
+  - Qt6::Widgets - 窗口组件
+  - Qt6::Network - 网络通信
+  - Qt6::WebSockets - WebSocket支持
+  - Qt6::SerialPort - 串口通信
+- **项目地址**: https://www.qt.io/
+- **版本**: 6.8.2
 
-"Licensor" shall mean the copyright owner or entity authorized by the copyright owner that is granting the License.
+### 6. libcurl
+- **版权所有**: © Daniel Stenberg and contributors
+- **使用部分**: HTTP客户端库
+- **许可证**: MIT License (curl license)
+- **项目地址**: https://curl.se/libcurl/
+- **使用功能**:
+  - HTTP/HTTPS请求
+  - 文件下载
+  - 网络通信
 
-"Legal Entity" shall mean the union of the acting entity and all other entities that control, are controlled by, or are under common control with that entity. For the purposes of this definition, "control" means (i) the power, direct or indirect, to cause the direction or management of such entity, whether by contract or otherwise, or (ii) ownership of fifty percent (50%) or more of the outstanding shares, or (iii) beneficial ownership of such entity.
+### 7. OSCPack
+- **版权所有**: © Ross Bencina
+- **使用部分**: OSC协议实现
+- **许可证**: 自定义开源许可证
+- **项目地址**: http://www.rossbencina.com/code/oscpack
+- **版本**: 修改版本
+- **使用功能**:
+  - OSC消息编码/解码
+  - 网络传输
+  - 实时数据流
 
-"You" (or "Your") shall mean an individual or Legal Entity exercising permissions granted by this License.
+## 开发工具和构建依赖
 
-"Source" form shall mean the preferred form for making modifications, including but not limited to software source code, documentation source, and configuration files.
+### 8. CMake
+- **版权所有**: © Kitware, Inc.
+- **使用范围**: 构建系统
+- **许可证**: BSD 3-Clause License
+- **项目地址**: https://cmake.org/
+- **版本**: 3.30+
 
-"Object" form shall mean any form resulting from mechanical transformation or translation of a Source form, including but not limited to compiled object code, generated documentation, and conversions to other media types.
+### 9. Visual Studio 2022
+- **版权所有**: © Microsoft Corporation
+- **使用范围**: 编译器和开发环境
+- **许可证**: 专有软件（免费社区版）
+- **组件**:
+  - MSVC编译器
+  - Windows SDK
+  - 调试工具
 
-"Work" shall mean the work of authorship, whether in Source or Object form, made available under the License, as indicated by a copyright notice that is included in or attached to the work (an example is provided in the Appendix below).
+## 许可证兼容性分析
 
-"Derivative Works" shall mean any work, whether in Source or Object form, that is based on (or derived from) the Work and for which the editorial revisions, annotations, elaborations, or other modifications represent, as a whole, an original work of authorship. For the purposes of this License, Derivative Works shall not include works that remain separable from, or merely link (or bind by name) to the interfaces of, the Work and Derivative Works thereof.
+### 主项目许可证：CC BY-NC-SA 4.0
+本项目采用Creative Commons Attribution-NonCommercial-ShareAlike 4.0许可证，与各第三方组件的兼容性如下：
 
-"Contribution" shall mean any work of authorship, including the original version of the Work and any modifications or additions to that Work or Derivative Works thereof, that is intentionally submitted to Licensor for inclusion in the Work by the copyright owner or by an individual or Legal Entity authorized to submit on behalf of the copyright owner. For the purposes of this definition, "submitted" means any form of electronic, verbal, or written communication sent to the Licensor or its representatives, including but not limited to communication on electronic mailing lists, source code control systems, and issue tracking systems that are managed by, or on behalf of, the Licensor for the purpose of discussing and improving the Work, but excluding communication that is conspicuously marked or otherwise designated in writing by the copyright owner as "Not a Contribution."
+| 组件 | 许可证 | 兼容性 | 说明 |
+|------|--------|--------|------|
+| Project Babble 2.0.7 | Babble License 1.0 | ✅ 兼容 | 都禁止商业使用 |
+| ETVR | MIT License | ✅ 兼容 | MIT允许更严格的许可证 |
+| OpenCV | BSD 3-Clause | ✅ 兼容 | BSD允许更严格的许可证 |
+| ONNX Runtime | MIT License | ✅ 兼容 | MIT允许更严格的许可证 |
+| Qt6 | GPL/LGPL | ✅ 兼容 | 使用LGPL部分，允许链接 |
+| libcurl | MIT License | ✅ 兼容 | MIT允许更严格的许可证 |
+| OSCPack | 自定义开源 | ✅ 兼容 | 开源许可证兼容 |
 
-"Contributor" shall mean Licensor and any individual or Legal Entity on behalf of whom a Contribution has been received by Licensor and subsequently incorporated within the Work.
+## 特殊说明
 
-Grant of Copyright License. Subject to the terms and conditions of this License, each Contributor hereby grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable copyright license to reproduce, prepare Derivative Works of, publicly display, publicly perform, sublicense, and distribute the Work and such Derivative Works in Source or Object form.
+### Project Babble使用声明
+本项目使用的Project Babble 2.0.7组件受到Babble Software Distribution License 1.0约束，该许可证明确禁止商业硬件集成和商业服务提供。本项目的CC BY-NC-SA 4.0许可证与此要求一致，同样禁止商业使用。
 
-Grant of Patent License. Subject to the terms and conditions of this License, each Contributor hereby grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable (except as stated in this section) patent license to make, have made, use, offer to sell, sell, import, and otherwise transfer the Work, where such license applies only to those patent claims licensable by such Contributor that are necessarily infringed by their Contribution(s) alone or by combination of their Contribution(s) with the Work to which such Contribution(s) was submitted. If You institute patent litigation against any entity (including a cross-claim or counterclaim in a lawsuit) alleging that the Work or a Contribution incorporated within the Work constitutes direct or contributory patent infringement, then any patent licenses granted to You under this License for that Work shall terminate as of the date such litigation is filed.
+### ETVR使用声明
+本项目使用的EyeTrackVR组件基于该项目许可证更新前的开源版本，当时采用MIT License。我们严格遵循MIT许可证的要求，保留原始版权声明，并在CC BY-NC-SA 4.0框架下使用。
 
-Redistribution. You may reproduce and distribute copies of the Work or Derivative Works thereof in any medium, with or without modifications, and in Source or Object form, provided that You meet the following conditions:
+### Qt许可证选择
+本项目选择使用Qt的LGPL版本，允许动态链接而不要求整个项目采用GPL许可证。但用户在分发时仍需提供Qt库的源代码或获取途径。
 
-(a) You must give any other recipients of the Work or Derivative Works a copy of this License; and
+## 完整许可证文本
 
-(b) You must cause any modified files to carry prominent notices stating that You changed the files; and
+### Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
 
-(c) You must retain, in the Source form of any Derivative Works that You distribute, all copyright, patent, trademark, and attribution notices from the Source form of the Work, excluding those notices that do not pertain to any part of the Derivative Works; and
+本项目主体代码采用此许可证，完整文本请参见：
+https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode
 
-(d) If the Work includes a "NOTICE" text file as part of its distribution, then any Derivative Works that You distribute must include a readable copy of the attribution notices contained within such NOTICE file, excluding those notices that do not pertain to any part of the Derivative Works, in at least one of the following places: within a NOTICE text file distributed as part of the Derivative Works; within the Source form or documentation, if provided along with the Derivative Works; or, within a display generated by the Derivative Works, if and wherever such third-party notices normally appear. The contents of the NOTICE file are for informational purposes only and do not modify the License. You may add Your own attribution notices within Derivative Works that You distribute, alongside or as an addendum to the NOTICE text from the Work, provided that such additional attribution notices cannot be construed as modifying the License.
+### MIT License (适用于ETVR、ONNX Runtime、libcurl)
 
-You may add Your own copyright statement to Your modifications and may provide additional or different license terms and conditions for use, reproduction, or distribution of Your modifications, or for any such Derivative Works as a whole, provided Your use, reproduction, and distribution of the Work otherwise complies with the conditions stated in this License.
+```
+MIT License
 
-Submission of Contributions. Unless You explicitly state otherwise, any Contribution intentionally submitted for inclusion in the Work by You to the Licensor shall be under the terms and conditions of this License, without any additional terms or conditions. Notwithstanding the above, nothing herein shall supersede or modify the terms of any separate license agreement you may have executed with Licensor regarding such Contributions.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Trademarks. This License does not grant permission to use the trade names, trademarks, service marks, or product names of the Licensor, except as required for reasonable and customary use in describing the origin of the Work and reproducing the content of the NOTICE file.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-Disclaimer of Warranty. Unless required by applicable law or agreed to in writing, Licensor provides the Work (and each Contributor provides its Contributions) on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied, including, without limitation, any warranties or conditions of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE. You are solely responsible for determining the appropriateness of using or redistributing the Work and assume any risks associated with Your exercise of permissions under this License.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
-Limitation of Liability. In no event and under no legal theory, whether in tort (including negligence), contract, or otherwise, unless required by applicable law (such as deliberate and grossly negligent acts) or agreed to in writing, shall any Contributor be liable to You for damages, including any direct, indirect, special, incidental, or consequential damages of any character arising as a result of this License or out of the use or inability to use the Work (including but not limited to damages for loss of goodwill, work stoppage, computer failure or malfunction, or any and all other commercial damages or losses), even if such Contributor has been advised of the possibility of such damages.
+### BSD 3-Clause License (适用于OpenCV)
 
-Accepting Warranty or Additional Liability. While redistributing the Work or Derivative Works thereof, You may choose to offer, and charge a fee for, acceptance of support, warranty, indemnity, or other liability obligations and/or rights consistent with this License. However, in accepting such obligations, You may act only on Your own behalf and on Your sole responsibility, not on behalf of any other Contributor, and only if You agree to indemnify, defend, and hold each Contributor harmless for any liability incurred by, or claims asserted against, such Contributor by reason of your accepting any such warranty or additional liability.
+```
+BSD 3-Clause License
 
-END OF TERMS AND CONDITIONS
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-Copyright 2023 Sameer Suri
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
 
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
 
-   http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## 联系信息
+
+如对许可证或第三方组件使用有任何疑问，请通过以下方式联系：
+- GitHub Issues: [项目Issues页面](../../issues)
+- 项目主页: 查看完整联系方式
+
+---
+
+**最后更新**: 2025年6月
+**文档版本**: 1.0
+**适用项目版本**: PaperTracker v1.2.0+
