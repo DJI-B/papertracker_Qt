@@ -306,7 +306,6 @@ find_package(Qt6 COMPONENTS
    - 减少网络延迟和丢包
 ```
 
-
 ## 联系方式
 
 - **问题反馈**：[GitHub Issues](../../issues)
@@ -316,10 +315,16 @@ find_package(Qt6 COMPONENTS
 
 ## 致谢
 
+### 特别贡献者
+- **[JellyfishKnight (Liu Han)](https://github.com/JellyfishKnight)**：为项目开发提供了重要的技术支持和代码贡献
+
+### 开源项目和团队
 - **Project Babble团队**：提供优秀的面部追踪算法和模型
 - **EyeTrackVR团队**：提供开源的眼部追踪技术
 - **Qt社区**：提供强大的跨平台GUI框架
 - **OpenCV团队**：提供计算机视觉基础库
+
+### 社区支持
 - **所有贡献者**：感谢每一位为项目做出贡献的开发者
 
 ---

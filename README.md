@@ -303,11 +303,8 @@ By contributing code to this project, you agree that:
    - Consider using dedicated GPU for inference acceleration
 
 3. Network Optimization (ESP32 mode)
-   - Use 5GHz WiFi network
    - Reduce network latency and packet loss
 ```
-
-
 
 ## Contact Information
 
@@ -318,10 +315,16 @@ By contributing code to this project, you agree that:
 
 ## Acknowledgments
 
+### Special Contributors
+- **[JellyfishKnight (Liu Han)](https://github.com/JellyfishKnight)**: Provided important technical support and code contributions to the project
+
+### Open Source Projects and Teams
 - **Project Babble Team**: Providing excellent facial tracking algorithms and models
 - **EyeTrackVR Team**: Providing open source eye tracking technology
 - **Qt Community**: Providing powerful cross-platform GUI framework
 - **OpenCV Team**: Providing computer vision foundation library
+
+### Community Support
 - **All Contributors**: Thanks to every developer who contributed to the project
 
 ---
