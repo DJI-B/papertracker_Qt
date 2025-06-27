@@ -17,13 +17,14 @@ endif ()
 
 # set 3rd party lib path
 
-#if develop qt is on set path to the qt path else set the path to the qt path
+# Qt installation path - configurable option
+set(QT_INSTALL_PATH "D:/QtNew/6.8.2/msvc2022_64" CACHE PATH "Path to Qt installation directory")
 
-if (EXISTS "D:/QtNew/6.8.2/msvc2022_64")
-    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "D:/QtNew/6.8.2/msvc2022_64")
-else ()
-    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "E:/Qt/6.8.2/msvc2022_64")
-endif ()
+if(EXISTS "${QT_INSTALL_PATH}")
+    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${QT_INSTALL_PATH}")
+else()
+    message(WARNING "Qt installation path not found: ${QT_INSTALL_PATH}")
+endif()
 
 set(CURL_DIR ${CMAKE_SOURCE_DIR}/3rdParty/curl-install/lib/cmake/CURL)
 set(OpenCV_DIR ${CMAKE_SOURCE_DIR}/3rdParty/opencv-mvsc/opencv/build)
