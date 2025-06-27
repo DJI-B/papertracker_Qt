@@ -242,19 +242,20 @@ endif ()
 # install resources
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})
 
-if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+if (WIN32)
     set(DEBUG_SUFFIX)
     if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
         set(DEBUG_SUFFIX "d")
     endif()
-    set(QT_INSTALL_PATH "${CMAKE_PREFIX_PATH}")
-    if(NOT EXISTS "${QT_INSTALL_PATH}/bin")
-        set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
-        if(NOT EXISTS "${QT_INSTALL_PATH}/bin")
-            set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
-        endif()
-    endif()
+    
+    # Debug information
+    message(STATUS "Qt DLL copy: QT_INSTALL_PATH = ${QT_INSTALL_PATH}")
+    message(STATUS "Qt DLL copy: DEBUG_SUFFIX = ${DEBUG_SUFFIX}")
+    message(STATUS "Qt DLL copy: Target file dir = $<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    
+    # Copy Qt platform plugin
     if(EXISTS "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
+        message(STATUS "Copying Qt platform plugin from: ${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E make_directory
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
@@ -262,11 +263,20 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 COMMAND ${CMAKE_COMMAND} -E copy
                 "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
+    else()
+        message(WARNING "Qt platform plugin not found: ${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
     endif()
-    foreach(QT_LIB Core Gui Widgets Network Websockets SerialPort)
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    
+    # Copy Qt core libraries
+    foreach(QT_LIB Core Gui Widgets Network WebSockets SerialPort)
+        if(EXISTS "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll")
+            message(STATUS "Copying Qt library: Qt6${QT_LIB}${DEBUG_SUFFIX}.dll")
+            add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy
+                    "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"
+                    "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+        else()
+            message(WARNING "Qt library not found: ${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll")
+        endif()
     endforeach(QT_LIB)
 endif()
