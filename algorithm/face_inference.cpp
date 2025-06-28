@@ -74,30 +74,41 @@ void FaceInference::load_model(const std::string &model_path) {
         }
 
         if (cuda_is_available) {
-            LOG_INFO("CUDA is available, enabling CUDA execution provider for face inference.");
+            LOG_INFO("CUDA is available, attempting to enable CUDA execution provider for face inference.");
             
-            // 使用官方推荐的CUDA初始化方式
-            OrtCUDAProviderOptionsV2* cuda_options = nullptr;
-            Ort::ThrowOnError(Ort::GetApi().CreateCUDAProviderOptions(&cuda_options));
-            
-            std::vector<const char*> keys{"device_id", "gpu_mem_limit", "arena_extend_strategy", 
-                                         "cudnn_conv_algo_search", "do_copy_in_default_stream", 
-                                         "cudnn_conv_use_max_workspace", "cudnn_conv1d_pad_to_nc1d",
-                                         "enable_cuda_graph"};
-            std::vector<const char*> values{"0", "4294967296", "kNextPowerOfTwo", 
-                                           "EXHAUSTIVE", "1", "1", "1", "0"};
-            
-            Ort::ThrowOnError(Ort::GetApi().UpdateCUDAProviderOptions(cuda_options, keys.data(), values.data(), keys.size()));
-            
-            // 添加CUDA执行提供者
-            Ort::ThrowOnError(Ort::GetApi().SessionOptionsAppendExecutionProvider_CUDA_V2(
-                static_cast<OrtSessionOptions*>(session_options), cuda_options));
-            
-            // 释放提供者选项
-            Ort::GetApi().ReleaseCUDAProviderOptions(cuda_options);
-            LOG_INFO("CUDA execution provider successfully configured for face inference.");
-        } else {
-            LOG_INFO("CUDA not available for face inference, using CPU.");
+            try {
+                // 使用官方推荐的CUDA初始化方式
+                OrtCUDAProviderOptionsV2* cuda_options = nullptr;
+                Ort::ThrowOnError(Ort::GetApi().CreateCUDAProviderOptions(&cuda_options));
+                
+                std::vector<const char*> keys{"device_id", "gpu_mem_limit", "arena_extend_strategy", 
+                                             "cudnn_conv_algo_search", "do_copy_in_default_stream", 
+                                             "cudnn_conv_use_max_workspace", "cudnn_conv1d_pad_to_nc1d",
+                                             "enable_cuda_graph"};
+                std::vector<const char*> values{"0", "4294967296", "kNextPowerOfTwo", 
+                                               "EXHAUSTIVE", "1", "1", "1", "0"};
+                
+                Ort::ThrowOnError(Ort::GetApi().UpdateCUDAProviderOptions(cuda_options, keys.data(), values.data(), keys.size()));
+                
+                // 添加CUDA执行提供者
+                Ort::ThrowOnError(Ort::GetApi().SessionOptionsAppendExecutionProvider_CUDA_V2(
+                    static_cast<OrtSessionOptions*>(session_options), cuda_options));
+                
+                // 释放提供者选项
+                Ort::GetApi().ReleaseCUDAProviderOptions(cuda_options);
+                LOG_INFO("CUDA execution provider successfully configured for face inference.");
+            } catch (const Ort::Exception& e) {
+                LOG_WARN("Failed to configure CUDA execution provider: {}. Falling back to CPU.", e.what());
+                cuda_is_available = false;
+            } catch (const std::exception& e) {
+                LOG_WARN("Failed to configure CUDA execution provider: {}. Falling back to CPU.", e.what());
+                cuda_is_available = false;
+            }
+        }
+        
+        if (!cuda_is_available) {
+            LOG_INFO("Using CPU execution provider for face inference.");
+            // CPU执行提供者会自动添加，无需显式配置
         }
 
         if (actual_model_path.substr(0, 2) == ":/") {
@@ -115,11 +126,32 @@ void FaceInference::load_model(const std::string &model_path) {
             resourceFile.close();
 
             // 使用内存数据创建会话
-            session_ = std::make_shared<Ort::Session>(
-                env,
-                reinterpret_cast<const void*>(modelData.constData()),
-                static_cast<size_t>(modelData.size()),
-                session_options);
+            try {
+                session_ = std::make_shared<Ort::Session>(
+                    env,
+                    reinterpret_cast<const void*>(modelData.constData()),
+                    static_cast<size_t>(modelData.size()),
+                    session_options);
+            } catch (const Ort::Exception& e) {
+                LOG_WARN("Failed to create session with current configuration: {}. Retrying with CPU-only configuration.", e.what());
+                
+                // 重置会话选项，移除所有CUDA相关配置
+                session_options = Ort::SessionOptions{};
+                session_options.SetIntraOpNumThreads(2);
+                session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+                session_options.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
+                session_options.EnableCpuMemArena();
+                session_options.DisableMemPattern();
+                
+                // 重新尝试创建会话（仅使用CPU）
+                session_ = std::make_shared<Ort::Session>(
+                    env,
+                    reinterpret_cast<const void*>(modelData.constData()),
+                    static_cast<size_t>(modelData.size()),
+                    session_options);
+                
+                LOG_INFO("Successfully created session with CPU-only configuration.");
+            }
         } else {
             // 从文件系统加载（保留原有代码的兼容性）
             //LOG_INFO("从文件系统加载眼睛模型: {}", actual_model_path);
@@ -133,7 +165,24 @@ void FaceInference::load_model(const std::string &model_path) {
             std::wstring wmodel_path = utf8_to_wstring(actual_model_path);
 
             // 创建会话
-            session_ = std::make_shared<Ort::Session>(env, wmodel_path.c_str(), session_options);
+            try {
+                session_ = std::make_shared<Ort::Session>(env, wmodel_path.c_str(), session_options);
+            } catch (const Ort::Exception& e) {
+                LOG_WARN("Failed to create session with current configuration: {}. Retrying with CPU-only configuration.", e.what());
+                
+                // 重置会话选项，移除所有CUDA相关配置
+                session_options = Ort::SessionOptions{};
+                session_options.SetIntraOpNumThreads(2);
+                session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+                session_options.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
+                session_options.EnableCpuMemArena();
+                session_options.DisableMemPattern();
+                
+                // 重新尝试创建会话（仅使用CPU）
+                session_ = std::make_shared<Ort::Session>(env, wmodel_path.c_str(), session_options);
+                
+                LOG_INFO("Successfully created session with CPU-only configuration.");
+            }
         }
 
         io_binding_ = std::make_shared<Ort::IoBinding>(*session_);
