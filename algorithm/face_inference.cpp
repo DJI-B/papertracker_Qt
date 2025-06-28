@@ -21,12 +21,16 @@
 #include <iostream>
 #include <fstream>
 #include <onnxruntime_cxx_api.h>
+#include <onnxruntime_c_api.h>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <QFile>  // 用于读取资源文件
 #include <QString>  // 用于字符串转换
 #include <QFile>
 #include <QStandardPaths>
+#ifdef USE_CUDA
+#include <cuda_runtime.h>
+#endif
 FaceInference::FaceInference()
 {
     init_kalman_filter();
@@ -38,6 +42,74 @@ FaceInference::FaceInference()
 void FaceInference::load_model(const std::string &model_path) {
     try {
         std::string actual_model_path = ":/models/model/face_model.onnx";
+
+        // 创建环境 - 只需要创建一次
+        static Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "ONNXRuntimeDemo");
+
+        // 配置会话选项
+        session_options.SetIntraOpNumThreads(1);  // 对于GPU推理，减少CPU线程数
+        session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+        session_options.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
+        session_options.AddConfigEntry("session.intra_op.allow_spinning", "0");
+        session_options.EnableCpuMemArena();
+        session_options.DisableMemPattern();
+        
+        // 添加针对CUDA的优化配置
+        session_options.AddConfigEntry("session.disable_prepacking", "0");
+        session_options.AddConfigEntry("session.enable_memory_pattern", "0");
+
+        // 检查CUDA可用性并启用
+        auto providers = Ort::GetAvailableProviders();
+        LOG_INFO("Available ONNX Runtime providers:");
+        for (const auto& p : providers) {
+            LOG_INFO("  - {}", p);
+        }
+        
+        bool cuda_is_available = false;
+        for (const auto& p : providers) {
+            if (p == "CUDAExecutionProvider") {
+                cuda_is_available = true;
+                break;
+            }
+        }
+
+        if (cuda_is_available) {
+            LOG_INFO("CUDA is available, attempting to enable CUDA execution provider for face inference.");
+            
+            try {
+                // 使用官方推荐的CUDA初始化方式
+                OrtCUDAProviderOptionsV2* cuda_options = nullptr;
+                Ort::ThrowOnError(Ort::GetApi().CreateCUDAProviderOptions(&cuda_options));
+                
+                std::vector<const char*> keys{"device_id", "gpu_mem_limit", "arena_extend_strategy", 
+                                             "cudnn_conv_algo_search", "do_copy_in_default_stream", 
+                                             "cudnn_conv_use_max_workspace", "cudnn_conv1d_pad_to_nc1d",
+                                             "enable_cuda_graph"};
+                std::vector<const char*> values{"0", "4294967296", "kNextPowerOfTwo", 
+                                               "EXHAUSTIVE", "1", "1", "1", "0"};
+                
+                Ort::ThrowOnError(Ort::GetApi().UpdateCUDAProviderOptions(cuda_options, keys.data(), values.data(), keys.size()));
+                
+                // 添加CUDA执行提供者
+                Ort::ThrowOnError(Ort::GetApi().SessionOptionsAppendExecutionProvider_CUDA_V2(
+                    static_cast<OrtSessionOptions*>(session_options), cuda_options));
+                
+                // 释放提供者选项
+                Ort::GetApi().ReleaseCUDAProviderOptions(cuda_options);
+                LOG_INFO("CUDA execution provider successfully configured for face inference.");
+            } catch (const Ort::Exception& e) {
+                LOG_WARN("Failed to configure CUDA execution provider: {}. Falling back to CPU.", e.what());
+                cuda_is_available = false;
+            } catch (const std::exception& e) {
+                LOG_WARN("Failed to configure CUDA execution provider: {}. Falling back to CPU.", e.what());
+                cuda_is_available = false;
+            }
+        }
+        
+        if (!cuda_is_available) {
+            LOG_INFO("Using CPU execution provider for face inference.");
+            // CPU执行提供者会自动添加，无需显式配置
+        }
 
         if (actual_model_path.substr(0, 2) == ":/") {
             // 从Qt资源加载
@@ -53,23 +125,33 @@ void FaceInference::load_model(const std::string &model_path) {
             QByteArray modelData = resourceFile.readAll();
             resourceFile.close();
 
-            // 创建环境 - 只需要创建一次
-            static Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "ONNXRuntimeDemo");
-
-            // 配置会话选项
-            session_options.SetIntraOpNumThreads(2);
-            session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
-            session_options.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
-            session_options.AddConfigEntry("session.intra_op.allow_spinning", "0");
-            session_options.EnableCpuMemArena();
-            session_options.DisableMemPattern();
-
             // 使用内存数据创建会话
-            session_ = std::make_shared<Ort::Session>(
-                env,
-                reinterpret_cast<const void*>(modelData.constData()),
-                static_cast<size_t>(modelData.size()),
-                session_options);
+            try {
+                session_ = std::make_shared<Ort::Session>(
+                    env,
+                    reinterpret_cast<const void*>(modelData.constData()),
+                    static_cast<size_t>(modelData.size()),
+                    session_options);
+            } catch (const Ort::Exception& e) {
+                LOG_WARN("Failed to create session with current configuration: {}. Retrying with CPU-only configuration.", e.what());
+                
+                // 重置会话选项，移除所有CUDA相关配置
+                session_options = Ort::SessionOptions{};
+                session_options.SetIntraOpNumThreads(2);
+                session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+                session_options.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
+                session_options.EnableCpuMemArena();
+                session_options.DisableMemPattern();
+                
+                // 重新尝试创建会话（仅使用CPU）
+                session_ = std::make_shared<Ort::Session>(
+                    env,
+                    reinterpret_cast<const void*>(modelData.constData()),
+                    static_cast<size_t>(modelData.size()),
+                    session_options);
+                
+                LOG_INFO("Successfully created session with CPU-only configuration.");
+            }
         } else {
             // 从文件系统加载（保留原有代码的兼容性）
             //LOG_INFO("从文件系统加载眼睛模型: {}", actual_model_path);
@@ -79,22 +161,28 @@ void FaceInference::load_model(const std::string &model_path) {
             //     return;
             // }
 
-            // 创建环境 - 只需要创建一次
-            static Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "ONNXRuntimeDemo");
-
-            // 配置会话选项
-            session_options.SetIntraOpNumThreads(2);
-            session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
-            session_options.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
-            session_options.AddConfigEntry("session.intra_op.allow_spinning", "0");
-            session_options.EnableCpuMemArena();
-            session_options.DisableMemPattern();
-
             // 转换为宽字符路径
             std::wstring wmodel_path = utf8_to_wstring(actual_model_path);
 
             // 创建会话
-            session_ = std::make_shared<Ort::Session>(env, wmodel_path.c_str(), session_options);
+            try {
+                session_ = std::make_shared<Ort::Session>(env, wmodel_path.c_str(), session_options);
+            } catch (const Ort::Exception& e) {
+                LOG_WARN("Failed to create session with current configuration: {}. Retrying with CPU-only configuration.", e.what());
+                
+                // 重置会话选项，移除所有CUDA相关配置
+                session_options = Ort::SessionOptions{};
+                session_options.SetIntraOpNumThreads(2);
+                session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+                session_options.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
+                session_options.EnableCpuMemArena();
+                session_options.DisableMemPattern();
+                
+                // 重新尝试创建会话（仅使用CPU）
+                session_ = std::make_shared<Ort::Session>(env, wmodel_path.c_str(), session_options);
+                
+                LOG_INFO("Successfully created session with CPU-only configuration.");
+            }
         }
 
         io_binding_ = std::make_shared<Ort::IoBinding>(*session_);
