@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.30)
-project(PaperTracker)
+project(PaperTracker LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -28,16 +28,31 @@ endif()
 
 set(CURL_DIR ${CMAKE_SOURCE_DIR}/3rdParty/curl-install/lib/cmake/CURL)
 set(OpenCV_DIR ${CMAKE_SOURCE_DIR}/3rdParty/opencv-mvsc/opencv/build)
-find_package(CUDA)
-if(CUDA_FOUND)
-    message("CUDA found")
-    add_definitions(-DUSE_CUDA)
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -gencode arch=compute_75,code=sm_75")
-    set(ONNXRUNTIME_ROOT ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime-win-x64-1.20.1)
+
+# CUDA configuration
+option(USE_CUDA "Enable CUDA support" ON)
+if(USE_CUDA)
+    enable_language(CUDA)
+    find_package(CUDAToolkit)
+    if(CUDAToolkit_FOUND)
+        message(STATUS "CUDA found. Version: ${CUDAToolkit_VERSION}")
+        message(STATUS "CUDA Toolkit Root: ${CUDAToolkit_ROOT}")
+        message(STATUS "CUDA Libraries: ${CUDAToolkit_LIBRARY_DIR}")
+        add_definitions(-DUSE_CUDA)
+        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -gencode arch=compute_75,code=sm_75")
+        set(ONNXRUNTIME_ROOT ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime-win-x64-gpu-1.22.0)
+        message(STATUS "Using CUDA ONNX Runtime: ${ONNXRUNTIME_ROOT}")
+    else()
+        message(STATUS "CUDA not found, falling back to CPU version")
+        set(ONNXRUNTIME_ROOT ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime-win-x64-1.22.0)
+        message(STATUS "Using CPU ONNX Runtime: ${ONNXRUNTIME_ROOT}")
+    endif()
 else()
-    message("CUDA no found")
-    set(ONNXRUNTIME_ROOT ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime-win-x64-gpu-1.20.1)
-endif ()
+    message(STATUS "CUDA support disabled")
+    set(ONNXRUNTIME_ROOT ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime-win-x64-1.22.0)
+    message(STATUS "Using CPU ONNX Runtime: ${ONNXRUNTIME_ROOT}")
+endif()
+
 find_package(OpenCV CONFIG REQUIRED)
 find_package(CURL CONFIG REQUIRED)
 find_package(Qt6 COMPONENTS Core Gui Widgets Network WebSockets SerialPort REQUIRED)
@@ -121,6 +136,14 @@ target_link_libraries(
         utilities
 )
 
+# Add CUDA support if available
+if(USE_CUDA AND CUDAToolkit_FOUND)
+    target_link_libraries(algorithm PUBLIC CUDA::cudart)
+    # 确保链接CUDA提供者库
+    target_link_libraries(algorithm PUBLIC onnxruntime_providers_cuda)
+    target_link_libraries(algorithm PUBLIC onnxruntime_providers_shared)
+endif()
+
 ############### transfer ################
 add_library(
         transfer
@@ -152,6 +175,12 @@ target_link_libraries(
         Setupapi
         User32
 )
+
+# Add CUDA support for transfer if available
+if(USE_CUDA AND CUDAToolkit_FOUND)
+    target_link_libraries(transfer PUBLIC onnxruntime_providers_cuda)
+    target_link_libraries(transfer PUBLIC onnxruntime_providers_shared)
+endif()
 
 ############### ui ################
 add_library(
@@ -186,6 +215,12 @@ target_link_libraries(
         CURL::libcurl
         utilities
 )
+
+# Add CUDA support for ui if available
+if(USE_CUDA AND CUDAToolkit_FOUND)
+    target_link_libraries(ui PUBLIC onnxruntime_providers_cuda)
+    target_link_libraries(ui PUBLIC onnxruntime_providers_shared)
+endif()
 
 ############### executable ################
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
@@ -227,6 +262,35 @@ target_link_libraries(PaperTracker PRIVATE
         transfer
 )
 
+# Add CUDA support for main executable if available
+if(USE_CUDA AND CUDAToolkit_FOUND)
+    target_link_libraries(PaperTracker PRIVATE onnxruntime_providers_cuda)
+    target_link_libraries(PaperTracker PRIVATE onnxruntime_providers_shared)
+    target_link_libraries(PaperTracker PRIVATE CUDA::cudart)
+    
+    # Copy cuDNN DLLs to the build directory
+    set(CUDNN_ROOT "C:/Program Files/NVIDIA/CUDNN/v9.10")
+    # 根据CUDA版本选择合适的cuDNN二进制文件
+    if(CUDAToolkit_VERSION_MAJOR EQUAL 12)
+        set(CUDNN_BIN_DIR "${CUDNN_ROOT}/bin/12.9")
+    else()
+        set(CUDNN_BIN_DIR "${CUDNN_ROOT}/bin/11.8")
+    endif()
+    
+    message(STATUS "Using cuDNN binaries from: ${CUDNN_BIN_DIR}")
+    
+    # 复制所有必需的cuDNN DLL文件
+    file(GLOB CUDNN_DLLS "${CUDNN_BIN_DIR}/*.dll")
+    foreach(CUDNN_DLL ${CUDNN_DLLS})
+        get_filename_component(DLL_NAME ${CUDNN_DLL} NAME)
+        add_custom_command(TARGET PaperTracker POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CUDNN_DLL}"
+            "$<TARGET_FILE_DIR:PaperTracker>/${DLL_NAME}"
+            COMMENT "Copying ${DLL_NAME} to build directory")
+    endforeach()
+endif()
+
 # install dir model to the same dir as the executable
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/model/  DESTINATION ${CMAKE_BINARY_DIR}/model)
 
@@ -234,10 +298,19 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/opencv-mvsc/opencv/build/x64/vc16
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/curl-install/bin/  DESTINATION ${CMAKE_BINARY_DIR})
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/esptools/  DESTINATION ${CMAKE_BINARY_DIR})
 #install(DIRECTORY "D:/QtMVSC/6.8.2/msvc2022_64/bin/"  DESTINATION ${CMAKE_BINARY_DIR})
-if (CUDA_FOUND)
-    install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime-win-x64-gpu-1.20.1/lib/  DESTINATION ${CMAKE_BINARY_DIR})
+if (USE_CUDA AND CUDAToolkit_FOUND)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime-win-x64-gpu-1.22.0/lib/  DESTINATION ${CMAKE_BINARY_DIR})
+    
+    # Install cuDNN DLLs
+    set(CUDNN_ROOT "C:/Program Files/NVIDIA/CUDNN/v9.10")
+    if(CUDAToolkit_VERSION_MAJOR EQUAL 12)
+        set(CUDNN_BIN_DIR "${CUDNN_ROOT}/bin/12.9")
+    else()
+        set(CUDNN_BIN_DIR "${CUDNN_ROOT}/bin/11.8")
+    endif()
+    install(DIRECTORY ${CUDNN_BIN_DIR}/ DESTINATION ${CMAKE_BINARY_DIR} FILES_MATCHING PATTERN "*.dll")
 else ()
-    install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime-win-x64-1.20.1/lib/  DESTINATION ${CMAKE_BINARY_DIR})
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime-win-x64-1.22.0/lib/  DESTINATION ${CMAKE_BINARY_DIR})
 endif ()
 # install resources
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})
