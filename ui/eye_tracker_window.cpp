@@ -13,6 +13,125 @@
 #include <QInputDialog>
 #include "tools.hpp"
 #include <algorithm>
+// 生成测试数据的函数
+struct TestEyeData {
+    float eyeLidLeft;
+    float eyeLidRight;
+    float eyeLeftX;
+    float eyeLeftY;
+    float eyeRightX;
+    float eyeRightY;
+    float pupilDilation;
+};
+
+// 基于官方参数文档的修复版本
+TestEyeData generateTestData(double time) {
+    TestEyeData data;
+
+    // 将20秒分为不同的测试阶段
+    double cycle_time = fmod(time, 20.0);
+
+    if (cycle_time < 5.0) {
+        // 阶段1 (0-5秒): 测试X轴完整范围 (-1.0 到 1.0)
+        double progress = cycle_time / 5.0;
+
+        // 重要修复：眼球位置应该是 -1.0 到 1.0，不是 0.0 到 1.0
+        double eyeX = -1.0 + (progress * 2.0);  // 从-1.0到1.0
+
+        data.eyeLeftX = static_cast<float>(eyeX);
+        data.eyeLeftY = 0.0f;                    // Y轴保持中心（0.0，不是0.5）
+        data.eyeRightX = static_cast<float>(eyeX);
+        data.eyeRightY = 0.0f;
+
+        // 修复：眼睑正常范围是0.0-0.75，不发送1.0避免睁大效果
+        data.eyeLidLeft = 0.75f;                 // 正常最大开度
+        data.eyeLidRight = 0.75f;
+        data.pupilDilation = 0.5f;
+
+        static int x_debug_count = 0;
+        if (x_debug_count % 60 == 0) {
+            LOG_INFO("X轴测试: progress={:.3f}, eyeX={:.3f}, 预期: 从-1.0（最左）移动到1.0（最右）", progress, eyeX);
+        }
+        x_debug_count++;
+
+    } else if (cycle_time < 10.0) {
+        // 阶段2 (5-10秒): 测试Y轴完整范围 (-1.0 到 1.0)
+        double progress = (cycle_time - 5.0) / 5.0;
+
+        // 重要修复：Y轴也应该是 -1.0 到 1.0
+        double eyeY = -1.0 + (progress * 2.0);  // 从-1.0（向下看）到1.0（向上看）
+
+        data.eyeLeftX = 0.0f;                    // X轴保持中心
+        data.eyeLeftY = static_cast<float>(eyeY);
+        data.eyeRightX = 0.0f;
+        data.eyeRightY = static_cast<float>(eyeY);
+
+        data.eyeLidLeft = 0.75f;                 // 保持正常开度
+        data.eyeLidRight = 0.75f;
+        data.pupilDilation = 0.5f;
+
+        static int y_debug_count = 0;
+        if (y_debug_count % 60 == 0) {
+            LOG_INFO("Y轴测试: progress={:.3f}, eyeY={:.3f}, 预期: 从-1.0（向下）移动到1.0（向上）", progress, eyeY);
+        }
+        y_debug_count++;
+
+    } else if (cycle_time < 15.0) {
+        // 阶段3 (10-15秒): 测试眼睑范围 (0.0 到 0.75，然后0.75到1.0)
+        double progress = (cycle_time - 10.0) / 5.0;
+
+        data.eyeLeftX = 0.0f;                    // 眼球保持中心
+        data.eyeLeftY = 0.0f;
+        data.eyeRightX = 0.0f;
+        data.eyeRightY = 0.0f;
+
+        // 修复：测试完整的眼睑范围，包括睁大效果
+        float eyeLidValue;
+        if (progress < 0.75) {
+            // 前75%时间：测试正常开合度 (0.0 到 0.75)
+            eyeLidValue = static_cast<float>(progress);
+        } else {
+            // 后25%时间：测试睁大效果 (0.75 到 1.0)
+            float widenProgress = (progress - 0.75f) / 0.25f;
+            eyeLidValue = 0.75f + (widenProgress * 0.25f);
+        }
+
+        data.eyeLidLeft = eyeLidValue;
+        data.eyeLidRight = eyeLidValue;
+        data.pupilDilation = 0.5f;
+
+        static int lid_debug_count = 0;
+        if (lid_debug_count % 60 == 0) {
+            if (progress < 0.75) {
+                LOG_INFO("眼睑测试: progress={:.3f}, eyeLid={:.3f}, 阶段: 正常开合度（0.0闭合→0.75张开）", progress, eyeLidValue);
+            } else {
+                LOG_INFO("眼睑测试: progress={:.3f}, eyeLid={:.3f}, 阶段: 睁大效果（0.75→1.0睁大）", progress, eyeLidValue);
+            }
+        }
+        lid_debug_count++;
+
+    } else {
+        // 阶段4 (15-20秒): 测试瞳孔扩张范围 (0.0 到 1.0)
+        double progress = (cycle_time - 15.0) / 5.0;
+
+        data.eyeLeftX = 0.0f;                    // 眼球保持中心
+        data.eyeLeftY = 0.0f;
+        data.eyeRightX = 0.0f;
+        data.eyeRightY = 0.0f;
+
+        data.eyeLidLeft = 0.75f;                 // 眼睛保持正常张开
+        data.eyeLidRight = 0.75f;
+        data.pupilDilation = static_cast<float>(progress); // 0.0到1.0
+
+        static int pupil_debug_count = 0;
+        if (pupil_debug_count % 60 == 0) {
+            LOG_INFO("瞳孔测试: progress={:.3f}, pupil={:.3f}, 预期: 从0.0（收缩）到1.0（扩张）", progress, data.pupilDilation);
+        }
+        pupil_debug_count++;
+    }
+
+    return data;
+}
 PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
     QWidget(parent) {
     if (instance == nullptr)
@@ -35,7 +154,9 @@ PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
     eyeSyncComboBox->addItem("左眼眼皮控制双眼眼皮");
     eyeSyncComboBox->addItem("右眼眼皮控制双眼眼皮");
     eyeSyncComboBox->setObjectName("eyeSyncComboBox");
-
+    for (int i = 0; i < EYE_NUM; i++) {
+        compensated_eye_openness[i] = 0.0;
+    }
 
     // 连接信号槽
     connect(eyeSyncComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
@@ -688,7 +809,35 @@ void PaperEyeTrackerWindow::create_sub_thread() {
     while (is_running())
     {
         auto start_time = std::chrono::high_resolution_clock::now();
+        if (0) {
+                test_time += 1.0 / 60.0;  // 假设60FPS，每帧增加1/60秒
 
+                TestEyeData testData = generateTestData(test_time);
+
+                // 发送测试数据
+                osc_manager->sendModelOutput({testData.eyeLidLeft}, {"/avatar/parameters/v2/EyeLidLeft"});
+                osc_manager->sendModelOutput({testData.eyeLidRight}, {"/avatar/parameters/v2/EyeLidRight"});
+                osc_manager->sendModelOutput({testData.eyeLeftX}, {"/avatar/parameters/v2/EyeLeftX"});
+                osc_manager->sendModelOutput({testData.eyeLeftY}, {"/avatar/parameters/v2/EyeLeftY"});
+                osc_manager->sendModelOutput({testData.eyeRightX}, {"/avatar/parameters/v2/EyeRightX"});
+                osc_manager->sendModelOutput({testData.eyeRightY}, {"/avatar/parameters/v2/EyeRightY"});
+                osc_manager->sendModelOutput({testData.pupilDilation}, {"/avatar/parameters/v2/PupilDilation"});
+
+                // 日志输出（每秒输出一次）
+                static int log_counter = 0;
+                if (log_counter % 60 == 0) {
+                    LOG_INFO("测试模式 - 时间:{:.2f}s, 眼球位置:({:.2f},{:.2f}), 眼睑:{:.2f}, 瞳孔:{:.2f}",
+                             test_time, testData.eyeLeftX, testData.eyeLeftY, testData.eyeLidLeft, testData.pupilDilation);
+                }
+                log_counter++;
+
+                // 控制帧率
+                auto end_time = std::chrono::high_resolution_clock::now();
+                auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+                int delay_ms = max(0, frame_interval_ms - static_cast<int>(elapsed));
+                std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
+                continue;  // 跳过后面的正常处理
+            }
         if (is_calibrating) {
             // 发送固定的居中(0,0)位置和0.75开度值
             // 左眼眼睑值固定为0.75
@@ -835,14 +984,14 @@ void PaperEyeTrackerWindow::create_sub_thread() {
                         if (xl > 0)
                             out_x = -abs(max(0.0, min(1.0, xl)));
                     }
-                    float compensation_coefficient_y = 0.8, compensation_max = 0.65;
-                    // 向下看补偿：当眼睛向下看时(Y值为负)，增加睁眼值
-                    if (out_y < 0) {
-                        // 根据向下看的程度逐渐增加补偿
-                        double down_compensation = min(-out_y * compensation_coefficient_y, compensation_max);
-                        // 确保补偿后的开合度不超过最大值0.75
-                        eye_data[i][0] = min(eye_data[i][0] + down_compensation, 1);
-                    }
+                    // float compensation_coefficient_y = 0.8, compensation_max = 0.65;
+                    // // 向下看补偿：当眼睛向下看时(Y值为负)，增加睁眼值
+                    // if (out_y < 0) {
+                    //     // 根据向下看的程度逐渐增加补偿
+                    //     double down_compensation = min(-out_y * compensation_coefficient_y, compensation_max);
+                    //     // 确保补偿后的开合度不超过最大值0.75
+                    //     eye_data[i][0] = min(eye_data[i][0] + down_compensation, 1);
+                    // }
 
                     // 添加水平方向补偿：左眼向左看或右眼向右看时增加睁眼值
                     float compensation_coefficient_x = 0.4, compensation_max_x = 0.55; // 可以根据需要调整这些参数
@@ -884,6 +1033,12 @@ void PaperEyeTrackerWindow::create_sub_thread() {
                 eye_data[RIGHT_TAG][2] = eye_data[LEFT_TAG][2]; // Y轴
                 eye_data[RIGHT_TAG][3] = eye_data[LEFT_TAG][3]; // 瞳孔扩张
                 eye_active[RIGHT_TAG] = true;
+
+                // 更新补偿后的值
+                {
+                    std::lock_guard<std::mutex> lock(compensated_data_mutex[RIGHT_TAG]);
+                    compensated_eye_openness[RIGHT_TAG] = eye_data[RIGHT_TAG][0];
+                }
             }
             else if (!eye_active[LEFT_TAG] && eye_active[RIGHT_TAG]) {
                 // 左眼没有数据，使用右眼数据
@@ -892,32 +1047,115 @@ void PaperEyeTrackerWindow::create_sub_thread() {
                 eye_data[LEFT_TAG][2] = eye_data[RIGHT_TAG][2]; // Y轴
                 eye_data[LEFT_TAG][3] = eye_data[RIGHT_TAG][3]; // 瞳孔扩张
                 eye_active[LEFT_TAG] = true;
+
+                // 更新补偿后的值
+                {
+                    std::lock_guard<std::mutex> lock(compensated_data_mutex[LEFT_TAG]);
+                    compensated_eye_openness[LEFT_TAG] = eye_data[LEFT_TAG][0];
+                }
             }
 
-            // 第三步：处理眼睛闭眼值平均化，并检测wink状态
-            if (eye_active[LEFT_TAG] && eye_active[RIGHT_TAG])
-            {
+            // *** 新增：第二点五步：眼睛开合度智能平均化处理 ***
+            if (eye_active[LEFT_TAG] && eye_active[RIGHT_TAG]) {
+                // 当两只眼睛都有数据时，进行智能平均化处理
+
+                // 配置参数
+                const double averaging_threshold = 0.25; // 差异阈值，超过此值则不进行平均化
+                const double min_averaging_ratio = 0.1;  // 最小平均化比例
+                const double max_averaging_ratio = 0.8;  // 最大平均化比例
+
+                // 计算两眼开合度差异
+                double left_openness = eye_data[LEFT_TAG][0];
+                double right_openness = eye_data[RIGHT_TAG][0];
+                double openness_diff = std::abs(left_openness - right_openness);
+
+                // 计算平均化比例：差异越小，平均化程度越高
+                double averaging_ratio;
+                if (openness_diff >= averaging_threshold) {
+                    // 差异过大，不进行平均化（或使用最小平均化比例）
+                    averaging_ratio = min_averaging_ratio;
+                } else {
+                    // 根据差异大小线性插值计算平均化比例
+                    // 差异为0时：最大平均化比例
+                    // 差异为threshold时：最小平均化比例
+                    averaging_ratio = max_averaging_ratio -
+                                     (openness_diff / averaging_threshold) *
+                                     (max_averaging_ratio - min_averaging_ratio);
+
+                    // 确保在有效范围内
+                    averaging_ratio = max(min_averaging_ratio,
+                                             min(max_averaging_ratio, averaging_ratio));
+                }
+
+                // 计算平均值
+                double average_openness = (left_openness + right_openness) / 2.0;
+
+                // 应用平滑平均化：原值 + (平均值 - 原值) * 平均化比例
+                double new_left_openness = left_openness + (average_openness - left_openness) * averaging_ratio;
+                double new_right_openness = right_openness + (average_openness - right_openness) * averaging_ratio;
+
+                // 更新开合度值
+                eye_data[LEFT_TAG][0] = new_left_openness;
+                eye_data[RIGHT_TAG][0] = new_right_openness;
+
+                // 更新补偿后的值以供UI显示
+                {
+                    std::lock_guard<std::mutex> lock_left(compensated_data_mutex[LEFT_TAG]);
+                    std::lock_guard<std::mutex> lock_right(compensated_data_mutex[RIGHT_TAG]);
+                    compensated_eye_openness[LEFT_TAG] = new_left_openness;
+                    compensated_eye_openness[RIGHT_TAG] = new_right_openness;
+                }
+
+                // 调试日志（每60帧输出一次，避免日志过多）
+                static int averaging_debug_counter = 0;
+                if (averaging_debug_counter % 60 == 0) {
+                    if (openness_diff >= averaging_threshold) {
+                        LOG_DEBUG("眼睛开合度：差异过大({:.3f})，不进行平均化。左眼:{:.3f} 右眼:{:.3f}",
+                                 openness_diff, left_openness, right_openness);
+                    } else {
+                        LOG_DEBUG("眼睛开合度平均化：差异:{:.3f} 比例:{:.2f} 原值(L:{:.3f} R:{:.3f}) 新值(L:{:.3f} R:{:.3f})",
+                                 openness_diff, averaging_ratio,
+                                 left_openness, right_openness,
+                                 new_left_openness, new_right_openness);
+                    }
+                }
+                averaging_debug_counter++;
+            }
+
+            // 继续原有的第三步：处理眼睛闭眼值平均化，并检测wink状态
+            // 注意：这里的wink检测现在使用的是经过智能平均化处理后的开合度值
+            if (eye_active[LEFT_TAG] && eye_active[RIGHT_TAG]) {
                 // 根据同步模式处理
-            if (eyeSyncMode == LEFT_CONTROLS) {
-                // 左眼控制双眼 - 直接复制左眼开合度到右眼
-                eye_data[RIGHT_TAG][0] = eye_data[LEFT_TAG][0];
-            }
-            else if (eyeSyncMode == RIGHT_CONTROLS) {
-                // 右眼控制双眼 - 直接复制右眼开合度到左眼
-                eye_data[LEFT_TAG][0] = eye_data[RIGHT_TAG][0];
-            }
-            else {
-                // 两只眼睛都有数据时
-                // 检测是否有眨眼动作 - 如果一只眼睛的开合度明显小于另一只，则视为眨眼
-                // 检测是否有眨眼动作 - 如果一只眼睛的开合度明显小于另一只，则视为眨眼
-                    const double wink_threshold = 0.3; // 眨眼阈值，可调整
-                    const double wink_enhancement = 0.2; // Wink增强系数，闭眼更闭，开眼更开
+                if (eyeSyncMode == LEFT_CONTROLS) {
+                    // 左眼控制双眼 - 直接复制左眼开合度到右眼
+                    eye_data[RIGHT_TAG][0] = eye_data[LEFT_TAG][0];
 
-                    // 左眼和右眼的开合度差距
+                    // 更新补偿后的值
+                    {
+                        std::lock_guard<std::mutex> lock_right(compensated_data_mutex[RIGHT_TAG]);
+                        compensated_eye_openness[RIGHT_TAG] = eye_data[RIGHT_TAG][0];
+                    }
+                }
+                else if (eyeSyncMode == RIGHT_CONTROLS) {
+                    // 右眼控制双眼 - 直接复制右眼开合度到左眼
+                    eye_data[LEFT_TAG][0] = eye_data[RIGHT_TAG][0];
+
+                    // 更新补偿后的值
+                    {
+                        std::lock_guard<std::mutex> lock_left(compensated_data_mutex[LEFT_TAG]);
+                        compensated_eye_openness[LEFT_TAG] = eye_data[LEFT_TAG][0];
+                    }
+                }
+                else {
+                    // 在独立控制模式下，继续检测wink状态
+                    const double wink_threshold = 0.3; // 眨眼阈值，可调整
+                    const double wink_enhancement = 0.0; // Wink增强系数，闭眼更闭，开眼更开
+
+                    // 左眼和右眼的开合度差距（现在使用经过平均化处理的值）
                     double eye_openness_diff = eye_data[LEFT_TAG][0] - eye_data[RIGHT_TAG][0];
 
                     if (std::abs(eye_openness_diff) >= wink_threshold) {
-                        // 存在wink状态
+                        // 存在wink状态 - 在wink状态下，不应该进行平均化
                         if (eye_openness_diff > 0) {
                             // 左眼更开，右眼在眨眼
                             // 使用左眼数据覆盖右眼的xy坐标
@@ -937,14 +1175,17 @@ void PaperEyeTrackerWindow::create_sub_thread() {
                             eye_data[RIGHT_TAG][0] = min(1.0, eye_data[RIGHT_TAG][0] + wink_enhancement); // 右眼更开
                             eye_data[LEFT_TAG][0] = max(0.0, eye_data[LEFT_TAG][0] - wink_enhancement); // 左眼更闭
                         }
-                    } else {
-                        // 没有wink，两只眼睛都正常打开
-                        // 取平均值用于眼睛开合度，减轻抖动
-                        double avg_openness = (eye_data[LEFT_TAG][0] + eye_data[RIGHT_TAG][0]) / 2.0;
-                        eye_data[LEFT_TAG][0] = avg_openness;
-                        eye_data[RIGHT_TAG][0] = avg_openness;
+
+                        // 在wink状态下更新补偿后的值
+                        {
+                            std::lock_guard<std::mutex> lock_left(compensated_data_mutex[LEFT_TAG]);
+                            std::lock_guard<std::mutex> lock_right(compensated_data_mutex[RIGHT_TAG]);
+                            compensated_eye_openness[LEFT_TAG] = eye_data[LEFT_TAG][0];
+                            compensated_eye_openness[RIGHT_TAG] = eye_data[RIGHT_TAG][0];
+                        }
                     }
-            }
+                    // 如果不是wink状态，则保持之前智能平均化的结果
+                }
             }
 
             // 第四步：仅在非wink状态下，基于X轴视线方向的权重计算
@@ -1827,6 +2068,9 @@ void PaperEyeTrackerWindow::updateEyePosition(int eyeIndex)
             eyeY = max(0.0, min(1.0, eyeY));
         }
 
+        // *** 修改部分：使用补偿后的开合度值进行UI显示 ***
+        // 删除原有的校准计算代码：
+        /*
         // 计算眼睛开合度 (0.0-1.0)
         // 使用校准后的值计算开合度百分比
         double fullyOpen = eye_fully_open[eyeIndex];
@@ -1841,24 +2085,34 @@ void PaperEyeTrackerWindow::updateEyePosition(int eyeIndex)
         }
 
         opennessPct = max(0.0, min(1.0, opennessPct));
+        */
+
+        // 新的实现：直接使用补偿后的值
+        {
+            std::lock_guard<std::mutex> comp_lock(compensated_data_mutex[eyeIndex]);
+            opennessPct = compensated_eye_openness[eyeIndex];
+        }
+
+        // 确保范围在0-1之间（虽然补偿处理已经限制了，但这里再次确保）
+        opennessPct = max(0.0, min(1.0, opennessPct));
     }
 
     // 更新 UI 显示 (线程安全的方式)
     QMetaObject::invokeMethod(this, [this, eyeIndex, eyeX, eyeY, opennessPct]() {
-    if (eyeIndex == LEFT_TAG) {
-        leftEyePositionWidget->setPosition(eyeX, eyeY);
-        leftEyePositionWidget->setOpenness(opennessPct);
-        if (ui.LeftEyeOpennessBar) {
-            ui.LeftEyeOpennessBar->setValue(static_cast<int>(opennessPct * 100));
+        if (eyeIndex == LEFT_TAG) {
+            leftEyePositionWidget->setPosition(eyeX, eyeY);
+            leftEyePositionWidget->setOpenness(opennessPct);
+            if (ui.LeftEyeOpennessBar) {
+                ui.LeftEyeOpennessBar->setValue(static_cast<int>(opennessPct * 100));
+            }
+        } else {
+            rightEyePositionWidget->setPosition(eyeX, eyeY);
+            rightEyePositionWidget->setOpenness(opennessPct);
+            if (ui.RightEyeOpennessBar) {
+                ui.RightEyeOpennessBar->setValue(static_cast<int>(opennessPct * 100));
+            }
         }
-    } else {
-        rightEyePositionWidget->setPosition(eyeX, eyeY);
-        rightEyePositionWidget->setOpenness(opennessPct);
-        if (ui.RightEyeOpennessBar) {
-            ui.RightEyeOpennessBar->setValue(static_cast<int>(opennessPct * 100));
-        }
-    }
-}, Qt::QueuedConnection);
+    }, Qt::QueuedConnection);
 }
 void PaperEyeTrackerWindow::calibrateEyeOpen() {
     // 检查哪些眼睛连接了
