@@ -22,7 +22,7 @@ endif ()
 if (EXISTS "D:/QtNew/6.8.2/msvc2022_64")
     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "D:/QtNew/6.8.2/msvc2022_64")
 else ()
-    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "E:/Qt/6.8.2/msvc2022_64")
+    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "C:/Qt/6.9.1/msvc2022_64")
 endif ()
 
 set(CURL_DIR ${CMAKE_SOURCE_DIR}/3rdParty/curl-install/lib/cmake/CURL)
@@ -162,6 +162,8 @@ add_library(
         ui/main_window.ui
         ui/eye_tracker_window.cpp
         ui/eye_tracker_window.ui
+        ui/translator_manager.cpp
+        ui/include/translator_manager.h
 )
 
 target_include_directories(
@@ -240,6 +242,7 @@ else ()
 endif ()
 # install resources
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/translations DESTINATION ${CMAKE_BINARY_DIR})
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(DEBUG_SUFFIX)

@@ -30,7 +30,9 @@
 #include <QCoreApplication>
 #include <roi_event.hpp>
 #include <QInputDialog>
-
+#include <QBoxLayout>
+#include <QFormLayout>
+#include <QGroupBox>
 PaperFaceTrackerWindow::PaperFaceTrackerWindow(QWidget *parent)
     : QWidget(parent)
 {
@@ -40,21 +42,15 @@ PaperFaceTrackerWindow::PaperFaceTrackerWindow(QWidget *parent)
         throw std::exception("当前已经打开了面捕窗口，请不要重复打开");
     // 基本UI设置
     setFixedSize(848, 538);
-    ui.setupUi(this);
+    InitUi();
+    InitLayout();
     setWindowFlags(windowFlags() | Qt::WindowMinimizeButtonHint);
-    // 创建超链接标签
-    QLabel* tutorialLink = new QLabel(ui.page);
-    tutorialLink->setGeometry(QRect(550, 250, 200, 41)); // 增加宽度以适应更大的字体
-    tutorialLink->setText("<a href='https://fcnk6r4c64fa.feishu.cn/wiki/VSlnw4Zr0iVzXFkvT8TcbQFMn7c' style='color: #0066cc; font-size: 14pt; font-weight: bold;'>面捕调整教程</a>");
-    tutorialLink->setOpenExternalLinks(true); // 允许打开外部链接
-    tutorialLink->setTextFormat(Qt::RichText); // 使用富文本格式显示
-    tutorialLink->setStyleSheet("background-color: #f0f0f0; padding: 5px; border-radius: 5px;"); // 添加背景色和内边距
-    ui.LogText->setMaximumBlockCount(200);
-    append_log_window(ui.LogText);
+    LogText->setMaximumBlockCount(200);
+    append_log_window(LogText);
     LOG_INFO("系统初始化中...");
     // 初始化串口连接状态
-    ui.SerialConnectLabel->setText(tr("有线模式未连接"));
-    ui.WifiConnectLabel->setText(tr("无线模式未连接"));
+    SerialConnectLabel->setText(QApplication::translate("PaperTrackerMainWindow", "有线模式未连接"));
+    WifiConnectLabel->setText(tr("无线模式未连接"));
     // 初始化页面导航
     bound_pages();
 
@@ -63,11 +59,11 @@ PaperFaceTrackerWindow::PaperFaceTrackerWindow(QWidget *parent)
     // 连接信号和槽
     connect_callbacks();
     // 添加输入框焦点事件处理
-    ui.SSIDText->installEventFilter(this);
-    ui.PasswordText->installEventFilter(this);
+    SSIDText->installEventFilter(this);
+    PasswordText->installEventFilter(this);
     // 允许Tab键在输入框之间跳转
-    ui.SSIDText->setTabChangesFocus(true);
-    ui.PasswordText->setTabChangesFocus(true);
+    SSIDText->setTabChangesFocus(true);
+    PasswordText->setTabChangesFocus(true);
     // 清除所有控件的初始焦点，确保没有文本框自动获得焦点
     setFocus();
     config_writer = std::make_shared<ConfigWriter>("./config.json");
@@ -114,9 +110,9 @@ PaperFaceTrackerWindow::PaperFaceTrackerWindow(QWidget *parent)
         // 更新 roi_rect
         roi_rect.is_roi_end = isEnd;
         roi_rect = Rect (x, y, width, height);
-    },ui.ImageLabel);
-    ui.ImageLabel->installEventFilter(roiFilter);
-    ui.ImageLabelCal->installEventFilter(roiFilter);
+    },ImageLabel);
+    ImageLabel->installEventFilter(roiFilter);
+    ImageLabelCal->installEventFilter(roiFilter);
     inference = std::make_shared<FaceInference>();
     osc_manager = std::make_shared<OscManager>();
     set_config();
@@ -149,12 +145,12 @@ PaperFaceTrackerWindow::PaperFaceTrackerWindow(QWidget *parent)
             if (version != 1)
             {
                 static bool version_warning = false;
-                QString version_str = version == 2 ? "左眼追" : "右眼追";
+                QString version_str = version == 2 ? QApplication::translate("PaperTrackerMainWindow", "左眼追") : QApplication::translate("PaperTrackerMainWindow", "右眼追");
                 if (!version_warning)
                 {
                     QMessageBox msgBox;
                     msgBox.setWindowIcon(this->windowIcon());
-                    msgBox.setText(tr("检测到") + version_str + tr("设备，请打开眼追界面进行设置"));
+                    msgBox.setText(QApplication::translate("PaperTrackerMainWindow", "检测到") + version_str + QApplication::translate("PaperTrackerMainWindow", "设备，请打开眼追界面进行设置"));
                     msgBox.exec();
                     version_warning = true;
                 }
@@ -201,7 +197,7 @@ PaperFaceTrackerWindow::PaperFaceTrackerWindow(QWidget *parent)
         {
             QMessageBox msgBox;
             msgBox.setWindowIcon(this->windowIcon());
-            msgBox.setText(tr("未找到配置文件信息，请将面捕通过数据线连接到电脑进行首次配置"));
+            msgBox.setText(QApplication::translate("PaperTrackerMainWindow", "未找到配置文件信息，请将面捕通过数据线连接到电脑进行首次配置"));
             msgBox.exec();
         }
     } else
@@ -211,7 +207,7 @@ PaperFaceTrackerWindow::PaperFaceTrackerWindow(QWidget *parent)
     }
     // 读取配置文件
     set_config();
-    setupKalmanFilterControls();
+    // setupKalmanFilterControls();
     create_sub_threads();
     // 创建自动保存配置的定时器
     auto_save_timer = new QTimer(this);
@@ -221,6 +217,435 @@ PaperFaceTrackerWindow::PaperFaceTrackerWindow(QWidget *parent)
         LOG_DEBUG("面捕配置已自动保存");
     });
     auto_save_timer->start(10000); // 10000毫秒 = 10秒
+    retranslateUI();
+    connect(&TranslatorManager::instance(), &TranslatorManager::languageSwitched,
+        this, &PaperFaceTrackerWindow::retranslateUI);
+}
+
+void PaperFaceTrackerWindow::InitUi() {
+    // 仅保留控件创建和基本属性设置
+    this->setMinimumSize(839, 561);
+    this->setStyleSheet(QString::fromUtf8(""));
+
+    // 初始化 QStackedWidget 和页面
+    stackedWidget = new QStackedWidget(this);
+    stackedWidget->setObjectName("stackedWidget");
+
+    page = new QWidget(this);
+    page->setObjectName("page");
+    page_2 = new QWidget(this);
+    page_2->setObjectName("page_2");
+
+    // 初始化主页面控件
+    ImageLabel = new QLabel(page);
+    ImageLabel->setObjectName("ImageLabel");
+    ImageLabel->setTextInteractionFlags(Qt::NoTextInteraction);
+    SSIDText = new QPlainTextEdit(page);
+    SSIDText->setObjectName("SSIDText");
+    SSIDText->setFixedHeight(40);
+    PasswordText = new QPlainTextEdit(page);
+    PasswordText->setObjectName("PasswordText");
+    PasswordText->setFixedHeight(40);
+    BrightnessBar = new QScrollBar(page);
+    BrightnessBar->setObjectName("BrightnessBar");
+    BrightnessBar->setOrientation(Qt::Horizontal);
+    BrightnessBar->setFixedHeight(20);
+    label = new QLabel(page);
+    label->setObjectName("label");
+    label->setFixedHeight(20);
+    wifi_send_Button = new QPushButton(page);
+    wifi_send_Button->setObjectName("wifi_send_Button");
+    wifi_send_Button->setFixedHeight(92);
+    FlashFirmwareButton = new QPushButton(page);
+    FlashFirmwareButton->setObjectName("FlashFirmwareButton");
+    FlashFirmwareButton->setFixedHeight(40);
+    LogText = new QPlainTextEdit(page);
+    LogText->setObjectName("LogText");
+    LogText->setReadOnly(true);
+    label_2 = new QLabel(page);
+    label_2->setObjectName("label_2");
+    textEdit = new QTextEdit(page);
+    textEdit->setObjectName("textEdit");
+    textEdit->setReadOnly(true);
+    textEdit->setFixedHeight(40);
+
+    label_16 = new QLabel(page);
+    label_16->setObjectName("label_16");
+    label_16->setFixedHeight(30);
+    restart_Button = new QPushButton(page);
+    restart_Button->setObjectName("restart_Button");
+    restart_Button->setFixedHeight(40);
+    label_17 = new QLabel(page);
+    label_17->setObjectName("label_17");
+    label_17->setFixedHeight(20);
+    RotateImageBar = new QScrollBar(page);
+    RotateImageBar->setObjectName("RotateImageBar");
+    RotateImageBar->setOrientation(Qt::Horizontal);
+    RotateImageBar->setFixedHeight(20);
+    UseFilterBox = new QCheckBox(page);
+    UseFilterBox->setObjectName("UseFilterBox");
+    UseFilterBox->setFixedHeight(20);
+    EnergyModeBox = new QComboBox(page);
+    EnergyModeBox->setObjectName("EnergyModeBox");
+    EnergyModeBox->setFixedHeight(20);
+    label_18 = new QLabel(page);
+    label_18->setObjectName("label_18");
+    label_18->setFixedHeight(20);
+    ShowSerialDataButton = new QPushButton(page);
+    ShowSerialDataButton->setObjectName("ShowSerialDataButton");
+
+    // 创建滚动区域并设置内容容器
+    scrollArea = new QScrollArea(page_2);
+    scrollArea->setMaximumWidth(500);
+    scrollArea->setObjectName("scrollArea");
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding); // 允许扩展
+
+    // 初始化内容容器
+    scrollAreaWidgetContents = new QWidget();
+    scrollAreaWidgetContents->setMaximumWidth(600);
+    scrollAreaWidgetContents->setObjectName("scrollAreaWidgetContents");
+    scrollAreaWidgetContents->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding); // 允许扩展
+    scrollArea->setWidget(scrollAreaWidgetContents);
+
+    // 初始化校准页面参数名称
+    label_5 = new QLabel(scrollAreaWidgetContents);
+    label_6 = new QLabel(scrollAreaWidgetContents);
+    label_7 = new QLabel(scrollAreaWidgetContents);
+    label_8 = new QLabel(scrollAreaWidgetContents);
+    label_9 = new QLabel(scrollAreaWidgetContents);
+    label_10 = new QLabel(scrollAreaWidgetContents);
+    label_11 = new QLabel(scrollAreaWidgetContents);
+    label_12 = new QLabel(scrollAreaWidgetContents);
+    label_13 = new QLabel(scrollAreaWidgetContents);
+    label_14 = new QLabel(scrollAreaWidgetContents);
+    label_15 = new QLabel(scrollAreaWidgetContents);
+    label_31 = new QLabel(scrollAreaWidgetContents);
+    label_mouthClose = new QLabel(scrollAreaWidgetContents);
+    label_mouthFunnel = new QLabel(scrollAreaWidgetContents);
+    label_mouthPucker = new QLabel(scrollAreaWidgetContents);
+    label_mouthRollLower = new QLabel(scrollAreaWidgetContents);
+    label_mouthRollUpper = new QLabel(scrollAreaWidgetContents);
+    label_mouthShrugLower = new QLabel(scrollAreaWidgetContents);
+    label_mouthShrugUpper = new QLabel(scrollAreaWidgetContents);
+
+    // 校准页面参数控件
+    CheekPuffLeftOffset = new QLineEdit(scrollAreaWidgetContents);
+    CheekPuffRightOffset = new QLineEdit(scrollAreaWidgetContents);
+    JawOpenOffset = new QLineEdit(scrollAreaWidgetContents);
+    TongueOutOffset = new QLineEdit(scrollAreaWidgetContents);
+    MouthCloseOffset = new QLineEdit(scrollAreaWidgetContents);
+    MouthFunnelOffset = new QLineEdit(scrollAreaWidgetContents);
+    MouthPuckerOffset = new QLineEdit(scrollAreaWidgetContents);
+    MouthRollUpperOffset = new QLineEdit(scrollAreaWidgetContents);
+    MouthRollLowerOffset = new QLineEdit(scrollAreaWidgetContents);
+    MouthShrugUpperOffset = new QLineEdit(scrollAreaWidgetContents);
+    MouthShrugLowerOffset = new QLineEdit(scrollAreaWidgetContents);
+
+    // 滑动条控件
+    CheekPuffLeftBar = new QScrollBar(scrollAreaWidgetContents);
+    CheekPuffRightBar = new QScrollBar(scrollAreaWidgetContents);
+    JawOpenBar = new QScrollBar(scrollAreaWidgetContents);
+    JawLeftBar = new QScrollBar(scrollAreaWidgetContents);
+    MouthLeftBar = new QScrollBar(scrollAreaWidgetContents);
+    JawRightBar = new QScrollBar(scrollAreaWidgetContents);
+    TongueOutBar = new QScrollBar(scrollAreaWidgetContents);
+    MouthRightBar = new QScrollBar(scrollAreaWidgetContents);
+    TongueDownBar = new QScrollBar(scrollAreaWidgetContents);
+    TongueUpBar = new QScrollBar(scrollAreaWidgetContents);
+    TongueRightBar = new QScrollBar(scrollAreaWidgetContents);
+    TongueLeftBar = new QScrollBar(scrollAreaWidgetContents);
+    MouthCloseBar = new QScrollBar(scrollAreaWidgetContents);
+    MouthFunnelBar = new QScrollBar(scrollAreaWidgetContents);
+    MouthPuckerBar = new QScrollBar(scrollAreaWidgetContents);
+    MouthRollUpperBar = new QScrollBar(scrollAreaWidgetContents);
+    MouthRollLowerBar = new QScrollBar(scrollAreaWidgetContents);
+    MouthShrugUpperBar = new QScrollBar(scrollAreaWidgetContents);
+    MouthShrugLowerBar = new QScrollBar(scrollAreaWidgetContents);
+
+    // 进度条控件
+    CheekPullLeftValue = new QProgressBar(scrollAreaWidgetContents);
+    CheekPullRightValue = new QProgressBar(scrollAreaWidgetContents);
+    JawOpenValue = new QProgressBar(scrollAreaWidgetContents);
+    JawLeftValue = new QProgressBar(scrollAreaWidgetContents);
+    MouthLeftValue = new QProgressBar(scrollAreaWidgetContents);
+    JawRightValue = new QProgressBar(scrollAreaWidgetContents);
+    TongueOutValue = new QProgressBar(scrollAreaWidgetContents);
+    MouthRightValue = new QProgressBar(scrollAreaWidgetContents);
+    TongueDownValue = new QProgressBar(scrollAreaWidgetContents);
+    TongueUpValue = new QProgressBar(scrollAreaWidgetContents);
+    TongueRightValue = new QProgressBar(scrollAreaWidgetContents);
+    TongueLeftValue = new QProgressBar(scrollAreaWidgetContents);
+    MouthCloseValue = new QProgressBar(scrollAreaWidgetContents);
+    MouthFunnelValue = new QProgressBar(scrollAreaWidgetContents);
+    MouthPuckerValue = new QProgressBar(scrollAreaWidgetContents);
+    MouthRollUpperValue = new QProgressBar(scrollAreaWidgetContents);
+    MouthRollLowerValue = new QProgressBar(scrollAreaWidgetContents);
+    MouthShrugUpperValue = new QProgressBar(scrollAreaWidgetContents);
+    MouthShrugLowerValue = new QProgressBar(scrollAreaWidgetContents);
+
+    // 其他页面控件
+    ImageLabelCal = new QLabel(page_2);
+    ImageLabelCal->setObjectName("ImageLabelCal");
+    label_3 = new QLabel(page_2);
+    label_4 = new QLabel(page_2);
+    label_4->setText("x3");
+    label_19 = new QLabel(page_2);
+    label_19->setText("x1");
+    label_20 = new QLabel(page_2);
+    MainPageButton = new QPushButton(this);
+    MainPageButton->setFixedHeight(24);
+    CalibrationPageButton = new QPushButton(this);
+    CalibrationPageButton->setFixedHeight(24);
+    WifiConnectLabel = new QLabel(this);
+    SerialConnectLabel = new QLabel(this);
+    BatteryStatusLabel = new QLabel(this);
+
+    // 添加到 stackedWidget
+    stackedWidget->addWidget(page);
+    stackedWidget->addWidget(page_2);
+    stackedWidget->setCurrentIndex(1);
+
+    // 添加教程链接文本
+    tutorialLink = new QLabel(page);
+    tutorialLink->setText(QString("<a href='https://fcnk6r4c64fa.feishu.cn/wiki/VSlnw4Zr0i4VzXFkvT8TcbQFMn7c' style='color: #0066cc; font-size: 14pt; font-weight: bold;'>%1</a>")
+                          .arg(QApplication::translate("PaperTrackerMainWindow", "面捕调整教程")));
+    tutorialLink->setOpenExternalLinks(true);
+    tutorialLink->setTextFormat(Qt::RichText);
+    tutorialLink->setStyleSheet("background-color: #f0f0f0; padding: 5px; border-radius: 5px;");
+
+}
+
+void PaperFaceTrackerWindow::InitLayout() {
+    // 主窗口整体布局
+    auto* mainLayout = new QVBoxLayout(this);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->setSpacing(0);
+
+    //顶部tab切换按钮和状态label
+    auto* topButtonLayout = new QHBoxLayout();
+    topButtonLayout->addWidget(MainPageButton);
+    topButtonLayout->addWidget(CalibrationPageButton);
+    topButtonLayout->addWidget(WifiConnectLabel);
+    topButtonLayout->addWidget(SerialConnectLabel);
+    topButtonLayout->addWidget(BatteryStatusLabel);
+    topButtonLayout->setSpacing(10);  // 设置控件间距
+    topButtonLayout->setContentsMargins(10, 5, 10, 5);  // 设置边距
+
+    mainLayout->addItem(topButtonLayout);
+    mainLayout->addWidget(stackedWidget);
+
+    // **********************************************************************
+    // *                          主页面布局                          *
+    // **********************************************************************
+    // 主页面布局
+    auto* pageLayout = new QVBoxLayout(page);
+    pageLayout->setContentsMargins(10, 10, 10, 10);
+    pageLayout->setSpacing(10);
+
+    auto pageContentWidget = new QWidget(page);
+    // 图像和参数区域
+    auto imageAndParamsLayout = new QHBoxLayout(pageContentWidget);
+
+    // 左侧图像区域
+    auto imageLayout = new QVBoxLayout();
+    ImageLabel->setFixedSize(280, 280);
+    ImageLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    imageLayout->addWidget(ImageLabel);
+    imageLayout->addStretch();
+
+    auto rightPanelLayout = new QVBoxLayout();
+    rightPanelLayout->setSpacing(12);
+
+    auto ConnectionLayout = new QHBoxLayout();
+    ConnectionLayout->setSpacing(12);
+    ConnectionLayout->setContentsMargins(0, 0, 0, 0);
+
+    auto wifiLayout = new QVBoxLayout();
+    wifiLayout->setSpacing(0);
+    wifiLayout->addWidget(SSIDText);
+    wifiLayout->addSpacing(12);
+    wifiLayout->addWidget(PasswordText);
+
+    auto FirmwareLayout = new QVBoxLayout();
+    FirmwareLayout->addWidget(FlashFirmwareButton);
+    FirmwareLayout->addWidget(restart_Button);
+
+    ConnectionLayout->addItem(wifiLayout);
+    ConnectionLayout->addWidget(wifi_send_Button);
+    ConnectionLayout->addItem(FirmwareLayout);
+
+    // 控制区域
+    auto* controlLayout = new QVBoxLayout();
+    controlLayout->setSpacing(8);
+    // 亮度控制
+    auto* brightnessLayout = new QHBoxLayout();
+    brightnessLayout->addWidget(label);
+    brightnessLayout->addWidget(BrightnessBar);
+    BrightnessBar->setMinimumWidth(240);
+    brightnessLayout->addStretch();
+    controlLayout->addLayout(brightnessLayout);
+
+    // 旋转控制
+    auto* rotateLayout = new QHBoxLayout();
+    rotateLayout->addWidget(label_17);
+    rotateLayout->addWidget(RotateImageBar);
+    RotateImageBar->setMinimumWidth(240);
+    rotateLayout->addStretch();
+    controlLayout->addLayout(rotateLayout);
+
+    // 模式选择
+    auto* modeLayout = new QHBoxLayout();
+    modeLayout->setSpacing(8);
+    EnergyModeBox->addItem(QApplication::translate("PaperTrackerMainWindow", "普通模式"));
+    EnergyModeBox->addItem(QApplication::translate("PaperTrackerMainWindow", "节能模式"));
+    EnergyModeBox->addItem(QApplication::translate("PaperTrackerMainWindow", "性能模式"));
+    EnergyModeBox->setCurrentIndex(0);
+    modeLayout->addWidget(label_18);
+    modeLayout->addWidget(EnergyModeBox);
+    modeLayout->addWidget(UseFilterBox);
+    modeLayout->addStretch();
+    controlLayout->addLayout(modeLayout);
+
+    // IP地址
+    auto* ipLayout = new QVBoxLayout();
+    auto* tutorialLayout = new QHBoxLayout();
+    tutorialLayout->setSpacing(8);
+    ipLayout->addWidget(label_16);
+    tutorialLayout->addWidget(textEdit);
+    tutorialLayout->addWidget(tutorialLink);
+    ipLayout->addItem(tutorialLayout);
+    controlLayout->addLayout(ipLayout);
+
+    rightPanelLayout->addItem(ConnectionLayout);
+    rightPanelLayout->addItem(controlLayout);
+
+    // 日志区域
+    auto* logTextLayout = new QHBoxLayout();
+    label_2->setText("日志窗口:");
+    logTextLayout->addWidget(label_2);
+    logTextLayout->addStretch();
+    logTextLayout->addWidget(ShowSerialDataButton);
+
+    imageAndParamsLayout->addLayout(imageLayout);
+    imageAndParamsLayout->addLayout(rightPanelLayout);
+    imageAndParamsLayout->setStretch(0, 1);  // 左侧图像区域固定
+    imageAndParamsLayout->setStretch(1, 2);  // 右侧参数区域更大
+
+    pageLayout->addWidget(pageContentWidget);
+    pageLayout->addItem(logTextLayout);
+    pageLayout->addWidget(LogText);
+
+    // **********************************************************************
+    // *                          校准页面布局                          *
+    // **********************************************************************
+    // 修正校准页面布局
+    calibrationPageLayout = new QHBoxLayout(page_2);
+    calibrationPageLayout->setContentsMargins(10, 10, 10, 10);
+    calibrationPageLayout->setSpacing(10);
+
+    auto* leftPageLayout = new QVBoxLayout(page_2);
+    leftPageLayout->setContentsMargins(10, 0, 10, 10);
+    leftPageLayout->setSpacing(0);
+
+    // 创建参数布局并应用到内容容器
+    auto* paramsLayout = new QGridLayout(scrollAreaWidgetContents);
+    paramsLayout->setSpacing(4);
+    paramsLayout->setContentsMargins(10, 10, 10, 10);
+
+    int row = 0;
+    static int maxLabelWidth = 0;
+    addCalibrationParam(paramsLayout, label_5, CheekPuffLeftOffset, CheekPuffLeftBar, CheekPullLeftValue, row++);
+    addCalibrationParam(paramsLayout, label_6, CheekPuffRightOffset, CheekPuffRightBar, CheekPullRightValue, row++);
+    addCalibrationParam(paramsLayout, label_7, JawOpenOffset, JawOpenBar, JawOpenValue, row++);
+    addCalibrationParam(paramsLayout, label_8, nullptr, JawLeftBar, JawLeftValue, row++);
+    addCalibrationParam(paramsLayout, label_9, nullptr, JawRightBar, JawRightValue, row++);
+    addCalibrationParam(paramsLayout, label_10, nullptr, MouthLeftBar, MouthLeftValue, row++);
+    addCalibrationParam(paramsLayout, label_11, nullptr, MouthRightBar, MouthRightValue, row++);
+    addCalibrationParam(paramsLayout, label_12, TongueOutOffset, TongueOutBar, TongueOutValue, row++);
+    addCalibrationParam(paramsLayout, label_13, nullptr, TongueUpBar, TongueUpValue, row++);
+    addCalibrationParam(paramsLayout, label_14, nullptr, TongueDownBar, TongueDownValue, row++);
+    addCalibrationParam(paramsLayout, label_15, nullptr, TongueLeftBar, TongueLeftValue, row++);
+    addCalibrationParam(paramsLayout, label_31, nullptr, TongueRightBar, TongueRightValue, row++);
+    addCalibrationParam(paramsLayout, label_mouthClose, MouthCloseOffset, MouthCloseBar, MouthCloseValue, row++);
+    addCalibrationParam(paramsLayout, label_mouthFunnel, MouthFunnelOffset, MouthFunnelBar, MouthFunnelValue, row++);
+    addCalibrationParam(paramsLayout, label_mouthPucker, MouthPuckerOffset, MouthPuckerBar, MouthPuckerValue, row++);
+    addCalibrationParam(paramsLayout, label_mouthRollUpper, MouthRollUpperOffset, MouthRollUpperBar, MouthRollUpperValue, row++);
+    addCalibrationParam(paramsLayout, label_mouthRollLower, MouthRollLowerOffset, MouthRollLowerBar, MouthRollLowerValue, row++);
+    addCalibrationParam(paramsLayout, label_mouthShrugUpper, MouthShrugUpperOffset, MouthShrugUpperBar, MouthShrugUpperValue, row++);
+    addCalibrationParam(paramsLayout, label_mouthShrugLower, MouthShrugLowerOffset, MouthShrugLowerBar, MouthShrugLowerValue, row++);
+
+    // 或者使用伸缩比例（如果希望动态适应）
+    paramsLayout->setColumnStretch(0, 1); // label 列
+    paramsLayout->setColumnStretch(1, 1); // 输入框paramsLayout->setColumnStretch(2, 2); // 滚动条
+    paramsLayout->setColumnStretch(3, 2); // 进度条
+
+    // 添加参数布局到 scrollArea
+    scrollAreaWidgetContents->setLayout(paramsLayout);
+
+    topTitleWidget = new QWidget(page_2);
+    topTitleWidget->setMinimumWidth(270);
+    auto topTitleLayout = new QHBoxLayout(topTitleWidget);
+    topTitleLayout->setContentsMargins(0 ,0 ,0 ,0);
+    topTitleWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    topTitleLayout->setSpacing(10);
+    topTitleLayout->addSpacing(70);
+    topTitleLayout->addWidget(label_20);
+    topTitleLayout->addWidget(label_19);
+    topTitleLayout->addWidget(label_3);
+    topTitleLayout->addWidget(label_4);
+
+    // 将滚动区域添加到校准页面布局
+    leftPageLayout->addWidget(topTitleWidget);
+    leftPageLayout->addWidget(scrollArea);
+
+    page2RightLayout = new QVBoxLayout(page_2);
+    setupKalmanFilterControls();
+
+    calibrationPageLayout->addItem(leftPageLayout);
+    calibrationPageLayout->addItem(page2RightLayout);
+    // 更新校准页面布局
+    page_2->setLayout(calibrationPageLayout);
+
+}
+
+void PaperFaceTrackerWindow::addCalibrationParam(QGridLayout* layout, QLabel* label, QLineEdit* offsetEdit, QScrollBar* bar, QProgressBar* value, int row){
+
+    // 检查 layout 和 label 必须非空
+    if (!layout || !label) {
+        LOG_ERROR("布局或标签为空，无法添加校准参数行");
+        return;
+    }
+
+    // 添加 label 到布局
+    layout->addWidget(label, row, 0);
+
+    // 如果 offsetEdit 不为空，设置属性并添加到布局
+    if (offsetEdit) {
+        offsetEdit->setFixedWidth(60);
+        offsetEdit->setPlaceholderText("偏置值");
+        layout->addWidget(offsetEdit, row, 1);
+    } else {
+        layout->addWidget(new QWidget(), row, 1); // 占位符
+    }
+
+    // 如果 bar 不为空，设置属性并添加到布局
+    if (bar) {
+        bar->setOrientation(Qt::Horizontal);
+        bar->setFixedWidth(200);
+        layout->addWidget(bar, row, 2);
+    } else {
+        layout->addWidget(new QWidget(), row, 2); // 占位符
+    }
+
+    // 如果 value 不为空，设置属性并添加到布局
+    if (value) {
+        value->setFixedWidth(150);
+        value->setValue(24);
+        layout->addWidget(value, row, 3);
+    } else {
+        layout->addWidget(new QWidget(), row, 3); // 占位符
+    }
 }
 
 void PaperFaceTrackerWindow::setVideoImage(const cv::Mat& image)
@@ -229,12 +654,12 @@ void PaperFaceTrackerWindow::setVideoImage(const cv::Mat& image)
     {
         QMetaObject::invokeMethod(this, [this]()
         {
-            if (ui.stackedWidget->currentIndex() == 0) {
-                ui.ImageLabel->clear(); // 清除图片
-                ui.ImageLabel->setText(tr("                         没有图像输入")); // 恢复默认文本
-            } else if (ui.stackedWidget->currentIndex() == 1) {
-                ui.ImageLabelCal->clear(); // 清除图片
-                ui.ImageLabelCal->setText(tr("                         没有图像输入"));
+            if (stackedWidget->currentIndex() == 0) {
+                ImageLabel->clear(); // 清除图片
+                ImageLabel->setText(QApplication::translate("PaperTrackerMainWindow", "没有图像输入")); // 恢复默认文本
+            } else if (stackedWidget->currentIndex() == 1) {
+                ImageLabelCal->clear(); // 清除图片
+                ImageLabelCal->setText(QApplication::translate("PaperTrackerMainWindow", "没有图像输入"));
             }
         }, Qt::QueuedConnection);
         return ;
@@ -242,15 +667,15 @@ void PaperFaceTrackerWindow::setVideoImage(const cv::Mat& image)
     QMetaObject::invokeMethod(this, [this, image = image.clone()]() {
         auto qimage = QImage(image.data, image.cols, image.rows, image.step, QImage::Format_RGB888);
         auto pix_map = QPixmap::fromImage(qimage);
-        if (ui.stackedWidget->currentIndex() == 0)
+        if (stackedWidget->currentIndex() == 0)
         {
-            ui.ImageLabel->setPixmap(pix_map);
-            ui.ImageLabel->setScaledContents(true);
-            ui.ImageLabel->update();
-        } else if (ui.stackedWidget->currentIndex() == 1) {
-            ui.ImageLabelCal->setPixmap(pix_map);
-            ui.ImageLabelCal->setScaledContents(true);
-            ui.ImageLabelCal->update();
+            ImageLabel->setPixmap(pix_map);
+            ImageLabel->setScaledContents(true);
+            ImageLabel->update();
+        } else if (stackedWidget->currentIndex() == 1) {
+            ImageLabelCal->setPixmap(pix_map);
+            ImageLabelCal->setScaledContents(true);
+            ImageLabelCal->update();
         }
     }, Qt::QueuedConnection);
 }
@@ -265,18 +690,18 @@ PaperFaceTrackerWindow::~PaperFaceTrackerWindow() {
     config = generate_config();
     config_writer->write_config(config);
     LOG_INFO("正在关闭VRCFT");
-    remove_log_window(ui.LogText);
+    remove_log_window(LogText);
     instance = nullptr;
 
 }
 
 void PaperFaceTrackerWindow::bound_pages() {
     // 页面导航逻辑
-    connect(ui.MainPageButton, &QPushButton::clicked, [this] {
-        ui.stackedWidget->setCurrentIndex(0);
+    connect(MainPageButton, &QPushButton::clicked, [this] {
+        stackedWidget->setCurrentIndex(0);
     });
-    connect(ui.CalibrationPageButton, &QPushButton::clicked, [this] {
-        ui.stackedWidget->setCurrentIndex(1);
+    connect(CalibrationPageButton, &QPushButton::clicked, [this] {
+        stackedWidget->setCurrentIndex(1);
     });
 }
 
@@ -285,26 +710,26 @@ bool PaperFaceTrackerWindow::eventFilter(QObject *obj, QEvent *event)
 {
     // 处理焦点获取事件
     if (event->type() == QEvent::FocusIn) {
-        if (obj == ui.SSIDText) {
-            if (ui.SSIDText->toPlainText() == "请输入WIFI名字（仅支持2.4ghz）") {
-                ui.SSIDText->setPlainText("");
+        if (obj == SSIDText) {
+            if (SSIDText->toPlainText() == "请输入WIFI名字（仅支持2.4ghz）") {
+                SSIDText->setPlainText("");
             }
-        } else if (obj == ui.PasswordText) {
-            if (ui.PasswordText->toPlainText() == "请输入WIFI密码") {
-                ui.PasswordText->setPlainText("");
+        } else if (obj == PasswordText) {
+            if (PasswordText->toPlainText() == "请输入WIFI密码") {
+                PasswordText->setPlainText("");
             }
         }
     }
 
     // 处理焦点失去事件
     if (event->type() == QEvent::FocusOut) {
-        if (obj == ui.SSIDText) {
-            if (ui.SSIDText->toPlainText().isEmpty()) {
-                ui.SSIDText->setPlainText("请输入WIFI名字（仅支持2.4ghz）");
+        if (obj == SSIDText) {
+            if (SSIDText->toPlainText().isEmpty()) {
+                SSIDText->setPlainText(QApplication::translate("PaperTrackerMainWindow", "请输入WIFI名字（仅支持2.4ghz）"));
             }
-        } else if (obj == ui.PasswordText) {
-            if (ui.PasswordText->toPlainText().isEmpty()) {
-                ui.PasswordText->setPlainText("请输入WIFI密码");
+        } else if (obj == PasswordText) {
+            if (PasswordText->toPlainText().isEmpty()) {
+                PasswordText->setPlainText(QApplication::translate("PaperTrackerMainWindow", "请输入WIFI密码"));
             }
         }
     }
@@ -318,7 +743,7 @@ void PaperFaceTrackerWindow::updateCalibrationProgressBars(
     const std::vector<float>& output,
     const std::unordered_map<std::string, size_t>& blendShapeIndexMap
 ) {
-    if (output.empty() || ui.stackedWidget->currentIndex() != 1) {
+    if (output.empty() || stackedWidget->currentIndex() != 1) {
         // 如果输出为空或者当前不在校准页面，则不更新
         return;
     }
@@ -336,64 +761,64 @@ void PaperFaceTrackerWindow::updateCalibrationProgressBars(
 
         // 脸颊
         if (blendShapeIndexMap.contains("cheekPuffLeft") && blendShapeIndexMap.at("cheekPuffLeft") < output.size()) {
-            ui.CheekPullLeftValue->setValue(scaleValue(output[blendShapeIndexMap.at("cheekPuffLeft")]));
+            CheekPullLeftValue->setValue(scaleValue(output[blendShapeIndexMap.at("cheekPuffLeft")]));
         }
         if (blendShapeIndexMap.contains("cheekPuffRight") && blendShapeIndexMap.at("cheekPuffRight") < output.size()) {
-            ui.CheekPullRightValue->setValue(scaleValue(output[blendShapeIndexMap.at("cheekPuffRight")]));
+            CheekPullRightValue->setValue(scaleValue(output[blendShapeIndexMap.at("cheekPuffRight")]));
         }
         // 下巴
         if (blendShapeIndexMap.contains("jawOpen") && blendShapeIndexMap.at("jawOpen") < output.size()) {
-            ui.JawOpenValue->setValue(scaleValue(output[blendShapeIndexMap.at("jawOpen")]));
+            JawOpenValue->setValue(scaleValue(output[blendShapeIndexMap.at("jawOpen")]));
         }
         if (blendShapeIndexMap.contains("jawLeft") && blendShapeIndexMap.at("jawLeft") < output.size()) {
-            ui.JawLeftValue->setValue(scaleValue(output[blendShapeIndexMap.at("jawLeft")]));
+            JawLeftValue->setValue(scaleValue(output[blendShapeIndexMap.at("jawLeft")]));
         }
         if (blendShapeIndexMap.contains("jawRight") && blendShapeIndexMap.at("jawRight") < output.size()) {
-            ui.JawRightValue->setValue(scaleValue(output[blendShapeIndexMap.at("jawRight")]));
+            JawRightValue->setValue(scaleValue(output[blendShapeIndexMap.at("jawRight")]));
         }
         // 嘴巴
         if (blendShapeIndexMap.contains("mouthLeft") && blendShapeIndexMap.at("mouthLeft") < output.size()) {
-            ui.MouthLeftValue->setValue(scaleValue(output[blendShapeIndexMap.at("mouthLeft")]));
+            MouthLeftValue->setValue(scaleValue(output[blendShapeIndexMap.at("mouthLeft")]));
         }
         if (blendShapeIndexMap.contains("mouthRight") && blendShapeIndexMap.at("mouthRight") < output.size()) {
-            ui.MouthRightValue->setValue(scaleValue(output[blendShapeIndexMap.at("mouthRight")]));
+            MouthRightValue->setValue(scaleValue(output[blendShapeIndexMap.at("mouthRight")]));
         }
         // 舌头
         if (blendShapeIndexMap.contains("tongueOut") && blendShapeIndexMap.at("tongueOut") < output.size()) {
-            ui.TongueOutValue->setValue(scaleValue(output[blendShapeIndexMap.at("tongueOut")]));
+            TongueOutValue->setValue(scaleValue(output[blendShapeIndexMap.at("tongueOut")]));
         }
         if (blendShapeIndexMap.contains("tongueUp") && blendShapeIndexMap.at("tongueUp") < output.size()) {
-            ui.TongueUpValue->setValue(scaleValue(output[blendShapeIndexMap.at("tongueUp")]));
+            TongueUpValue->setValue(scaleValue(output[blendShapeIndexMap.at("tongueUp")]));
         }
         if (blendShapeIndexMap.contains("tongueDown") && blendShapeIndexMap.at("tongueDown") < output.size()) {
-            ui.TongueDownValue->setValue(scaleValue(output[blendShapeIndexMap.at("tongueDown")]));
+            TongueDownValue->setValue(scaleValue(output[blendShapeIndexMap.at("tongueDown")]));
         }
         if (blendShapeIndexMap.contains("tongueLeft") && blendShapeIndexMap.at("tongueLeft") < output.size()) {
-            ui.TongueLeftValue->setValue(scaleValue(output[blendShapeIndexMap.at("tongueLeft")]));
+            TongueLeftValue->setValue(scaleValue(output[blendShapeIndexMap.at("tongueLeft")]));
         }
         if (blendShapeIndexMap.contains("tongueRight") && blendShapeIndexMap.at("tongueRight") < output.size()) {
-            ui.TongueRightValue->setValue(scaleValue(output[blendShapeIndexMap.at("tongueRight")]));
+            TongueRightValue->setValue(scaleValue(output[blendShapeIndexMap.at("tongueRight")]));
         }
         if (blendShapeIndexMap.contains("mouthClose") && blendShapeIndexMap.at("mouthClose") < output.size()) {
-            ui.MouthCloseValue->setValue(scaleValue(output[blendShapeIndexMap.at("mouthClose")]));
+            MouthCloseValue->setValue(scaleValue(output[blendShapeIndexMap.at("mouthClose")]));
         }
         if (blendShapeIndexMap.contains("mouthFunnel") && blendShapeIndexMap.at("mouthFunnel") < output.size()) {
-            ui.MouthFunnelValue->setValue(scaleValue(output[blendShapeIndexMap.at("mouthFunnel")]));
+            MouthFunnelValue->setValue(scaleValue(output[blendShapeIndexMap.at("mouthFunnel")]));
         }
         if (blendShapeIndexMap.contains("mouthPucker") && blendShapeIndexMap.at("mouthPucker") < output.size()) {
-            ui.MouthPuckerValue->setValue(scaleValue(output[blendShapeIndexMap.at("mouthPucker")]));
+            MouthPuckerValue->setValue(scaleValue(output[blendShapeIndexMap.at("mouthPucker")]));
         }
         if (blendShapeIndexMap.contains("mouthRollUpper") && blendShapeIndexMap.at("mouthRollUpper") < output.size()) {
-            ui.MouthRollUpperValue->setValue(scaleValue(output[blendShapeIndexMap.at("mouthRollUpper")]));
+            MouthRollUpperValue->setValue(scaleValue(output[blendShapeIndexMap.at("mouthRollUpper")]));
         }
         if (blendShapeIndexMap.contains("mouthRollLower") && blendShapeIndexMap.at("mouthRollLower") < output.size()) {
-            ui.MouthRollLowerValue->setValue(scaleValue(output[blendShapeIndexMap.at("mouthRollLower")]));
+            MouthRollLowerValue->setValue(scaleValue(output[blendShapeIndexMap.at("mouthRollLower")]));
         }
         if (blendShapeIndexMap.contains("mouthShrugUpper") && blendShapeIndexMap.at("mouthShrugUpper") < output.size()) {
-            ui.MouthShrugUpperValue->setValue(scaleValue(output[blendShapeIndexMap.at("mouthShrugUpper")]));
+            MouthShrugUpperValue->setValue(scaleValue(output[blendShapeIndexMap.at("mouthShrugUpper")]));
         }
         if (blendShapeIndexMap.contains("mouthShrugLower") && blendShapeIndexMap.at("mouthShrugLower") < output.size()) {
-            ui.MouthShrugLowerValue->setValue(scaleValue(output[blendShapeIndexMap.at("mouthShrugLower")]));
+            MouthShrugLowerValue->setValue(scaleValue(output[blendShapeIndexMap.at("mouthShrugLower")]));
         }
     }, Qt::QueuedConnection);
 }
@@ -404,57 +829,57 @@ void PaperFaceTrackerWindow::connect_callbacks()
     brightness_timer->setSingleShot(true);
     connect(brightness_timer.get(), &QTimer::timeout, this, &PaperFaceTrackerWindow::onSendBrightnessValue);
     // functions
-    connect(ui.BrightnessBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onBrightnessChanged);
-    connect(ui.RotateImageBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onRotateAngleChanged);
-    connect(ui.restart_Button, &QPushButton::clicked, this, &PaperFaceTrackerWindow::onRestartButtonClicked);
-    connect(ui.FlashFirmwareButton, &QPushButton::clicked, this, &PaperFaceTrackerWindow::onFlashButtonClicked);
-    connect(ui.UseFilterBox, &QCheckBox::checkStateChanged, this, &PaperFaceTrackerWindow::onUseFilterClicked);
-    connect(ui.wifi_send_Button, &QPushButton::clicked, this, &PaperFaceTrackerWindow::onSendButtonClicked);
-    connect(ui.EnergyModeBox, &QComboBox::currentIndexChanged, this, &PaperFaceTrackerWindow::onEnergyModeChanged);
-    connect(ui.JawOpenBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onJawOpenChanged);
-    connect(ui.JawLeftBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onJawLeftChanged);
-    connect(ui.JawRightBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onJawRightChanged);
-    connect(ui.MouthLeftBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onMouthLeftChanged);
-    connect(ui.MouthRightBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onMouthRightChanged);
-    connect(ui.TongueOutBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onTongueOutChanged);
-    connect(ui.TongueLeftBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onTongueLeftChanged);
-    connect(ui.TongueRightBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onTongueRightChanged);
-    connect(ui.TongueUpBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onTongueUpChanged);
-    connect(ui.TongueDownBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onTongueDownChanged);
-    connect(ui.CheekPuffLeftBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onCheekPuffLeftChanged);
-    connect(ui.CheekPuffRightBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onCheekPuffRightChanged);
-    connect(ui.ShowSerialDataButton, &QPushButton::clicked, this, &PaperFaceTrackerWindow::onShowSerialDataButtonClicked);
-    connect(ui.CheekPuffLeftOffset, &QLineEdit::editingFinished,
+    connect(BrightnessBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onBrightnessChanged);
+    connect(RotateImageBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onRotateAngleChanged);
+    connect(restart_Button, &QPushButton::clicked, this, &PaperFaceTrackerWindow::onRestartButtonClicked);
+    connect(FlashFirmwareButton, &QPushButton::clicked, this, &PaperFaceTrackerWindow::onFlashButtonClicked);
+    connect(UseFilterBox, &QCheckBox::checkStateChanged, this, &PaperFaceTrackerWindow::onUseFilterClicked);
+    connect(wifi_send_Button, &QPushButton::clicked, this, &PaperFaceTrackerWindow::onSendButtonClicked);
+    connect(EnergyModeBox, &QComboBox::currentIndexChanged, this, &PaperFaceTrackerWindow::onEnergyModeChanged);
+    connect(JawOpenBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onJawOpenChanged);
+    connect(JawLeftBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onJawLeftChanged);
+    connect(JawRightBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onJawRightChanged);
+    connect(MouthLeftBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onMouthLeftChanged);
+    connect(MouthRightBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onMouthRightChanged);
+    connect(TongueOutBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onTongueOutChanged);
+    connect(TongueLeftBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onTongueLeftChanged);
+    connect(TongueRightBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onTongueRightChanged);
+    connect(TongueUpBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onTongueUpChanged);
+    connect(TongueDownBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onTongueDownChanged);
+    connect(CheekPuffLeftBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onCheekPuffLeftChanged);
+    connect(CheekPuffRightBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onCheekPuffRightChanged);
+    connect(ShowSerialDataButton, &QPushButton::clicked, this, &PaperFaceTrackerWindow::onShowSerialDataButtonClicked);
+    connect(CheekPuffLeftOffset, &QLineEdit::editingFinished,
                 this, &PaperFaceTrackerWindow::onCheekPuffLeftOffsetChanged);
-    connect(ui.CheekPuffRightOffset, &QLineEdit::editingFinished,
+    connect(CheekPuffRightOffset, &QLineEdit::editingFinished,
             this, &PaperFaceTrackerWindow::onCheekPuffRightOffsetChanged);
-    connect(ui.JawOpenOffset, &QLineEdit::editingFinished,
+    connect(JawOpenOffset, &QLineEdit::editingFinished,
             this, &PaperFaceTrackerWindow::onJawOpenOffsetChanged);
-    connect(ui.TongueOutOffset, &QLineEdit::editingFinished,
+    connect(TongueOutOffset, &QLineEdit::editingFinished,
             this, &PaperFaceTrackerWindow::onTongueOutOffsetChanged);
     // 在connect_callbacks()函数中现有连接代码之后添加以下内容
-    connect(ui.MouthCloseBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onMouthCloseChanged);
-    connect(ui.MouthFunnelBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onMouthFunnelChanged);
-    connect(ui.MouthPuckerBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onMouthPuckerChanged);
-    connect(ui.MouthRollUpperBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onMouthRollUpperChanged);
-    connect(ui.MouthRollLowerBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onMouthRollLowerChanged);
-    connect(ui.MouthShrugUpperBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onMouthShrugUpperChanged);
-    connect(ui.MouthShrugLowerBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onMouthShrugLowerChanged);
+    connect(MouthCloseBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onMouthCloseChanged);
+    connect(MouthFunnelBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onMouthFunnelChanged);
+    connect(MouthPuckerBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onMouthPuckerChanged);
+    connect(MouthRollUpperBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onMouthRollUpperChanged);
+    connect(MouthRollLowerBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onMouthRollLowerChanged);
+    connect(MouthShrugUpperBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onMouthShrugUpperChanged);
+    connect(MouthShrugLowerBar, &QScrollBar::valueChanged, this, &PaperFaceTrackerWindow::onMouthShrugLowerChanged);
 
-    connect(ui.MouthCloseOffset, &QLineEdit::editingFinished, this, &PaperFaceTrackerWindow::onMouthCloseOffsetChanged);
-    connect(ui.MouthFunnelOffset, &QLineEdit::editingFinished, this, &PaperFaceTrackerWindow::onMouthFunnelOffsetChanged);
-    connect(ui.MouthPuckerOffset, &QLineEdit::editingFinished, this, &PaperFaceTrackerWindow::onMouthPuckerOffsetChanged);
-    connect(ui.MouthRollUpperOffset, &QLineEdit::editingFinished, this, &PaperFaceTrackerWindow::onMouthRollUpperOffsetChanged);
-    connect(ui.MouthRollLowerOffset, &QLineEdit::editingFinished, this, &PaperFaceTrackerWindow::onMouthRollLowerOffsetChanged);
-    connect(ui.MouthShrugUpperOffset, &QLineEdit::editingFinished, this, &PaperFaceTrackerWindow::onMouthShrugUpperOffsetChanged);
-    connect(ui.MouthShrugLowerOffset, &QLineEdit::editingFinished, this, &PaperFaceTrackerWindow::onMouthShrugLowerOffsetChanged);
+    connect(MouthCloseOffset, &QLineEdit::editingFinished, this, &PaperFaceTrackerWindow::onMouthCloseOffsetChanged);
+    connect(MouthFunnelOffset, &QLineEdit::editingFinished, this, &PaperFaceTrackerWindow::onMouthFunnelOffsetChanged);
+    connect(MouthPuckerOffset, &QLineEdit::editingFinished, this, &PaperFaceTrackerWindow::onMouthPuckerOffsetChanged);
+    connect(MouthRollUpperOffset, &QLineEdit::editingFinished, this, &PaperFaceTrackerWindow::onMouthRollUpperOffsetChanged);
+    connect(MouthRollLowerOffset, &QLineEdit::editingFinished, this, &PaperFaceTrackerWindow::onMouthRollLowerOffsetChanged);
+    connect(MouthShrugUpperOffset, &QLineEdit::editingFinished, this, &PaperFaceTrackerWindow::onMouthShrugUpperOffsetChanged);
+    connect(MouthShrugLowerOffset, &QLineEdit::editingFinished, this, &PaperFaceTrackerWindow::onMouthShrugLowerOffsetChanged);
 }
 
 float PaperFaceTrackerWindow::getRotateAngle() const
 {
     auto rotate_angle = static_cast<float>(current_rotate_angle);
-    rotate_angle = rotate_angle / (static_cast<float>(ui.RotateImageBar->maximum()) -
-        static_cast<float>(ui.RotateImageBar->minimum())) * 360.0f;
+    rotate_angle = rotate_angle / (static_cast<float>(RotateImageBar->maximum()) -
+        static_cast<float>(RotateImageBar->minimum())) * 360.0f;
     return rotate_angle;
 }
 
@@ -466,22 +891,22 @@ void PaperFaceTrackerWindow::setOnUseFilterClickedFunc(FuncWithVal func)
 
 void PaperFaceTrackerWindow::setSerialStatusLabel(const QString& text) const
 {
-    ui.SerialConnectLabel->setText(tr(text.toUtf8().constData()));
+    SerialConnectLabel->setText(QApplication::translate("PaperTrackerMainWindow", text.toUtf8().constData()));
 }
 
 void PaperFaceTrackerWindow::setWifiStatusLabel(const QString& text) const
 {
-    ui.WifiConnectLabel->setText(text.toUtf8().constData());
+    WifiConnectLabel->setText(QApplication::translate("PaperTrackerMainWindow", text.toUtf8().constData()));
 }
 
 void PaperFaceTrackerWindow::setIPText(const QString& text) const
 {
-    ui.textEdit->setText(tr(text.toUtf8().constData()));
+    textEdit->setText(tr(text.toUtf8().constData()));
 }
 
 QPlainTextEdit* PaperFaceTrackerWindow::getLogText() const
 {
-    return ui.LogText;
+    return LogText;
 }
 
 Rect PaperFaceTrackerWindow::getRoiRect()
@@ -491,12 +916,12 @@ Rect PaperFaceTrackerWindow::getRoiRect()
 
 std::string PaperFaceTrackerWindow::getSSID() const
 {
-    return ui.SSIDText->toPlainText().toStdString();
+    return SSIDText->toPlainText().toStdString();
 }
 
 std::string PaperFaceTrackerWindow::getPassword() const
 {
-    return ui.PasswordText->toPlainText().toStdString();
+    return PasswordText->toPlainText().toStdString();
 }
 
 void PaperFaceTrackerWindow::onSendButtonClicked()
@@ -505,15 +930,14 @@ void PaperFaceTrackerWindow::onSendButtonClicked()
     // 获取SSID和密码
     auto ssid = getSSID();
     auto password = getPassword();
-
     // 输入验证
-    if (ssid == "请输入WIFI名字（仅支持2.4ghz）" || ssid.empty()) {
-        QMessageBox::warning(this, tr("输入错误"), tr("请输入有效的WIFI名字"));
+    if (ssid == QApplication::translate("PaperTrackerMainWindow", "请输入WIFI名字（仅支持2.4ghz）").toStdString() || ssid.empty()) {
+        QMessageBox::warning(this, QApplication::translate("PaperTrackerMainWindow", "输入错误"), QApplication::translate("PaperTrackerMainWindow", "请输入有效的WIFI名字"));
         return;
     }
 
-    if (password == "请输入WIFI密码" || password.empty()) {
-        QMessageBox::warning(this, tr("输入错误"), tr("请输入有效的密码"));
+    if (password == QApplication::translate("PaperTrackerMainWindow", "请输入WIFI密码").toStdString() || password.empty()) {
+        QMessageBox::warning(this, QApplication::translate("PaperTrackerMainWindow", "输入错误"), QApplication::translate("PaperTrackerMainWindow", "请输入有效的密码"));
         return;
     }
 
@@ -619,7 +1043,7 @@ void PaperFaceTrackerWindow::onSendBrightnessValue() const
     LOG_INFO("已设置亮度: {}", current_brightness);
 }
 
-bool PaperFaceTrackerWindow::is_running() const
+bool PaperFaceTrackerWindow:: is_running() const
 {
     return app_is_running;
 }
@@ -676,22 +1100,22 @@ PaperFaceTrackerConfig PaperFaceTrackerWindow::generate_config() const
     PaperFaceTrackerConfig res_config;
     res_config.brightness = current_brightness;
     res_config.rotate_angle = current_rotate_angle;
-    res_config.energy_mode = ui.EnergyModeBox->currentIndex();
-    res_config.use_filter = ui.UseFilterBox->isChecked();
-    res_config.wifi_ip = ui.textEdit->toPlainText().toStdString();
+    res_config.energy_mode = EnergyModeBox->currentIndex();
+    res_config.use_filter = UseFilterBox->isChecked();
+    res_config.wifi_ip = textEdit->toPlainText().toStdString();
     res_config.amp_map = {
-        {"cheekPuffLeft", ui.CheekPuffLeftBar->value()},
-        {"cheekPuffRight", ui.CheekPuffRightBar->value()},
-        {"jawOpen", ui.JawOpenBar->value()},
-        {"jawLeft", ui.JawLeftBar->value()},
-        {"jawRight", ui.JawRightBar->value()},
-        {"mouthLeft", ui.MouthLeftBar->value()},
-        {"mouthRight", ui.MouthRightBar->value()},
-        {"tongueOut", ui.TongueOutBar->value()},
-        {"tongueUp", ui.TongueUpBar->value()},
-        {"tongueDown", ui.TongueDownBar->value()},
-        {"tongueLeft", ui.TongueLeftBar->value()},
-        {"tongueRight", ui.TongueRightBar->value()},
+        {"cheekPuffLeft", CheekPuffLeftBar->value()},
+        {"cheekPuffRight", CheekPuffRightBar->value()},
+        {"jawOpen", JawOpenBar->value()},
+        {"jawLeft", JawLeftBar->value()},
+        {"jawRight", JawRightBar->value()},
+        {"mouthLeft", MouthLeftBar->value()},
+        {"mouthRight", MouthRightBar->value()},
+        {"tongueOut", TongueOutBar->value()},
+        {"tongueUp", TongueUpBar->value()},
+        {"tongueDown", TongueDownBar->value()},
+        {"tongueLeft", TongueLeftBar->value()},
+        {"tongueRight", TongueRightBar->value()},
     };
     // 添加偏置值
     res_config.cheek_puff_left_offset = cheek_puff_left_offset;
@@ -719,11 +1143,11 @@ void PaperFaceTrackerWindow::set_config()
     config = config_writer->get_config<PaperFaceTrackerConfig>();
     current_brightness = config.brightness;
     current_rotate_angle = config.rotate_angle == 0 ? 540 : config.rotate_angle;
-    ui.BrightnessBar->setValue(config.brightness);
-    ui.RotateImageBar->setValue(config.rotate_angle);
-    ui.EnergyModeBox->setCurrentIndex(config.energy_mode);
-    ui.UseFilterBox->setChecked(config.use_filter);
-    ui.textEdit->setPlainText(QString::fromStdString(config.wifi_ip));
+    BrightnessBar->setValue(config.brightness);
+    RotateImageBar->setValue(config.rotate_angle);
+    EnergyModeBox->setCurrentIndex(config.energy_mode);
+    UseFilterBox->setChecked(config.use_filter);
+    textEdit->setPlainText(QString::fromStdString(config.wifi_ip));
 
     // 设置偏置值
     cheek_puff_left_offset = config.cheek_puff_left_offset;
@@ -750,46 +1174,46 @@ void PaperFaceTrackerWindow::set_config()
     if (rFactorLineEdit) rFactorLineEdit->setText(QString::number(current_r_factor, 'f', 6));
 
     // 设置输入框的文本
-    ui.CheekPuffLeftOffset->setText(QString::number(cheek_puff_left_offset));
-    ui.CheekPuffRightOffset->setText(QString::number(cheek_puff_right_offset));
-    ui.JawOpenOffset->setText(QString::number(jaw_open_offset));
-    ui.TongueOutOffset->setText(QString::number(tongue_out_offset));
+    CheekPuffLeftOffset->setText(QString::number(cheek_puff_left_offset));
+    CheekPuffRightOffset->setText(QString::number(cheek_puff_right_offset));
+    JawOpenOffset->setText(QString::number(jaw_open_offset));
+    TongueOutOffset->setText(QString::number(tongue_out_offset));
 
     // 设置新增的输入框文本
-    ui.MouthCloseOffset->setText(QString::number(mouth_close_offset));
-    ui.MouthFunnelOffset->setText(QString::number(mouth_funnel_offset));
-    ui.MouthPuckerOffset->setText(QString::number(mouth_pucker_offset));
-    ui.MouthRollUpperOffset->setText(QString::number(mouth_roll_upper_offset));
-    ui.MouthRollLowerOffset->setText(QString::number(mouth_roll_lower_offset));
-    ui.MouthShrugUpperOffset->setText(QString::number(mouth_shrug_upper_offset));
-    ui.MouthShrugLowerOffset->setText(QString::number(mouth_shrug_lower_offset));
+    MouthCloseOffset->setText(QString::number(mouth_close_offset));
+    MouthFunnelOffset->setText(QString::number(mouth_funnel_offset));
+    MouthPuckerOffset->setText(QString::number(mouth_pucker_offset));
+    MouthRollUpperOffset->setText(QString::number(mouth_roll_upper_offset));
+    MouthRollLowerOffset->setText(QString::number(mouth_roll_lower_offset));
+    MouthShrugUpperOffset->setText(QString::number(mouth_shrug_upper_offset));
+    MouthShrugLowerOffset->setText(QString::number(mouth_shrug_lower_offset));
 
     // 更新偏置值到推理引擎
     updateOffsetsToInference();
 
     try
     {
-        ui.CheekPuffLeftBar->setValue(config.amp_map.at("cheekPuffLeft"));
-        ui.CheekPuffRightBar->setValue(config.amp_map.at("cheekPuffRight"));
-        ui.JawOpenBar->setValue(config.amp_map.at("jawOpen"));
-        ui.JawLeftBar->setValue(config.amp_map.at("jawLeft"));
-        ui.JawRightBar->setValue(config.amp_map.at("jawRight"));
-        ui.MouthLeftBar->setValue(config.amp_map.at("mouthLeft"));
-        ui.MouthRightBar->setValue(config.amp_map.at("mouthRight"));
-        ui.TongueOutBar->setValue(config.amp_map.at("tongueOut"));
-        ui.TongueUpBar->setValue(config.amp_map.at("tongueUp"));
-        ui.TongueDownBar->setValue(config.amp_map.at("tongueDown"));
-        ui.TongueLeftBar->setValue(config.amp_map.at("tongueLeft"));
-        ui.TongueRightBar->setValue(config.amp_map.at("tongueRight"));
+        CheekPuffLeftBar->setValue(config.amp_map.at("cheekPuffLeft"));
+        CheekPuffRightBar->setValue(config.amp_map.at("cheekPuffRight"));
+        JawOpenBar->setValue(config.amp_map.at("jawOpen"));
+        JawLeftBar->setValue(config.amp_map.at("jawLeft"));
+        JawRightBar->setValue(config.amp_map.at("jawRight"));
+        MouthLeftBar->setValue(config.amp_map.at("mouthLeft"));
+        MouthRightBar->setValue(config.amp_map.at("mouthRight"));
+        TongueOutBar->setValue(config.amp_map.at("tongueOut"));
+        TongueUpBar->setValue(config.amp_map.at("tongueUp"));
+        TongueDownBar->setValue(config.amp_map.at("tongueDown"));
+        TongueLeftBar->setValue(config.amp_map.at("tongueLeft"));
+        TongueRightBar->setValue(config.amp_map.at("tongueRight"));
 
         // 新增的滑动条设置（先检查是否存在对应的键，不存在则使用默认值）
-        ui.MouthCloseBar->setValue(config.amp_map.count("mouthClose") > 0 ? config.amp_map.at("mouthClose") : 0);
-        ui.MouthFunnelBar->setValue(config.amp_map.count("mouthFunnel") > 0 ? config.amp_map.at("mouthFunnel") : 0);
-        ui.MouthPuckerBar->setValue(config.amp_map.count("mouthPucker") > 0 ? config.amp_map.at("mouthPucker") : 0);
-        ui.MouthRollUpperBar->setValue(config.amp_map.count("mouthRollUpper") > 0 ? config.amp_map.at("mouthRollUpper") : 0);
-        ui.MouthRollLowerBar->setValue(config.amp_map.count("mouthRollLower") > 0 ? config.amp_map.at("mouthRollLower") : 0);
-        ui.MouthShrugUpperBar->setValue(config.amp_map.count("mouthShrugUpper") > 0 ? config.amp_map.at("mouthShrugUpper") : 0);
-        ui.MouthShrugLowerBar->setValue(config.amp_map.count("mouthShrugLower") > 0 ? config.amp_map.at("mouthShrugLower") : 0);
+        MouthCloseBar->setValue(config.amp_map.count("mouthClose") > 0 ? config.amp_map.at("mouthClose") : 0);
+        MouthFunnelBar->setValue(config.amp_map.count("mouthFunnel") > 0 ? config.amp_map.at("mouthFunnel") : 0);
+        MouthPuckerBar->setValue(config.amp_map.count("mouthPucker") > 0 ? config.amp_map.at("mouthPucker") : 0);
+        MouthRollUpperBar->setValue(config.amp_map.count("mouthRollUpper") > 0 ? config.amp_map.at("mouthRollUpper") : 0);
+        MouthRollLowerBar->setValue(config.amp_map.count("mouthRollLower") > 0 ? config.amp_map.at("mouthRollLower") : 0);
+        MouthShrugUpperBar->setValue(config.amp_map.count("mouthShrugUpper") > 0 ? config.amp_map.at("mouthShrugUpper") : 0);
+        MouthShrugLowerBar->setValue(config.amp_map.count("mouthShrugLower") > 0 ? config.amp_map.at("mouthShrugLower") : 0);
     }
     catch (std::exception& e)
     {
@@ -895,7 +1319,7 @@ void PaperFaceTrackerWindow::onMouthShrugLowerChanged(int value) const
 void PaperFaceTrackerWindow::onMouthCloseOffsetChanged()
 {
     bool ok;
-    float value = ui.MouthCloseOffset->text().toFloat(&ok);
+    float value = MouthCloseOffset->text().toFloat(&ok);
     if (ok) {
         mouth_close_offset = value;
         updateOffsetsToInference();
@@ -905,7 +1329,7 @@ void PaperFaceTrackerWindow::onMouthCloseOffsetChanged()
 void PaperFaceTrackerWindow::onMouthFunnelOffsetChanged()
 {
     bool ok;
-    float value = ui.MouthFunnelOffset->text().toFloat(&ok);
+    float value = MouthFunnelOffset->text().toFloat(&ok);
     if (ok) {
         mouth_funnel_offset = value;
         updateOffsetsToInference();
@@ -915,7 +1339,7 @@ void PaperFaceTrackerWindow::onMouthFunnelOffsetChanged()
 void PaperFaceTrackerWindow::onMouthPuckerOffsetChanged()
 {
     bool ok;
-    float value = ui.MouthPuckerOffset->text().toFloat(&ok);
+    float value = MouthPuckerOffset->text().toFloat(&ok);
     if (ok) {
         mouth_pucker_offset = value;
         updateOffsetsToInference();
@@ -925,7 +1349,7 @@ void PaperFaceTrackerWindow::onMouthPuckerOffsetChanged()
 void PaperFaceTrackerWindow::onMouthRollUpperOffsetChanged()
 {
     bool ok;
-    float value = ui.MouthRollUpperOffset->text().toFloat(&ok);
+    float value = MouthRollUpperOffset->text().toFloat(&ok);
     if (ok) {
         mouth_roll_upper_offset = value;
         updateOffsetsToInference();
@@ -935,7 +1359,7 @@ void PaperFaceTrackerWindow::onMouthRollUpperOffsetChanged()
 void PaperFaceTrackerWindow::onMouthRollLowerOffsetChanged()
 {
     bool ok;
-    float value = ui.MouthRollLowerOffset->text().toFloat(&ok);
+    float value = MouthRollLowerOffset->text().toFloat(&ok);
     if (ok) {
         mouth_roll_lower_offset = value;
         updateOffsetsToInference();
@@ -945,7 +1369,7 @@ void PaperFaceTrackerWindow::onMouthRollLowerOffsetChanged()
 void PaperFaceTrackerWindow::onMouthShrugUpperOffsetChanged()
 {
     bool ok;
-    float value = ui.MouthShrugUpperOffset->text().toFloat(&ok);
+    float value = MouthShrugUpperOffset->text().toFloat(&ok);
     if (ok) {
         mouth_shrug_upper_offset = value;
         updateOffsetsToInference();
@@ -955,7 +1379,7 @@ void PaperFaceTrackerWindow::onMouthShrugUpperOffsetChanged()
 void PaperFaceTrackerWindow::onMouthShrugLowerOffsetChanged()
 {
     bool ok;
-    float value = ui.MouthShrugLowerOffset->text().toFloat(&ok);
+    float value = MouthShrugLowerOffset->text().toFloat(&ok);
     if (ok) {
         mouth_shrug_lower_offset = value;
         updateOffsetsToInference();
@@ -964,26 +1388,26 @@ void PaperFaceTrackerWindow::onMouthShrugLowerOffsetChanged()
 std::unordered_map<std::string, int> PaperFaceTrackerWindow::getAmpMap() const
 {
     return {
-            {"cheekPuffLeft", ui.CheekPuffLeftBar->value()},
-            {"cheekPuffRight", ui.CheekPuffRightBar->value()},
-            {"jawOpen", ui.JawOpenBar->value()},
-            {"jawLeft", ui.JawLeftBar->value()},
-            {"jawRight", ui.JawRightBar->value()},
-            {"mouthLeft", ui.MouthLeftBar->value()},
-            {"mouthRight", ui.MouthRightBar->value()},
-            {"tongueOut", ui.TongueOutBar->value()},
-            {"tongueUp", ui.TongueUpBar->value()},
-            {"tongueDown", ui.TongueDownBar->value()},
-            {"tongueLeft", ui.TongueLeftBar->value()},
-            {"tongueRight", ui.TongueRightBar->value()},
+            {"cheekPuffLeft", CheekPuffLeftBar->value()},
+            {"cheekPuffRight", CheekPuffRightBar->value()},
+            {"jawOpen", JawOpenBar->value()},
+            {"jawLeft", JawLeftBar->value()},
+            {"jawRight", JawRightBar->value()},
+            {"mouthLeft", MouthLeftBar->value()},
+            {"mouthRight", MouthRightBar->value()},
+            {"tongueOut", TongueOutBar->value()},
+            {"tongueUp", TongueUpBar->value()},
+            {"tongueDown", TongueDownBar->value()},
+            {"tongueLeft", TongueLeftBar->value()},
+            {"tongueRight", TongueRightBar->value()},
             // 添加新的形态键
-            {"mouthClose", ui.MouthCloseBar->value()},
-            {"mouthFunnel", ui.MouthFunnelBar->value()},
-            {"mouthPucker", ui.MouthPuckerBar->value()},
-            {"mouthRollUpper", ui.MouthRollUpperBar->value()},
-            {"mouthRollLower", ui.MouthRollLowerBar->value()},
-            {"mouthShrugUpper", ui.MouthShrugUpperBar->value()},
-            {"mouthShrugLower", ui.MouthShrugLowerBar->value()},
+            {"mouthClose", MouthCloseBar->value()},
+            {"mouthFunnel", MouthFunnelBar->value()},
+            {"mouthPucker", MouthPuckerBar->value()},
+            {"mouthRollUpper", MouthRollUpperBar->value()},
+            {"mouthRollLower", MouthRollLowerBar->value()},
+            {"mouthShrugUpper", MouthShrugUpperBar->value()},
+            {"mouthShrugLower", MouthShrugLowerBar->value()},
         };
 }
 
@@ -1053,12 +1477,12 @@ void PaperFaceTrackerWindow::updateBatteryStatus() const
     if (image_downloader && image_downloader->isStreaming())
     {
         float battery = image_downloader->getBatteryPercentage();
-        QString batteryText = QString("电池电量: %1%").arg(battery, 0, 'f', 1);
-        ui.BatteryStatusLabel->setText(batteryText);
+        QString batteryText = QString(QApplication::translate("PaperTrackerMainWindow", "电池电量: %1%").arg(battery, 0, 'f', 1));
+        BatteryStatusLabel->setText(batteryText);
     }
     else
     {
-        ui.BatteryStatusLabel->setText("电池电量: 未知");
+        BatteryStatusLabel->setText(QApplication::translate("PaperTrackerMainWindow", "电池电量: 未知"));
     }
 }
 void PaperFaceTrackerWindow::create_sub_threads()
@@ -1223,7 +1647,7 @@ void PaperFaceTrackerWindow::create_sub_threads()
 void PaperFaceTrackerWindow::onCheekPuffLeftOffsetChanged()
 {
     bool ok;
-    float value = ui.CheekPuffLeftOffset->text().toFloat(&ok);
+    float value = CheekPuffLeftOffset->text().toFloat(&ok);
     if (ok) {
         cheek_puff_left_offset = value;
         updateOffsetsToInference();
@@ -1233,7 +1657,7 @@ void PaperFaceTrackerWindow::onCheekPuffLeftOffsetChanged()
 void PaperFaceTrackerWindow::onCheekPuffRightOffsetChanged()
 {
     bool ok;
-    float value = ui.CheekPuffRightOffset->text().toFloat(&ok);
+    float value = CheekPuffRightOffset->text().toFloat(&ok);
     if (ok) {
         cheek_puff_right_offset = value;
         updateOffsetsToInference();
@@ -1243,7 +1667,7 @@ void PaperFaceTrackerWindow::onCheekPuffRightOffsetChanged()
 void PaperFaceTrackerWindow::onJawOpenOffsetChanged()
 {
     bool ok;
-    float value = ui.JawOpenOffset->text().toFloat(&ok);
+    float value = JawOpenOffset->text().toFloat(&ok);
     if (ok) {
         jaw_open_offset = value;
         updateOffsetsToInference();
@@ -1253,7 +1677,7 @@ void PaperFaceTrackerWindow::onJawOpenOffsetChanged()
 void PaperFaceTrackerWindow::onTongueOutOffsetChanged()
 {
     bool ok;
-    float value = ui.TongueOutOffset->text().toFloat(&ok);
+    float value = TongueOutOffset->text().toFloat(&ok);
     if (ok) {
         tongue_out_offset = value;
         updateOffsetsToInference();
@@ -1291,59 +1715,81 @@ void PaperFaceTrackerWindow::onShowSerialDataButtonClicked()
     showSerialData = !showSerialData;
     if (showSerialData) {
         LOG_INFO("已开启串口原始数据显示");
-        ui.ShowSerialDataButton->setText("停止显示串口数据");
+        ShowSerialDataButton->setText(QApplication::translate("PaperTrackerMainWindow", "停止显示串口数据"));
     } else {
         LOG_INFO("已关闭串口原始数据显示");
-        ui.ShowSerialDataButton->setText("显示串口数据");
+        ShowSerialDataButton->setText(QApplication::translate("PaperTrackerMainWindow", "显示串口数据"));
     }
 }
+
 void PaperFaceTrackerWindow::setupKalmanFilterControls() {
-    // 在校准页面上添加卡尔曼滤波参数控制
+    // 卡尔曼滤波参数区域（校准页面）
+    auto* dtLayout = new QHBoxLayout();
+    dtLabel = new QLabel("时间步长(dt):", page_2);
+    dtLineEdit = new QLineEdit(QString::number(current_dt, 'f', 3), page_2);
+    dtLineEdit->setMinimumWidth(70);
+    dtLayout->addWidget(dtLabel);
+    dtLayout->addWidget(dtLineEdit);
+    dtLayout->addStretch();
 
-    // dt参数
-    dtLabel = new QLabel("时间步长(dt):", ui.page_2);
-    dtLabel->setGeometry(QRect(510, 10, 120, 20));
+    auto* qFactorLayout = new QHBoxLayout();
+    qFactorLabel = new QLabel("过程噪声系数(q):", page_2);
+    qFactorLineEdit = new QLineEdit(QString::number(current_q_factor, 'f', 2), page_2);
+    qFactorLineEdit->setMinimumWidth(70);
+    qFactorLayout->addWidget(qFactorLabel);
+    qFactorLayout->addWidget(qFactorLineEdit);
+    qFactorLayout->addStretch();
 
-    dtLineEdit = new QLineEdit(ui.page_2);
-    dtLineEdit->setGeometry(QRect(630, 10, 80, 25));
-    dtLineEdit->setText(QString::number(current_dt, 'f', 3));
+    auto* rFactorLayout = new QHBoxLayout();
+    rFactorLabel = new QLabel("测量噪声系数(r):", page_2);
+    rFactorLineEdit = new QLineEdit(QString::number(current_r_factor, 'f', 6), page_2);
+    rFactorLineEdit->setMinimumWidth(70);
+    rFactorLayout->addWidget(rFactorLabel);
+    rFactorLayout->addWidget(rFactorLineEdit);
+    rFactorLayout->addStretch();
 
-    // q_factor参数
-    qFactorLabel = new QLabel("过程噪声系数(q):", ui.page_2);
-    qFactorLabel->setGeometry(QRect(510, 45, 120, 20));
-
-    qFactorLineEdit = new QLineEdit(ui.page_2);
-    qFactorLineEdit->setGeometry(QRect(630, 45, 80, 25));
-    qFactorLineEdit->setText(QString::number(current_q_factor, 'f', 2));
-
-    // r_factor参数
-    rFactorLabel = new QLabel("测量噪声系数(r):", ui.page_2);
-    rFactorLabel->setGeometry(QRect(510, 80, 120, 20));
-
-    rFactorLineEdit = new QLineEdit(ui.page_2);
-    rFactorLineEdit->setGeometry(QRect(630, 80, 80, 25));
-    rFactorLineEdit->setText(QString::number(current_r_factor, 'f', 6));
-
-    // 连接信号和槽
-    connect(dtLineEdit, &QLineEdit::editingFinished, this, &PaperFaceTrackerWindow::onDtEditingFinished);
-    connect(qFactorLineEdit, &QLineEdit::editingFinished, this, &PaperFaceTrackerWindow::onQFactorEditingFinished);
-    connect(rFactorLineEdit, &QLineEdit::editingFinished, this, &PaperFaceTrackerWindow::onRFactorEditingFinished);
-
-    // 添加说明标签
-    QLabel* helpLabel = new QLabel(ui.page_2);
-    helpLabel->setGeometry(QRect(510, 115, 280, 60));
-    helpLabel->setText("调整建议:\n"
-                      "增大q值, 减小r值: 更灵敏, 抖动更明显\n"
-                      "减小q值, 增大r值: 更平滑, 反应更滞后");
+    // 说明标签
+    helpLabel = new QLabel(page_2);
+    auto str1 = QApplication::translate("PaperTrackerMainWindow", "调整建议:");
+    auto str2 = QApplication::translate("PaperTrackerMainWindow", "增大q值, 减小r值: 更灵敏, 抖动更明显");
+    auto str3 = QApplication::translate("PaperTrackerMainWindow", "减小q值, 增大r值: 更平滑, 反应更滞后");
+    helpLabel->setText(str1 + "\n" + str2 + "\n" + str3);
     helpLabel->setWordWrap(true);
 
-    // 设置控件样式
-    QString labelStyle = "QLabel { color: white; font-weight: bold; }";
-    dtLabel->setStyleSheet(labelStyle);
-    qFactorLabel->setStyleSheet(labelStyle);
-    rFactorLabel->setStyleSheet(labelStyle);
-    helpLabel->setStyleSheet(labelStyle);
+    // 创建 QGridLayout
+
+    auto* gridLayout = new QGridLayout();
+    gridLayout->setSpacing(12); // 减小全局间距
+    gridLayout->setContentsMargins(0, 0, 0, 0);
+
+    // 添加控件
+    gridLayout->addWidget(dtLabel, 0, 0);
+    gridLayout->addWidget(dtLineEdit, 0, 1);
+
+    gridLayout->addWidget(qFactorLabel, 1, 0);
+    gridLayout->addWidget(qFactorLineEdit, 1, 1);
+
+    gridLayout->addWidget(rFactorLabel, 2, 0);
+    gridLayout->addWidget(rFactorLineEdit, 2, 1);
+
+    // 添加说明标签
+    helpLabel->setWordWrap(true);
+    helpLabel->setContentsMargins(0, 0, 0, 0); // 移除边距
+    helpLabel->setMargin(0);                   // 移除内部边距
+
+
+    // 父布局调整
+    if (page2RightLayout) {
+        page2RightLayout->setSpacing(12); // 减小垂直间距
+        page2RightLayout->addLayout(gridLayout);
+        page2RightLayout->addWidget(helpLabel,0,Qt::AlignBottom);
+        page2RightLayout->addWidget(ImageLabelCal,1, Qt::AlignBottom);
+        ImageLabelCal->setFixedSize(280, 280);
+        page2RightLayout->addStretch();
+    }
+
 }
+
 void PaperFaceTrackerWindow::onDtEditingFinished() {
     bool ok;
     float value = dtLineEdit->text().toFloat(&ok);
@@ -1387,4 +1833,84 @@ void PaperFaceTrackerWindow::onRFactorEditingFinished() {
         // 输入无效，恢复原值
         rFactorLineEdit->setText(QString::number(current_r_factor, 'f', 6));
     }
+}
+
+void PaperFaceTrackerWindow::retranslateUI()
+{
+    if (is_running()) {
+        updateWifiLabel();
+        updateSerialLabel();
+        updateBatteryStatus();
+    }
+    // 更新主页面按钮文本
+    MainPageButton->setText(QApplication::translate("PaperTrackerMainWindow", "主页"));
+    // 更新校准页面按钮文本
+    CalibrationPageButton->setText(QApplication::translate("PaperTrackerMainWindow", "标定页面"));
+
+    if (!ImageLabel->text().isEmpty()) {
+        ImageLabel->setText(QApplication::translate("PaperTrackerMainWindow", "没有图像输入"));
+    }
+
+    restart_Button->setText(QApplication::translate("PaperTrackerMainWindow", "重启"));
+    FlashFirmwareButton->setText(QApplication::translate("PaperTrackerMainWindow", "刷写固件"));
+    label->setText(QApplication::translate("PaperTrackerMainWindow", "亮度调整"));
+    label_2->setText(QApplication::translate("PaperTrackerMainWindow", "日志窗口："));
+    label_16->setText(QApplication::translate("PaperTrackerMainWindow", "IP地址："));
+    label_17->setText(QApplication::translate("PaperTrackerMainWindow", "旋转角度调整"));
+    label_18->setText(QApplication::translate("PaperTrackerMainWindow", "性能模式选择"));
+    ShowSerialDataButton->setText(QApplication::translate("PaperTrackerMainWindow", "串口日志"));
+    SSIDText->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "请输入WIFI名字（仅支持2.4ghz）"));
+    PasswordText->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "请输入WIFI密码"));
+    wifi_send_Button->setText(QApplication::translate("PaperTrackerMainWindow", "发送"));
+    UseFilterBox->setText(QApplication::translate("PaperTrackerMainWindow", "启用滤波（减少抖动）"));
+    EnergyModeBox->setItemText(0, QApplication::translate("PaperTrackerMainWindow", "普通模式"));
+    EnergyModeBox->setItemText(1, QApplication::translate("PaperTrackerMainWindow", "节能模式"));
+    EnergyModeBox->setItemText(2, QApplication::translate("PaperTrackerMainWindow", "性能模式"));
+
+    label_11->setText(QApplication::translate("PaperTrackerMainWindow", "嘴右移"));
+    label_10->setText(QApplication::translate("PaperTrackerMainWindow", "嘴左移"));
+    label_9->setText(QApplication::translate("PaperTrackerMainWindow", "下巴右移"));
+    label_8->setText(QApplication::translate("PaperTrackerMainWindow", "下巴左移"));
+    label_7 ->setText(QApplication::translate("PaperTrackerMainWindow", "下巴下移"));
+    label_6->setText(QApplication::translate("PaperTrackerMainWindow", "右脸颊"));
+    label_5->setText(QApplication::translate("PaperTrackerMainWindow", "左脸颊"));
+    label_14->setText(QApplication::translate("PaperTrackerMainWindow", "舌头向下"));
+    label_15->setText(QApplication::translate("PaperTrackerMainWindow", "舌头向左"));
+    label_12->setText(QApplication::translate("PaperTrackerMainWindow", "舌头伸出"));
+    label_13->setText(QApplication::translate("PaperTrackerMainWindow", "舌头向上"));
+    label_31->setText(QApplication::translate("PaperTrackerMainWindow", "舌头向右"));
+
+    label_mouthClose->setText(QApplication::translate("PaperTrackerMainWindow", "嘴闭合"));
+    label_mouthFunnel->setText(QApplication::translate("PaperTrackerMainWindow", "嘴漏斗形"));
+    label_mouthPucker->setText(QApplication::translate("PaperTrackerMainWindow", "嘴撅起"));
+    label_mouthRollUpper->setText(QApplication::translate("PaperTrackerMainWindow", "上唇内卷"));
+    label_mouthRollLower->setText(QApplication::translate("PaperTrackerMainWindow", "下唇内卷"));
+    label_mouthShrugUpper->setText(QApplication::translate("PaperTrackerMainWindow", "上唇耸起"));
+    label_mouthShrugLower->setText(QApplication::translate("PaperTrackerMainWindow", "下唇耸起"));
+
+    dtLabel->setText(QApplication::translate("PaperTrackerMainWindow", "时间步长(dt):"));
+    qFactorLabel->setText(QApplication::translate("PaperTrackerMainWindow", "过程噪声系数(q):"));
+    rFactorLabel->setText(QApplication::translate("PaperTrackerMainWindow", "测量噪声系数(r):"));
+
+    label_3->setText(QApplication::translate("PaperTrackerMainWindow", "放大倍率"));
+    label_20->setText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
+    CheekPuffLeftOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
+    CheekPuffRightOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
+    JawOpenOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
+    TongueOutOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
+    MouthCloseOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
+    MouthFunnelOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
+    MouthPuckerOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
+    MouthRollUpperOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
+    MouthRollLowerOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
+    MouthShrugUpperOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
+    MouthShrugLowerOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
+
+    tutorialLink->setText(QString("<a href='https://fcnk6r4c64fa.feishu.cn/wiki/VSlnw4Zr0i4VzXFkvT8TcbQFMn7c' style='color: #0066cc; font-size: 14pt; font-weight: bold;'>%1</a>")
+                          .arg(QApplication::translate("PaperTrackerMainWindow", "面捕调整教程")));
+
+    auto str1 = QApplication::translate("PaperTrackerMainWindow", "调整建议:");
+    auto str2 = QApplication::translate("PaperTrackerMainWindow", "增大q值, 减小r值: 更灵敏, 抖动更明显");
+    auto str3 = QApplication::translate("PaperTrackerMainWindow", "减小q值, 增大r值: 更平滑, 反应更滞后");
+    helpLabel->setText(str1 + "\n" + str2 + "\n" + str3);
 }

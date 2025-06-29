@@ -223,7 +223,7 @@ PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
         else {
             QMessageBox msgBox;
             msgBox.setWindowIcon(this->windowIcon());
-            msgBox.setText(tr("未找到左眼配置文件信息，请将设备通过数据线连接到电脑进行首次配置"));
+            msgBox.setText(QApplication::translate("PaperTrackerMainWindow","未找到左眼配置文件信息，请将设备通过数据线连接到电脑进行首次配置"));
             msgBox.exec();
         }
         if (!config.right_ip.empty()) {
@@ -234,7 +234,7 @@ PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
         else {
             QMessageBox msgBox;
             msgBox.setWindowIcon(this->windowIcon());
-            msgBox.setText(tr("未找到右眼配置文件信息，请将设备通过数据线连接到电脑进行首次配置"));
+            msgBox.setText(QApplication::translate("PaperTrackerMainWindow","未找到右眼配置文件信息，请将设备通过数据线连接到电脑进行首次配置"));
             msgBox.exec();
         }
     }
@@ -247,7 +247,7 @@ PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
             if (config.left_ip.empty()) {
                 QMessageBox msgBox;
                 msgBox.setWindowIcon(this->windowIcon());
-                msgBox.setText(tr("未找到左眼配置文件信息，请将设备通过数据线连接到电脑进行首次配置"));
+                msgBox.setText(QApplication::translate("PaperTrackerMainWindow","未找到左眼配置文件信息，请将设备通过数据线连接到电脑进行首次配置"));
                 msgBox.exec();
             }
         }
@@ -259,7 +259,7 @@ PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
             if (config.right_ip.empty()) {
                 QMessageBox msgBox;
                 msgBox.setWindowIcon(this->windowIcon());
-                msgBox.setText(tr("未找到右眼配置文件信息，请将设备通过数据线连接到电脑进行首次配置"));
+                msgBox.setText(QApplication::translate("PaperTrackerMainWindow","未找到右眼配置文件信息，请将设备通过数据线连接到电脑进行首次配置"));
                 msgBox.exec();
             }
         }
@@ -301,11 +301,11 @@ PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
     // 添加标签
     QLabel* leftAdjustLabel = new QLabel(ui.page_2);
     leftAdjustLabel->setGeometry(QRect(290, 330, 40, 30));
-    leftAdjustLabel->setText("调整:");
+    leftAdjustLabel->setText(QApplication::translate("PaperTrackerMainWindow", "调整:"));
 
     QLabel* rightAdjustLabel = new QLabel(ui.page_2);
     rightAdjustLabel->setGeometry(QRect(740, 330, 40, 30));
-    rightAdjustLabel->setText("调整:");
+    rightAdjustLabel->setText(QApplication::translate("PaperTrackerMainWindow", "调整:"));
 
     // 连接信号和槽
     connect(leftIncButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onLeftEyeValueIncrease);
@@ -336,6 +336,9 @@ PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
 
     // 更新按钮状态
     updateCalibrationButtonStates();
+    retranslateUI();
+    connect(&TranslatorManager::instance(), &TranslatorManager::languageSwitched,
+    this, &PaperEyeTrackerWindow::retranslateUI);
 }
 
 void PaperEyeTrackerWindow::setVideoImage(int version, const cv::Mat& image) {
@@ -347,11 +350,11 @@ void PaperEyeTrackerWindow::setVideoImage(int version, const cv::Mat& image) {
     if (image.empty()) {
         QMetaObject::invokeMethod(this, [this, image_label, setting_image_label]() {
             image_label->clear(); // 清除图片
-            image_label->setText(tr("                          没有图像输入"));
+            image_label->setText(QApplication::translate("PaperTrackerMainWindow", "没有图像输入"));
 
             if (setting_image_label) {
                 setting_image_label->clear();
-                setting_image_label->setText(tr("没有图像输入"));
+                setting_image_label->setText(QApplication::translate("PaperTrackerMainWindow", "没有图像输入"));
             }
             }, Qt::QueuedConnection);
         return;
@@ -1214,6 +1217,38 @@ void PaperEyeTrackerWindow::onFlashButtonClicked() {
     }
 }
 
+void PaperEyeTrackerWindow::retranslateUI() {
+    ui.LeftEyeTrackingLabel->setText(QApplication::translate("PaperTrackerMainWindow", "左眼跟踪"));
+    ui.RightEyeTrackingLabel->setText(QApplication::translate("PaperTrackerMainWindow", "右眼跟踪"));
+    ui.MainPageButton->setText(QApplication::translate("PaperTrackerMainWindow", "主页面"));
+    ui.SettingButton->setText(QApplication::translate("PaperTrackerMainWindow", "设置"));
+    ui.settingsCalibrateButton->setText(QApplication::translate("PaperTrackerMainWindow", "开始眼球位置校准"));
+    ui.settingsCenterButton->setText(QApplication::translate("PaperTrackerMainWindow", "标定眼球中心"));
+    ui.settingsEyeOpenButton->setText(QApplication::translate("PaperTrackerMainWindow", "标定眼睛完全张开"));
+    ui.settingsEyeCloseButton->setText(QApplication::translate("PaperTrackerMainWindow", "标定眼睛完全闭合"));
+    ui.LeftEyeOpennessLabel->setText(QApplication::translate("PaperTrackerMainWindow", "左眼开合度"));
+    ui.RightEyeOpennessLabel->setText(QApplication::translate("PaperTrackerMainWindow", "右眼开合度"));
+    ui.LeftEyeImage->setText(QApplication::translate("PaperTrackerMainWindow", "没有图像输入"));
+    ui.RightEyeImage->setText(QApplication::translate("PaperTrackerMainWindow", "没有图像输入"));
+    ui.label_4->setText(QApplication::translate("PaperTrackerMainWindow", "左眼补光"));
+    ui.label_5->setText(QApplication::translate("PaperTrackerMainWindow", "右眼补光"));
+    ui.LeftRotateLabel->setText(QApplication::translate("PaperTrackerMainWindow", "左眼旋转角度"));
+    ui.RightRotateLabel->setText(QApplication::translate("PaperTrackerMainWindow", "右眼旋转角度"));
+    ui.SendButton->setText(QApplication::translate("PaperTrackerMainWindow", "发送"));
+    ui.RestartButton->setText(QApplication::translate("PaperTrackerMainWindow", "重启"));
+    ui.FlashButton->setText(QApplication::translate("PaperTrackerMainWindow", "刷写固件"));
+    ui.label_3->setText(QApplication::translate("PaperTrackerMainWindow", "模式选择"));
+    ui.label->setText(QApplication::translate("PaperTrackerMainWindow", "左眼IP"));
+    ui.label_2->setText(QApplication::translate("PaperTrackerMainWindow", "右眼IP"));
+    ui.EnergyModelBox->setItemText(0, QApplication::translate("PaperTrackerMainWindow", "普通模式"));
+    ui.EnergyModelBox->setItemText(1, QApplication::translate("PaperTrackerMainWindow", "节能模式"));
+    ui.EnergyModelBox->setItemText(2, QApplication::translate("PaperTrackerMainWindow", "性能模式"));
+
+    eyeSyncComboBox->setItemText(0, QApplication::translate("PaperTrackerMainWindow", "双眼眼皮独立控制"));
+    eyeSyncComboBox->setItemText(1, QApplication::translate("PaperTrackerMainWindow", "左眼眼皮控制双眼眼皮"));
+    eyeSyncComboBox->setItemText(2, QApplication::translate("PaperTrackerMainWindow", "右眼眼皮控制双眼眼皮"));
+}
+
 void PaperEyeTrackerWindow::connect_callbacks() {
     for (int i = 0; i < EYE_NUM; i++) {
         brightness_timer[i] = std::make_shared<QTimer>();
@@ -1419,15 +1454,15 @@ cv::Mat PaperEyeTrackerWindow::getVideoImage(int version) const {
 }
 
 void PaperEyeTrackerWindow::setSerialStatusLabel(const QString& text) const {
-    ui.EyeWindowSerialStatus->setText(text);
+    ui.EyeWindowSerialStatus->setText(QApplication::translate("PaperTrackerMainWindow",text.toUtf8().constData()));
 }
 
 void PaperEyeTrackerWindow::setWifiStatusLabel(int version, const QString& text) const {
     if (version == LEFT_TAG) {
-        ui.LeftEyeWifiStatus->setText(text.toUtf8().constData());
+        ui.LeftEyeWifiStatus->setText(QApplication::translate("PaperTrackerMainWindow",text.toUtf8().constData()));
     }
     else if (version == RIGHT_TAG) {
-        ui.RightEyeWifiStatus->setText(text.toUtf8().constData());
+        ui.RightEyeWifiStatus->setText(QApplication::translate("PaperTrackerMainWindow",text.toUtf8().constData()));
     }
 }
 

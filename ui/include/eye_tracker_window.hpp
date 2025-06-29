@@ -135,6 +135,7 @@ private slots:
     void onRightEyeValueIncrease();
     void onRightEyeValueDecrease();
 private:
+    void retranslateUI();
     void connect_callbacks();
     double eye_fully_open[EYE_NUM] = {30.0, 30.0};    // 默认值
     double eye_fully_closed[EYE_NUM] = {10.0, 10.0};  // 默认值

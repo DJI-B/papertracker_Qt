@@ -12,9 +12,6 @@ QWidget {
 QMainWindow {
 	background-color:#1e1d23;
 }
-QDialog {
-	background-color:#1e1d23;
-}
 QColorDialog {
 	background-color:#1e1d23;
 }
@@ -42,7 +39,7 @@ QPushButton{
 	border-width: 1px;
 	border-style: solid;
 	color: #a9b7c6;
-	padding: 2px;
+	padding: 0 20px;
 	background-color: #1e1d23;
 }
 QPushButton::default{
@@ -53,7 +50,7 @@ QPushButton::default{
 	border-bottom-color: #04b97f;
 	border-width: 1px;
 	color: #a9b7c6;
-	padding: 2px;
+	padding: 0 20px;
 	background-color: #1e1d23;
 }
 QToolButton {
