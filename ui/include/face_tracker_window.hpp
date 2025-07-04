@@ -79,9 +79,11 @@ struct PaperFaceTrackerConfig {
     Rect rect;
 
 
-NLOHMANN_DEFINE_TYPE_INTRUSIVE(PaperFaceTrackerConfig, brightness, rotate_angle, energy_mode, wifi_ip, use_filter, amp_map, rect, cheek_puff_left_offset, cheek_puff_right_offset,
-    jaw_open_offset, tongue_out_offset, mouth_close_offset, mouth_funnel_offset, mouth_pucker_offset,
-    mouth_roll_upper_offset, mouth_roll_lower_offset, mouth_shrug_upper_offset, mouth_shrug_lower_offset, dt, q_factor, r_factor);};
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(PaperFaceTrackerConfig, brightness, rotate_angle, energy_mode, wifi_ip, use_filter, amp_map, rect, cheek_puff_left_offset, cheek_puff_right_offset,
+        jaw_open_offset, tongue_out_offset, mouth_close_offset, mouth_funnel_offset, mouth_pucker_offset,
+        mouth_roll_upper_offset, mouth_roll_lower_offset, mouth_shrug_upper_offset, mouth_shrug_lower_offset, dt, q_factor, r_factor);
+
+};
 
 class PaperFaceTrackerWindow final : public QWidget {
 private:

@@ -332,6 +332,8 @@ add_library(
         ui/main_window.ui
         ui/eye_tracker_window.cpp
         ui/eye_tracker_window.ui
+        ui/translator_manager.cpp
+        ui/include/translator_manager.h
 )
 
 target_include_directories(
@@ -431,7 +433,7 @@ endif()
 
 # install dir model to the same dir as the executable
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/model/  DESTINATION ${CMAKE_BINARY_DIR}/model)
-
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/translations/  DESTINATION ${CMAKE_BINARY_DIR}/translations)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/opencv/build/x64/vc16/bin/  DESTINATION ${CMAKE_BINARY_DIR})
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/esptools/  DESTINATION ${CMAKE_BINARY_DIR})
 #install(DIRECTORY "D:/QtMVSC/6.8.2/msvc2022_64/bin/"  DESTINATION ${CMAKE_BINARY_DIR})
