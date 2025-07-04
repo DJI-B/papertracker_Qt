@@ -167,6 +167,34 @@ endif()
 
 message(STATUS "Using oscpack library: ${OSCPACK_LIBRARY}")
 
+# download esptools
+set(ESPTOOL_INSTALL_PATH ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/esptools)
+
+if(NOT EXISTS ${ESPTOOL_INSTALL_PATH}/esptool.exe)
+    message(STATUS "Downloading esptool...")
+
+    FetchContent_Declare(
+        esptool
+        URL https://github.com/espressif/esptool/releases/download/v5.0.0/esptool-v5.0.0-windows-amd64.zip
+        SOURCE_DIR ${ESPTOOL_INSTALL_PATH}
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    )
+    
+    FetchContent_MakeAvailable(esptool)
+    message(STATUS "esptool downloaded and extracted to: ${ESPTOOL_INSTALL_PATH}")
+else()
+    message(STATUS "esptool already exists at: ${ESPTOOL_INSTALL_PATH}")
+endif()
+
+set(ESPTOOL_EXECUTABLE ${ESPTOOL_INSTALL_PATH}/esptool.exe)
+
+if(EXISTS ${ESPTOOL_EXECUTABLE})
+    message(STATUS "esptool executable: ${ESPTOOL_EXECUTABLE}")
+else()
+    message(WARNING "esptool executable not found at: ${ESPTOOL_EXECUTABLE}")
+endif()
+
+
 find_package(Qt6 COMPONENTS Core Gui Widgets Network WebSockets SerialPort REQUIRED)
 
 if(MSVC)
