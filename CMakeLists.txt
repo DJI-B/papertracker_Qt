@@ -1,9 +1,8 @@
-
 cmake_minimum_required(VERSION 3.30)
 
-    # 明确设置编译器路径
-    set(CMAKE_C_COMPILER "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.42.34433/bin/Hostx64/x64/cl.exe")
-    set(CMAKE_CXX_COMPILER "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.42.34433/bin/Hostx64/x64/cl.exe")
+# 明确设置编译器路径
+set(CMAKE_C_COMPILER "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.42.34433/bin/Hostx64/x64/cl.exe")
+set(CMAKE_CXX_COMPILER "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.42.34433/bin/Hostx64/x64/cl.exe")
 
 project(PaperTracker)
 
@@ -191,8 +190,6 @@ add_library(
         ui/main_window.ui
         ui/eye_tracker_window.cpp
         ui/eye_tracker_window.ui
-        ui/translator_manager.cpp
-        ui/include/translator_manager.h
 )
 
 target_include_directories(
@@ -271,7 +268,6 @@ else ()
 endif ()
 # install resources
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/translations DESTINATION ${CMAKE_BINARY_DIR})
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(DEBUG_SUFFIX)
