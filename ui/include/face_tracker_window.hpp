@@ -20,7 +20,8 @@
 #include "serial.hpp"
 #include "logger.hpp"
 #include "updater.hpp"
-
+#include "translator_manager.h"
+#include <QGridLayout>
 struct Rect
 {
 public:
@@ -78,14 +79,14 @@ struct PaperFaceTrackerConfig {
     Rect rect;
 
 
-NLOHMANN_DEFINE_TYPE_INTRUSIVE(PaperFaceTrackerConfig, brightness, rotate_angle, energy_mode, wifi_ip, use_filter, amp_map, rect, cheek_puff_left_offset, cheek_puff_right_offset,
-    jaw_open_offset, tongue_out_offset, mouth_close_offset, mouth_funnel_offset, mouth_pucker_offset,
-    mouth_roll_upper_offset, mouth_roll_lower_offset, mouth_shrug_upper_offset, mouth_shrug_lower_offset, dt, q_factor, r_factor);};
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(PaperFaceTrackerConfig, brightness, rotate_angle, energy_mode, wifi_ip, use_filter, amp_map, rect, cheek_puff_left_offset, cheek_puff_right_offset,
+        jaw_open_offset, tongue_out_offset, mouth_close_offset, mouth_funnel_offset, mouth_pucker_offset,
+        mouth_roll_upper_offset, mouth_roll_lower_offset, mouth_shrug_upper_offset, mouth_shrug_lower_offset, dt, q_factor, r_factor);
+
+};
 
 class PaperFaceTrackerWindow final : public QWidget {
 private:
-    // UI组件
-    Ui::PaperFaceTrackerMainWindow ui{};
 public:
     explicit PaperFaceTrackerWindow(QWidget *parent = nullptr);
     ~PaperFaceTrackerWindow() override;
@@ -181,7 +182,14 @@ private slots:
 
     // 设置卡尔曼滤波参数控制UI
     void setupKalmanFilterControls();
+
+    //翻译槽函数
+    void retranslateUI();
 private:
+    void InitUi();
+    void InitLayout();
+    void addCalibrationParam(QGridLayout* layout, QLabel* label = nullptr, QLineEdit* offsetEdit =nullptr, QScrollBar* bar = nullptr, QProgressBar* value = nullptr, int row = 0);
+
     void start_image_download() const;
     std::vector<std::string> serialRawDataLog;
     bool showSerialData = false;
@@ -258,6 +266,7 @@ private:
 
     QLabel* rFactorLabel = nullptr;
     QLineEdit* rFactorLineEdit = nullptr;
+    QLabel* helpLabel = nullptr;
     // 在private:部分的其他偏置值变量声明后添加
     float mouth_close_offset = 0.0f;
     float mouth_funnel_offset = 0.0f;
@@ -275,6 +284,114 @@ private:
     inline static PaperFaceTrackerWindow* instance = nullptr;
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
+
+    // UI元素指针声明
+    QStackedWidget *stackedWidget;
+    QWidget *page;
+    QLabel *ImageLabel;
+    QPlainTextEdit *SSIDText;
+    QPlainTextEdit *PasswordText;
+    QScrollBar *BrightnessBar;
+    QLabel *label;
+    QPushButton *wifi_send_Button;
+    QPushButton *FlashFirmwareButton;
+    QPlainTextEdit *LogText;
+    QLabel *label_2;
+    QTextEdit *textEdit;
+    QLabel *label_16;
+    QPushButton *restart_Button;
+    QLabel *label_17;
+    QScrollBar *RotateImageBar;
+    QCheckBox *UseFilterBox;
+    QComboBox *EnergyModeBox;
+    QLabel *label_18;
+    QPushButton *ShowSerialDataButton;
+    QWidget *page_2;
+    QScrollArea *scrollArea;
+    QWidget *scrollAreaWidgetContents;
+    QLabel *label_5;
+    QLineEdit *CheekPuffLeftOffset;
+    QLabel *label_10;
+    QLabel *label_13;
+    QLabel *label_6;
+    QLineEdit *CheekPuffRightOffset;
+    QLabel *label_15;
+    QLabel *label_7;
+    QLineEdit *JawOpenOffset;
+    QLabel *label_11;
+    QLabel *label_9;
+    QLabel *label_14;
+    QLabel *label_8;
+    QLabel *label_12;
+    QLineEdit *TongueOutOffset;
+    QLabel *label_31;
+    QLabel *label_mouthClose;
+    QLineEdit *MouthCloseOffset;
+    QScrollBar *MouthCloseBar;
+    QProgressBar *MouthCloseValue;
+    QLabel *label_mouthFunnel;
+    QLineEdit *MouthFunnelOffset;
+    QScrollBar *MouthFunnelBar;
+    QProgressBar *MouthFunnelValue;
+    QLabel *label_mouthPucker;
+    QLineEdit *MouthPuckerOffset;
+    QScrollBar *MouthPuckerBar;
+    QProgressBar *MouthPuckerValue;
+    QLabel *label_mouthRollUpper;
+    QLineEdit *MouthRollUpperOffset;
+    QScrollBar *MouthRollUpperBar;
+    QProgressBar *MouthRollUpperValue;
+    QLabel *label_mouthRollLower;
+    QLineEdit *MouthRollLowerOffset;
+    QScrollBar *MouthRollLowerBar;
+    QProgressBar *MouthRollLowerValue;
+    QLabel *label_mouthShrugUpper;
+    QLineEdit *MouthShrugUpperOffset;
+    QScrollBar *MouthShrugUpperBar;
+    QProgressBar *MouthShrugUpperValue;
+    QLabel *label_mouthShrugLower;
+    QLineEdit *MouthShrugLowerOffset;
+    QScrollBar *MouthShrugLowerBar;
+    QProgressBar *MouthShrugLowerValue;
+    QProgressBar *CheekPullLeftValue;
+    QProgressBar *CheekPullRightValue;
+    QProgressBar *JawLeftValue;
+    QProgressBar *JawOpenValue;
+    QProgressBar *MouthLeftValue;
+    QProgressBar *JawRightValue;
+    QProgressBar *TongueOutValue;
+    QProgressBar *MouthRightValue;
+    QProgressBar *TongueDownValue;
+    QProgressBar *TongueUpValue;
+    QProgressBar *TongueRightValue;
+    QProgressBar *TongueLeftValue;
+    QScrollBar *CheekPuffLeftBar;
+    QScrollBar *CheekPuffRightBar;
+    QScrollBar *JawOpenBar;
+    QScrollBar *JawLeftBar;
+    QScrollBar *MouthLeftBar;
+    QScrollBar *JawRightBar;
+    QScrollBar *TongueOutBar;
+    QScrollBar *MouthRightBar;
+    QScrollBar *TongueDownBar;
+    QScrollBar *TongueUpBar;
+    QScrollBar *TongueRightBar;
+    QScrollBar *TongueLeftBar;
+    QLabel *ImageLabelCal;
+    QLabel *label_3;
+    QLabel *label_4;
+    QLabel *label_19;
+    QLabel *label_20;
+    QPushButton *MainPageButton;
+    QPushButton *CalibrationPageButton;
+    QLabel *WifiConnectLabel;
+    QLabel *SerialConnectLabel;
+    QLabel *BatteryStatusLabel;
+
+    QLabel *tutorialLink;
+    QHBoxLayout *calibrationPageLayout;
+    QVBoxLayout *page2RightLayout;
+    QWidget *topTitleWidget;
 };
 
 #endif //PAPER_FACE_TRACKER_WINDOW_HPP

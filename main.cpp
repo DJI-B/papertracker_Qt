@@ -4,11 +4,12 @@
 #include <QMessageBox>
 #include <QProgressDialog>
 #include <face_inference.hpp>
-#include <main_window.hpp>
+#include <main_window.h>
 #include <QApplication>
-#include <QThread>
 #include <updater.hpp>
-
+#include <QDir>
+#include <QDebug>
+#include "translator_manager.h"
 
 int main(int argc, char *argv[]) {
     system("chcp 65001");
@@ -26,6 +27,8 @@ int main(int argc, char *argv[]) {
         box.setText(QObject::tr("无法打开 QSS 文件"));
         box.exec();
     }
+
+    TranslatorManager::instance();  // 触发单例初始化
 
     PaperTrackerMainWindow window;
     window.setWindowIcon(icon);  // 设置窗口图标

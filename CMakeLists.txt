@@ -7,13 +7,36 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MT /Zc:preprocessor")
+if (MSVC)
+    # 设置预处理器标志
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor")
+    
+    # 根据构建类型设置正确的运行时库
+    if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+        add_definitions(-DDEBUG)
+    else()
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+    endif()
+    
+    # 确保包含标准库路径
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8")
+endif()
 
-if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MTd")
-    add_definitions(-DDEBUG)
-endif ()
+# 调试资源文件路径
+message(STATUS "模型资源文件路径: ${CMAKE_CURRENT_SOURCE_DIR}/models.qrc")
+message(STATUS "模型文件路径: ${CMAKE_CURRENT_SOURCE_DIR}/model/eye_model.onnx")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/models.qrc")
+    message(STATUS "models.qrc 文件存在")
+else()
+    message(WARNING "models.qrc 文件不存在!")
+endif()
 
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/model/eye_model.onnx")
+    message(STATUS "eye_model.onnx 文件存在")
+else()
+    message(WARNING "eye_model.onnx 文件不存在!")
+endif()
 
 # set 3rd party lib path
 
@@ -309,6 +332,8 @@ add_library(
         ui/main_window.ui
         ui/eye_tracker_window.cpp
         ui/eye_tracker_window.ui
+        ui/translator_manager.cpp
+        ui/include/translator_manager.h
 )
 
 target_include_directories(
@@ -408,7 +433,7 @@ endif()
 
 # install dir model to the same dir as the executable
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/model/  DESTINATION ${CMAKE_BINARY_DIR}/model)
-
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/translations/  DESTINATION ${CMAKE_BINARY_DIR}/translations)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/opencv/build/x64/vc16/bin/  DESTINATION ${CMAKE_BINARY_DIR})
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/esptools/  DESTINATION ${CMAKE_BINARY_DIR})
 #install(DIRECTORY "D:/QtMVSC/6.8.2/msvc2022_64/bin/"  DESTINATION ${CMAKE_BINARY_DIR})
