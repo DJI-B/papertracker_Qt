@@ -16,28 +16,25 @@ endif ()
 
 
 # set 3rd party lib path
-
 #if develop qt is on set path to the qt path else set the path to the qt path
-
 if (EXISTS "D:/QtNew/6.8.2/msvc2022_64")
     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "D:/QtNew/6.8.2/msvc2022_64")
 else ()
     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "E:/Qt/6.8.2/msvc2022_64")
 endif ()
 
-set(CURL_DIR ${CMAKE_SOURCE_DIR}/3rdParty/curl-install/lib/cmake/CURL)
-
 ## download dependencies
 include(FetchContent)
 # download opencv
 set(OPENCV_INSTALL_PATH ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/opencv)
 set(OPENCV_CMAKE_FILE ${OPENCV_INSTALL_PATH}/build/x64/vc16/lib/OpenCVConfig.cmake)
+set(OPENCV_VERSION 4.11.0)
 if(NOT EXISTS ${OPENCV_CMAKE_FILE})
     message(STATUS "OpenCV not found, downloading...")
     
     FetchContent_Declare(
         prebuilt_opencv
-        URL https://github.com/opencv/opencv/releases/download/4.11.0/opencv-4.11.0-windows.exe
+        URL https://github.com/opencv/opencv/releases/download/${OPENCV_VERSION}/opencv-${OPENCV_VERSION}-windows.exe
         SOURCE_DIR ${OPENCV_INSTALL_PATH}
     )
     
@@ -45,22 +42,45 @@ if(NOT EXISTS ${OPENCV_CMAKE_FILE})
 else()
     message(STATUS "OpenCV already exists at: ${OPENCV_INSTALL_PATH}")
 endif()
-# 设置OpenCV路径并查找包
 set(OpenCV_DIR ${OPENCV_INSTALL_PATH}/build/x64/vc16/lib)
 find_package(OpenCV REQUIRED)
 
+set(ONNXRUNTIME_VERSION 1.22.0)
+set(ONNXRUNTIME_INSTALL_PATH ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/onnxruntime)
+set(ONNXRUNTIME_HEADER_FILE ${ONNXRUNTIME_INSTALL_PATH}/include/onnxruntime_cxx_api.h)
 find_package(CUDA)
 if(CUDA_FOUND)
     message("CUDA found")
     add_definitions(-DUSE_CUDA)
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -gencode arch=compute_75,code=sm_75")
-    set(ONNXRUNTIME_ROOT ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime-win-x64-1.20.1)
+    if(NOT EXISTS ${ONNXRUNTIME_HEADER_FILE})
+        message(STATUS "ONNXRUNTIME not found, downloading...")
+        FetchContent_Declare(
+            onnxruntime
+            URL https://github.com/microsoft/onnxruntime/releases/download/v${ONNXRUNTIME_VERSION}/onnxruntime-win-x64-gpu-${ONNXRUNTIME_VERSION}.zip
+            SOURCE_DIR ${ONNXRUNTIME_INSTALL_PATH}
+        )
+        FetchContent_MakeAvailable(onnxruntime)
+        message(STATUS "ONNXRUNTIME download completed")
+    else()
+        message(STATUS "ONNXRUNTIME already exists at: ${ONNXRUNTIME_INSTALL_PATH}")
+    endif()
 else()
     message("CUDA no found")
-    set(ONNXRUNTIME_ROOT ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime-win-x64-gpu-1.20.1)
+    if(NOT EXISTS ${ONNXRUNTIME_HEADER_FILE})
+        message(STATUS "ONNXRUNTIME not found, downloading...")
+        FetchContent_Declare(
+            onnxruntime
+            URL https://github.com/microsoft/onnxruntime/releases/download/v${ONNXRUNTIME_VERSION}/onnxruntime-win-x64-${ONNXRUNTIME_VERSION}.zip
+            SOURCE_DIR ${ONNXRUNTIME_INSTALL_PATH}
+        )
+        FetchContent_MakeAvailable(onnxruntime)
+        message(STATUS "ONNXRUNTIME download completed")
+    else()
+        message(STATUS "ONNXRUNTIME already exists at: ${ONNXRUNTIME_INSTALL_PATH}")
+    endif()
 endif ()
-find_package(OpenCV CONFIG REQUIRED)
-find_package(CURL CONFIG REQUIRED)
+set(ONNXRUNTIME_ROOT ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime)
 find_package(Qt6 COMPONENTS Core Gui Widgets Network WebSockets SerialPort REQUIRED)
 
 IF(WIN32)
@@ -91,7 +111,7 @@ add_library(
 
 target_link_libraries(
         utilities PUBLIC
-        Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Network Qt6::WebSockets Qt6::SerialPort CURL::libcurl
+        Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Network Qt6::WebSockets Qt6::SerialPort
 )
 
 target_include_directories(
@@ -168,7 +188,6 @@ target_link_libraries(
         ${OpenCV_LIBS}
         onnxruntime
         oscpack
-        CURL::libcurl
         utilities
         Setupapi
         User32
@@ -204,7 +223,6 @@ target_link_libraries(
         oscpack
         transfer
         algorithm
-        CURL::libcurl
         utilities
 )
 
@@ -237,7 +255,6 @@ target_link_libraries(PaperTracker PRIVATE
         onnxruntime
         oscpack
         ${LIBS}
-        CURL::libcurl
         ${OpenCV_LIBS}
         #add windows library
         Setupapi
@@ -252,14 +269,9 @@ target_link_libraries(PaperTracker PRIVATE
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/model/  DESTINATION ${CMAKE_BINARY_DIR}/model)
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/opencv/build/x64/vc16/bin/  DESTINATION ${CMAKE_BINARY_DIR})
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/curl-install/bin/  DESTINATION ${CMAKE_BINARY_DIR})
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/esptools/  DESTINATION ${CMAKE_BINARY_DIR})
 #install(DIRECTORY "D:/QtMVSC/6.8.2/msvc2022_64/bin/"  DESTINATION ${CMAKE_BINARY_DIR})
-if (CUDA_FOUND)
-    install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime-win-x64-gpu-1.20.1/lib/  DESTINATION ${CMAKE_BINARY_DIR})
-else ()
-    install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime-win-x64-1.20.1/lib/  DESTINATION ${CMAKE_BINARY_DIR})
-endif ()
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime/lib/  DESTINATION ${CMAKE_BINARY_DIR})
 # install resources
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})
 
