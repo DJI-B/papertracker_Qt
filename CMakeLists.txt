@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.30)
-project(PaperTracker)
+project(PaperTracker LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -16,12 +16,15 @@ endif ()
 
 
 # set 3rd party lib path
-#if develop qt is on set path to the qt path else set the path to the qt path
-if (EXISTS "D:/QtNew/6.8.2/msvc2022_64")
-    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "D:/QtNew/6.8.2/msvc2022_64")
-else ()
-    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "E:/Qt/6.8.2/msvc2022_64")
-endif ()
+
+# Qt installation path - configurable option
+set(QT_INSTALL_PATH "D:/QtNew/6.8.2/msvc2022_64" CACHE PATH "Path to Qt installation directory")
+
+if(EXISTS "${QT_INSTALL_PATH}")
+    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${QT_INSTALL_PATH}")
+else()
+    message(WARNING "Qt installation path not found: ${QT_INSTALL_PATH}")
+endif()
 
 ## download dependencies
 include(FetchContent)
@@ -251,6 +254,14 @@ target_link_libraries(
         utilities
 )
 
+# Add CUDA support if available
+if(USE_CUDA AND CUDAToolkit_FOUND)
+    target_link_libraries(algorithm PUBLIC CUDA::cudart)
+    # 确保链接CUDA提供者库
+    target_link_libraries(algorithm PUBLIC onnxruntime_providers_cuda)
+    target_link_libraries(algorithm PUBLIC onnxruntime_providers_shared)
+endif()
+
 ############### transfer ################
 add_library(
         transfer
@@ -281,6 +292,12 @@ target_link_libraries(
         Setupapi
         User32
 )
+
+# Add CUDA support for transfer if available
+if(USE_CUDA AND CUDAToolkit_FOUND)
+    target_link_libraries(transfer PUBLIC onnxruntime_providers_cuda)
+    target_link_libraries(transfer PUBLIC onnxruntime_providers_shared)
+endif()
 
 ############### ui ################
 add_library(
@@ -314,6 +331,12 @@ target_link_libraries(
         algorithm
         utilities
 )
+
+# Add CUDA support for ui if available
+if(USE_CUDA AND CUDAToolkit_FOUND)
+    target_link_libraries(ui PUBLIC onnxruntime_providers_cuda)
+    target_link_libraries(ui PUBLIC onnxruntime_providers_shared)
+endif()
 
 ############### executable ################
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
@@ -354,29 +377,70 @@ target_link_libraries(PaperTracker PRIVATE
         transfer
 )
 
+# Add CUDA support for main executable if available
+if(USE_CUDA AND CUDAToolkit_FOUND)
+    target_link_libraries(PaperTracker PRIVATE onnxruntime_providers_cuda)
+    target_link_libraries(PaperTracker PRIVATE onnxruntime_providers_shared)
+    target_link_libraries(PaperTracker PRIVATE CUDA::cudart)
+    
+    # Copy cuDNN DLLs to the build directory
+    set(CUDNN_ROOT "C:/Program Files/NVIDIA/CUDNN/v9.10")
+    # 根据CUDA版本选择合适的cuDNN二进制文件
+    if(CUDAToolkit_VERSION_MAJOR EQUAL 12)
+        set(CUDNN_BIN_DIR "${CUDNN_ROOT}/bin/12.9")
+    else()
+        set(CUDNN_BIN_DIR "${CUDNN_ROOT}/bin/11.8")
+    endif()
+    
+    message(STATUS "Using cuDNN binaries from: ${CUDNN_BIN_DIR}")
+    
+    # 复制所有必需的cuDNN DLL文件
+    file(GLOB CUDNN_DLLS "${CUDNN_BIN_DIR}/*.dll")
+    foreach(CUDNN_DLL ${CUDNN_DLLS})
+        get_filename_component(DLL_NAME ${CUDNN_DLL} NAME)
+        add_custom_command(TARGET PaperTracker POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CUDNN_DLL}"
+            "$<TARGET_FILE_DIR:PaperTracker>/${DLL_NAME}"
+            COMMENT "Copying ${DLL_NAME} to build directory")
+    endforeach()
+endif()
+
 # install dir model to the same dir as the executable
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/model/  DESTINATION ${CMAKE_BINARY_DIR}/model)
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/opencv/build/x64/vc16/bin/  DESTINATION ${CMAKE_BINARY_DIR})
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/esptools/  DESTINATION ${CMAKE_BINARY_DIR})
 #install(DIRECTORY "D:/QtMVSC/6.8.2/msvc2022_64/bin/"  DESTINATION ${CMAKE_BINARY_DIR})
+if (USE_CUDA AND CUDAToolkit_FOUND)
+    
+    # Install cuDNN DLLs
+    set(CUDNN_ROOT "C:/Program Files/NVIDIA/CUDNN/v9.10")
+    if(CUDAToolkit_VERSION_MAJOR EQUAL 12)
+        set(CUDNN_BIN_DIR "${CUDNN_ROOT}/bin/12.9")
+    else()
+        set(CUDNN_BIN_DIR "${CUDNN_ROOT}/bin/11.8")
+    endif()
+    install(DIRECTORY ${CUDNN_BIN_DIR}/ DESTINATION ${CMAKE_BINARY_DIR} FILES_MATCHING PATTERN "*.dll")
+endif ()
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime/lib/  DESTINATION ${CMAKE_BINARY_DIR})
 # install resources
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})
 
-if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+if (WIN32)
     set(DEBUG_SUFFIX)
     if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
         set(DEBUG_SUFFIX "d")
     endif()
-    set(QT_INSTALL_PATH "${CMAKE_PREFIX_PATH}")
-    if(NOT EXISTS "${QT_INSTALL_PATH}/bin")
-        set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
-        if(NOT EXISTS "${QT_INSTALL_PATH}/bin")
-            set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
-        endif()
-    endif()
+    
+    # Debug information
+    message(STATUS "Qt DLL copy: QT_INSTALL_PATH = ${QT_INSTALL_PATH}")
+    message(STATUS "Qt DLL copy: DEBUG_SUFFIX = ${DEBUG_SUFFIX}")
+    message(STATUS "Qt DLL copy: Target file dir = $<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    
+    # Copy Qt platform plugin
     if(EXISTS "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
+        message(STATUS "Copying Qt platform plugin from: ${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E make_directory
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
@@ -384,11 +448,20 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 COMMAND ${CMAKE_COMMAND} -E copy
                 "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
+    else()
+        message(WARNING "Qt platform plugin not found: ${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
     endif()
-    foreach(QT_LIB Core Gui Widgets Network Websockets SerialPort)
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    
+    # Copy Qt core libraries
+    foreach(QT_LIB Core Gui Widgets Network WebSockets SerialPort)
+        if(EXISTS "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll")
+            message(STATUS "Copying Qt library: Qt6${QT_LIB}${DEBUG_SUFFIX}.dll")
+            add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy
+                    "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"
+                    "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+        else()
+            message(WARNING "Qt library not found: ${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll")
+        endif()
     endforeach(QT_LIB)
 endif()
