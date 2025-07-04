@@ -3,7 +3,6 @@
 #include <QFile>
 #include <QMessageBox>
 #include <QProgressDialog>
-#include <curl/curl.h>
 #include <face_inference.hpp>
 #include <main_window.h>
 #include <QApplication>
@@ -16,7 +15,6 @@ int main(int argc, char *argv[]) {
     system("chcp 65001");
     // Create ui application
     QApplication app(argc, argv);
-    curl_global_init(CURL_GLOBAL_ALL);
     QFile qssFile("./resources/material.qss"); // 使用资源路径
     QIcon icon("./resources/window_icon.png");
     if (qssFile.open(QFile::ReadOnly)) {
