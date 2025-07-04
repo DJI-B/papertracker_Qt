@@ -26,7 +26,29 @@ else ()
 endif ()
 
 set(CURL_DIR ${CMAKE_SOURCE_DIR}/3rdParty/curl-install/lib/cmake/CURL)
-set(OpenCV_DIR ${CMAKE_SOURCE_DIR}/3rdParty/opencv-mvsc/opencv/build)
+
+## download dependencies
+include(FetchContent)
+# download opencv
+set(OPENCV_INSTALL_PATH ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/opencv)
+set(OPENCV_CMAKE_FILE ${OPENCV_INSTALL_PATH}/build/x64/vc16/lib/OpenCVConfig.cmake)
+if(NOT EXISTS ${OPENCV_CMAKE_FILE})
+    message(STATUS "OpenCV not found, downloading...")
+    
+    FetchContent_Declare(
+        prebuilt_opencv
+        URL https://github.com/opencv/opencv/releases/download/4.11.0/opencv-4.11.0-windows.exe
+        SOURCE_DIR ${OPENCV_INSTALL_PATH}
+    )
+    
+    FetchContent_MakeAvailable(prebuilt_opencv)
+else()
+    message(STATUS "OpenCV already exists at: ${OPENCV_INSTALL_PATH}")
+endif()
+# 设置OpenCV路径并查找包
+set(OpenCV_DIR ${OPENCV_INSTALL_PATH}/build/x64/vc16/lib)
+find_package(OpenCV REQUIRED)
+
 find_package(CUDA)
 if(CUDA_FOUND)
     message("CUDA found")
@@ -229,7 +251,7 @@ target_link_libraries(PaperTracker PRIVATE
 # install dir model to the same dir as the executable
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/model/  DESTINATION ${CMAKE_BINARY_DIR}/model)
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/opencv-mvsc/opencv/build/x64/vc16/bin/  DESTINATION ${CMAKE_BINARY_DIR})
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/opencv/build/x64/vc16/bin/  DESTINATION ${CMAKE_BINARY_DIR})
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/curl-install/bin/  DESTINATION ${CMAKE_BINARY_DIR})
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/esptools/  DESTINATION ${CMAKE_BINARY_DIR})
 #install(DIRECTORY "D:/QtMVSC/6.8.2/msvc2022_64/bin/"  DESTINATION ${CMAKE_BINARY_DIR})
