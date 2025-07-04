@@ -1,4 +1,9 @@
 cmake_minimum_required(VERSION 3.30)
+
+# 明确设置编译器路径
+set(CMAKE_C_COMPILER "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.42.34433/bin/Hostx64/x64/cl.exe")
+set(CMAKE_CXX_COMPILER "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.42.34433/bin/Hostx64/x64/cl.exe")
+
 project(PaperTracker)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -7,13 +12,36 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MT /Zc:preprocessor")
+if (MSVC)
+    # 设置预处理器标志
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor")
+    
+    # 根据构建类型设置正确的运行时库
+    if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+        add_definitions(-DDEBUG)
+    else()
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+    endif()
+    
+    # 确保包含标准库路径
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8")
+endif()
 
-if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MTd")
-    add_definitions(-DDEBUG)
-endif ()
+# 调试资源文件路径
+message(STATUS "模型资源文件路径: ${CMAKE_CURRENT_SOURCE_DIR}/models.qrc")
+message(STATUS "模型文件路径: ${CMAKE_CURRENT_SOURCE_DIR}/model/eye_model.onnx")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/models.qrc")
+    message(STATUS "models.qrc 文件存在")
+else()
+    message(WARNING "models.qrc 文件不存在!")
+endif()
 
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/model/eye_model.onnx")
+    message(STATUS "eye_model.onnx 文件存在")
+else()
+    message(WARNING "eye_model.onnx 文件不存在!")
+endif()
 
 # set 3rd party lib path
 

@@ -23,7 +23,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="page">
     <widget class="QPlainTextEdit" name="RightEyeIPAddress">
@@ -104,7 +104,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>                          没有图像输入</string>
+      <string>没有图像输入</string>
      </property>
     </widget>
     <widget class="QPushButton" name="RestartButton">
@@ -163,7 +163,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>                          没有图像输入</string>
+      <string>没有图像输入</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_3">

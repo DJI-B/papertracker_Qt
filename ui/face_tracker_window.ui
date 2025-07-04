@@ -39,7 +39,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>                         没有图像输入</string>
+      <string>没有图像输入</string>
      </property>
      <property name="textInteractionFlags">
       <set>Qt::TextInteractionFlag::NoTextInteraction</set>
