@@ -25,6 +25,7 @@ endif ()
 
 ## download dependencies
 include(FetchContent)
+
 # download opencv
 set(OPENCV_INSTALL_PATH ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/opencv)
 set(OPENCV_CMAKE_FILE ${OPENCV_INSTALL_PATH}/build/x64/vc16/lib/OpenCVConfig.cmake)
@@ -45,6 +46,7 @@ endif()
 set(OpenCV_DIR ${OPENCV_INSTALL_PATH}/build/x64/vc16/lib)
 find_package(OpenCV REQUIRED)
 
+# download onnxruntime
 set(ONNXRUNTIME_VERSION 1.22.0)
 set(ONNXRUNTIME_INSTALL_PATH ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/onnxruntime)
 set(ONNXRUNTIME_HEADER_FILE ${ONNXRUNTIME_INSTALL_PATH}/include/onnxruntime_cxx_api.h)
@@ -81,14 +83,91 @@ else()
     endif()
 endif ()
 set(ONNXRUNTIME_ROOT ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime)
-find_package(Qt6 COMPONENTS Core Gui Widgets Network WebSockets SerialPort REQUIRED)
 
-IF(WIN32)
-    set(IpSystemTypePath ip/win32)
-    set(LIBS ${LIBS} Ws2_32 winmm)
-ELSE(WIN32)
-    set(IpSystemTypePath ip/posix)
-ENDIF(WIN32)
+# download oscpack
+include(ExternalProject)
+set(OSCPACK_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/oscpack)
+set(SOURCE_DIR ${OSCPACK_PREFIX}/src)
+set(BUILD_DIR ${OSCPACK_PREFIX}/build)
+
+function(build_oscpack_both_configs)
+    if(NOT EXISTS ${SOURCE_DIR})
+        message(STATUS "Downloading oscpack...")
+        execute_process(
+            COMMAND git clone --depth 1 https://github.com/RossBencina/oscpack.git ${SOURCE_DIR}
+            RESULT_VARIABLE result
+        )
+        if(NOT result EQUAL 0)
+            message(FATAL_ERROR "Failed to download oscpack")
+        endif()
+    endif()
+    
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(target_lib "${BUILD_DIR}/Debug/oscpack.lib")
+        set(build_config "Debug")
+    else()
+        set(target_lib "${BUILD_DIR}/Release/oscpack.lib")
+        set(build_config "Release")
+    endif()
+    
+    if(NOT EXISTS ${target_lib})
+        message(STATUS "Building oscpack in ${build_config} mode...")
+        
+        file(MAKE_DIRECTORY ${BUILD_DIR})
+        
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -S ${SOURCE_DIR} -B ${BUILD_DIR} 
+                -DCMAKE_BUILD_TYPE=${build_config}
+                -DOSC_BUILD_TESTS=OFF
+                -DOSC_BUILD_EXAMPLES=OFF
+            RESULT_VARIABLE result
+        )
+        if(NOT result EQUAL 0)
+            message(FATAL_ERROR "Failed to configure oscpack")
+        endif()
+        
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} --build ${BUILD_DIR} --config Debug
+            RESULT_VARIABLE result_debug
+        )
+        
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} --build ${BUILD_DIR} --config Release
+            RESULT_VARIABLE result_release
+        )
+        
+        if(NOT result_debug EQUAL 0 AND NOT result_release EQUAL 0)
+            message(FATAL_ERROR "Failed to build oscpack")
+        endif()
+        
+        message(STATUS "oscpack built successfully")
+    endif()
+endfunction()
+
+build_oscpack_both_configs()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(OSCPACK_LIBRARY "${BUILD_DIR}/Debug/oscpack.lib")
+else()
+    set(OSCPACK_LIBRARY "${BUILD_DIR}/Release/oscpack.lib")
+endif()
+
+if(NOT EXISTS ${OSCPACK_LIBRARY})
+    message(FATAL_ERROR "oscpack library not found: ${OSCPACK_LIBRARY}")
+endif()
+
+add_library(oscpack::oscpack STATIC IMPORTED)
+set_target_properties(oscpack::oscpack PROPERTIES
+    IMPORTED_LOCATION ${OSCPACK_LIBRARY}
+    INTERFACE_INCLUDE_DIRECTORIES ${SOURCE_DIR}
+)
+if(WIN32)
+    target_link_libraries(oscpack::oscpack INTERFACE ws2_32 winmm)
+endif()
+
+message(STATUS "Using oscpack library: ${OSCPACK_LIBRARY}")
+
+find_package(Qt6 COMPONENTS Core Gui Widgets Network WebSockets SerialPort REQUIRED)
 
 if(MSVC)
     # Force to always compile with W4
@@ -117,24 +196,6 @@ target_link_libraries(
 target_include_directories(
         utilities PUBLIC
         utilities/include
-)
-
-
-############### osc pack ################
-add_library(oscpack
-        3rdParty/oscpack/ip/IpEndpointName.cpp
-        3rdParty/oscpack/${IpSystemTypePath}/NetworkingUtils.cpp
-        3rdParty/oscpack/${IpSystemTypePath}/UdpSocket.cpp
-        3rdParty/oscpack/osc/OscTypes.cpp
-        3rdParty/oscpack/osc/OscReceivedElements.cpp
-        3rdParty/oscpack/osc/OscPrintReceivedElements.cpp
-        3rdParty/oscpack/osc/OscOutboundPacketStream.cpp
-)
-
-target_include_directories(
-        oscpack
-        PUBLIC
-        ${CMAKE_SOURCE_DIR}/3rdParty/oscpack
 )
 
 ############### algorithm ################
@@ -178,7 +239,7 @@ target_include_directories(
         transfer/include
         ${OpenCV_INCLUDE_DIRS}
         ${ONNXRUNTIME_ROOT}/include
-        ${CMAKE_SOURCE_DIR}/3rdParty/oscpack
+        ${CMAKE_SOURCE_DIR}/3rdParty/oscpack/src
 )
 
 target_link_libraries(
@@ -187,7 +248,7 @@ target_link_libraries(
         Qt6::Core Qt6::WebSockets  Qt6::Network Qt6::SerialPort
         ${OpenCV_LIBS}
         onnxruntime
-        oscpack
+        oscpack::oscpack
         utilities
         Setupapi
         User32
@@ -211,7 +272,7 @@ target_include_directories(
         ui/include
         ${OpenCV_INCLUDE_DIRS}
         ${ONNXRUNTIME_ROOT}/include
-        ${CMAKE_SOURCE_DIR}/3rdParty/oscpack
+        ${CMAKE_SOURCE_DIR}/3rdParty/oscpack/src
 )
 
 target_link_libraries(
@@ -220,7 +281,7 @@ target_link_libraries(
         Qt6::Core Qt6::Gui Qt6::Widgets Qt6::SerialPort
         ${OpenCV_LIBS}
         onnxruntime
-        oscpack
+        oscpack::oscpack
         transfer
         algorithm
         utilities
@@ -237,7 +298,7 @@ target_include_directories(
         PaperTracker PUBLIC
         ${OpenCV_INCLUDE_DIRS}
         ${ONNXRUNTIME_ROOT}/include
-        ${CMAKE_SOURCE_DIR}/3rdParty/oscpack
+        ${CMAKE_SOURCE_DIR}/3rdParty/oscpack/src
 )
 
 target_link_directories(
@@ -253,7 +314,7 @@ target_link_libraries(PaperTracker PRIVATE
         Qt6::WebSockets
         Qt6::SerialPort
         onnxruntime
-        oscpack
+        oscpack::oscpack
         ${LIBS}
         ${OpenCV_LIBS}
         #add windows library
