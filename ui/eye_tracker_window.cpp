@@ -13,154 +13,26 @@
 #include <QInputDialog>
 #include "tools.hpp"
 #include <algorithm>
-// 生成测试数据的函数
-struct TestEyeData {
-    float eyeLidLeft;
-    float eyeLidRight;
-    float eyeLeftX;
-    float eyeLeftY;
-    float eyeRightX;
-    float eyeRightY;
-    float pupilDilation;
-};
+#include <QFontMetrics>
 
-// 基于官方参数文档的修复版本
-TestEyeData generateTestData(double time) {
-    TestEyeData data;
-
-    // 将20秒分为不同的测试阶段
-    double cycle_time = fmod(time, 20.0);
-
-    if (cycle_time < 5.0) {
-        // 阶段1 (0-5秒): 测试X轴完整范围 (-1.0 到 1.0)
-        double progress = cycle_time / 5.0;
-
-        // 重要修复：眼球位置应该是 -1.0 到 1.0，不是 0.0 到 1.0
-        double eyeX = -1.0 + (progress * 2.0);  // 从-1.0到1.0
-
-        data.eyeLeftX = static_cast<float>(eyeX);
-        data.eyeLeftY = 0.0f;                    // Y轴保持中心（0.0，不是0.5）
-        data.eyeRightX = static_cast<float>(eyeX);
-        data.eyeRightY = 0.0f;
-
-        // 修复：眼睑正常范围是0.0-0.75，不发送1.0避免睁大效果
-        data.eyeLidLeft = 0.75f;                 // 正常最大开度
-        data.eyeLidRight = 0.75f;
-        data.pupilDilation = 0.5f;
-
-        static int x_debug_count = 0;
-        if (x_debug_count % 60 == 0) {
-            LOG_INFO("X轴测试: progress={:.3f}, eyeX={:.3f}, 预期: 从-1.0（最左）移动到1.0（最右）", progress, eyeX);
-        }
-        x_debug_count++;
-
-    } else if (cycle_time < 10.0) {
-        // 阶段2 (5-10秒): 测试Y轴完整范围 (-1.0 到 1.0)
-        double progress = (cycle_time - 5.0) / 5.0;
-
-        // 重要修复：Y轴也应该是 -1.0 到 1.0
-        double eyeY = -1.0 + (progress * 2.0);  // 从-1.0（向下看）到1.0（向上看）
-
-        data.eyeLeftX = 0.0f;                    // X轴保持中心
-        data.eyeLeftY = static_cast<float>(eyeY);
-        data.eyeRightX = 0.0f;
-        data.eyeRightY = static_cast<float>(eyeY);
-
-        data.eyeLidLeft = 0.75f;                 // 保持正常开度
-        data.eyeLidRight = 0.75f;
-        data.pupilDilation = 0.5f;
-
-        static int y_debug_count = 0;
-        if (y_debug_count % 60 == 0) {
-            LOG_INFO("Y轴测试: progress={:.3f}, eyeY={:.3f}, 预期: 从-1.0（向下）移动到1.0（向上）", progress, eyeY);
-        }
-        y_debug_count++;
-
-    } else if (cycle_time < 15.0) {
-        // 阶段3 (10-15秒): 测试眼睑范围 (0.0 到 0.75，然后0.75到1.0)
-        double progress = (cycle_time - 10.0) / 5.0;
-
-        data.eyeLeftX = 0.0f;                    // 眼球保持中心
-        data.eyeLeftY = 0.0f;
-        data.eyeRightX = 0.0f;
-        data.eyeRightY = 0.0f;
-
-        // 修复：测试完整的眼睑范围，包括睁大效果
-        float eyeLidValue;
-        if (progress < 0.75) {
-            // 前75%时间：测试正常开合度 (0.0 到 0.75)
-            eyeLidValue = static_cast<float>(progress);
-        } else {
-            // 后25%时间：测试睁大效果 (0.75 到 1.0)
-            float widenProgress = (progress - 0.75f) / 0.25f;
-            eyeLidValue = 0.75f + (widenProgress * 0.25f);
-        }
-
-        data.eyeLidLeft = eyeLidValue;
-        data.eyeLidRight = eyeLidValue;
-        data.pupilDilation = 0.5f;
-
-        static int lid_debug_count = 0;
-        if (lid_debug_count % 60 == 0) {
-            if (progress < 0.75) {
-                LOG_INFO("眼睑测试: progress={:.3f}, eyeLid={:.3f}, 阶段: 正常开合度（0.0闭合→0.75张开）", progress, eyeLidValue);
-            } else {
-                LOG_INFO("眼睑测试: progress={:.3f}, eyeLid={:.3f}, 阶段: 睁大效果（0.75→1.0睁大）", progress, eyeLidValue);
-            }
-        }
-        lid_debug_count++;
-
-    } else {
-        // 阶段4 (15-20秒): 测试瞳孔扩张范围 (0.0 到 1.0)
-        double progress = (cycle_time - 15.0) / 5.0;
-
-        data.eyeLeftX = 0.0f;                    // 眼球保持中心
-        data.eyeLeftY = 0.0f;
-        data.eyeRightX = 0.0f;
-        data.eyeRightY = 0.0f;
-
-        data.eyeLidLeft = 0.75f;                 // 眼睛保持正常张开
-        data.eyeLidRight = 0.75f;
-        data.pupilDilation = static_cast<float>(progress); // 0.0到1.0
-
-        static int pupil_debug_count = 0;
-        if (pupil_debug_count % 60 == 0) {
-            LOG_INFO("瞳孔测试: progress={:.3f}, pupil={:.3f}, 预期: 从0.0（收缩）到1.0（扩张）", progress, data.pupilDilation);
-        }
-        pupil_debug_count++;
-    }
-
-    return data;
-}
 PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
     QWidget(parent) {
     if (instance == nullptr)
         instance = this;
     else
         throw std::exception("当前已经打开了眼追窗口，请不要重复打开");
-    ui.setupUi(this);
+    initUI();
+    initLayout();
     setWindowFlags(windowFlags() | Qt::WindowMinimizeButtonHint);
-    setFixedSize(907, 614);
-    append_log_window(ui.LogText);
-    // 初始化眼睛位置显示控件
-    leftEyePositionWidget = new EyePositionWidget(ui.LeftEyePositionFrame);
-    leftEyePositionWidget->setGeometry(0, 0, ui.LeftEyePositionFrame->width(), ui.LeftEyePositionFrame->height());
-    rightEyePositionWidget = new EyePositionWidget(ui.RightEyePositionFrame);
-    rightEyePositionWidget->setGeometry(0, 0, ui.RightEyePositionFrame->width(), ui.RightEyePositionFrame->height());
-    // 创建眼睛同步控制下拉框
-    eyeSyncComboBox = new QComboBox(ui.page_2);
-    eyeSyncComboBox->setGeometry(QRect(740, 190, 150, 31));
-    eyeSyncComboBox->addItem("双眼眼皮独立控制");
-    eyeSyncComboBox->addItem("左眼眼皮控制双眼眼皮");
-    eyeSyncComboBox->addItem("右眼眼皮控制双眼眼皮");
-    eyeSyncComboBox->setObjectName("eyeSyncComboBox");
-    for (int i = 0; i < EYE_NUM; i++) {
-        compensated_eye_openness[i] = 0.0;
-    }
+    // 固定窗口大小为当前自动调整后的尺寸
+    this->adjustSize();
+    append_log_window(LogText);
+    // 初始化眼睛位置显示控件双眼
+    leftEyePositionWidget = new EyePositionWidget(LeftEyePositionFrame);
+    leftEyePositionWidget->setGeometry(0, 0, LeftEyePositionFrame->width(), LeftEyePositionFrame->height());
+    rightEyePositionWidget = new EyePositionWidget(RightEyePositionFrame);
+    rightEyePositionWidget->setGeometry(0, 0, RightEyePositionFrame->width(), RightEyePositionFrame->height());
 
-    // 连接信号槽
-    connect(eyeSyncComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &PaperEyeTrackerWindow::onEyeSyncModeChanged);
     // 初始化声音提示
     // startSound = new QSoundEffect(this);
     // endSound = new QSoundEffect(this);
@@ -174,8 +46,8 @@ PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
 
     // 添加ROI事件
     QLabel* images_labels[2] = {
-        ui.LeftEyeImage,
-        ui.RightEyeImage
+        LeftEyeImage,
+        RightEyeImage
     };
     for (int i = 0; i < EYE_NUM; i++) {
         auto* roiFilter = new ROIEventFilter([this](QRect rect, bool isEnd, int tag) {
@@ -223,31 +95,31 @@ PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
     }
 
     // 添加输入框焦点事件处理
-    ui.SSIDInput->installEventFilter(this);
-    ui.PassWordInput->installEventFilter(this);
+    SSIDInput->installEventFilter(this);
+    PassWordInput->installEventFilter(this);
     // 允许Tab键在输入框之间跳转
-    ui.SSIDInput->setTabChangesFocus(true);
-    ui.PassWordInput->setTabChangesFocus(true);
+    SSIDInput->setTabChangesFocus(true);
+    PassWordInput->setTabChangesFocus(true);
     setFocus();
-    // QPushButton* calibrateButton = new QPushButton("开始校准", ui.page);
+    // QPushButton* calibrateButton = new QPushButton("开始校准", page);
     //    // calibrateButton->setGeometry(QRect(750, 340, 111, 41));
     //    // connect(calibrateButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::startCalibration);
-    //    // QPushButton* centerButton = new QPushButton("标定中心", ui.page);
+    //    // QPushButton* centerButton = new QPushButton("标定中心", page);
     //    // centerButton->setGeometry(QRect(750, 390, 111, 41)); // 位置在校准按钮下方
     //    // connect(centerButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::centerCalibration);
     //    // // 添加以下代码：
-    //    // QPushButton* eyeOpenButton = new QPushButton("眼睛完全张开", ui.page);
+    //    // QPushButton* eyeOpenButton = new QPushButton("眼睛完全张开", page);
     //    // eyeOpenButton->setGeometry(QRect(750, 440, 111, 41)); // 位置在标定中心按钮下方
     //    // connect(eyeOpenButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::calibrateEyeOpen);
     //    //
-    //    // QPushButton* eyeCloseButton = new QPushButton("眼睛完全闭合", ui.page);
+    //    // QPushButton* eyeCloseButton = new QPushButton("眼睛完全闭合", page);
     //    // eyeCloseButton->setGeometry(QRect(750, 490, 111, 41)); // 位置在眼睛张开按钮下方
     //    // connect(eyeCloseButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::calibrateEyeClose);
     // 连接按钮信号到槽
-    connect(ui.settingsCalibrateButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::startCalibration);
-    connect(ui.settingsCenterButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::centerCalibration);
-    connect(ui.settingsEyeOpenButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::calibrateEyeOpen);
-    connect(ui.settingsEyeCloseButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::calibrateEyeClose);
+    connect(settingsCalibrateButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::startCalibration);
+    connect(settingsCenterButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::centerCalibration);
+    connect(settingsEyeOpenButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::calibrateEyeOpen);
+    connect(settingsEyeCloseButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::calibrateEyeClose);
     osc_manager = std::make_shared<OscManager>();
     config_writer = std::make_shared<ConfigWriter>("./eye_config.json");
     config = config_writer->get_config<PaperEyeTrackerConfig>();
@@ -387,59 +259,14 @@ PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
         LOG_INFO("有线模式眼追连接成功");
         setSerialStatusLabel("有线模式眼追连接成功");
     }
-    // 将下面的代码添加到 PaperEyeTrackerWindow 构造函数中，在设置页面初始化之后
 
-    // 添加视频流显示到设置页面
-    QLabel* leftEyeVideoLabel = new QLabel(ui.page_2);
-    leftEyeVideoLabel->setGeometry(QRect(30, 400, 200, 200));
-    leftEyeVideoLabel->setText("左眼视频流");
-    leftEyeVideoLabel->setFrameShape(QFrame::StyledPanel);
-    leftEyeVideoLabel->setObjectName("leftEyeVideoLabel");
-
-    QLabel* rightEyeVideoLabel = new QLabel(ui.page_2);
-    rightEyeVideoLabel->setGeometry(QRect(480, 400, 200, 200));
-    rightEyeVideoLabel->setText("右眼视频流");
-    rightEyeVideoLabel->setFrameShape(QFrame::StyledPanel);
-    rightEyeVideoLabel->setObjectName("rightEyeVideoLabel");
-    // 为左眼添加调整按钮
-    QPushButton* leftIncButton = new QPushButton("+", ui.page_2);
-    leftIncButton->setGeometry(QRect(330, 330, 30, 30));
-    leftIncButton->setObjectName("leftIncButton");
-
-    QPushButton* leftDecButton = new QPushButton("-", ui.page_2);
-    leftDecButton->setGeometry(QRect(370, 330, 30, 30));
-    leftDecButton->setObjectName("leftDecButton");
-
-    // 为右眼添加调整按钮
-    QPushButton* rightIncButton = new QPushButton("+", ui.page_2);
-    rightIncButton->setGeometry(QRect(780, 330, 30, 30));
-    rightIncButton->setObjectName("rightIncButton");
-
-    QPushButton* rightDecButton = new QPushButton("-", ui.page_2);
-    rightDecButton->setGeometry(QRect(820, 330, 30, 30));
-    rightDecButton->setObjectName("rightDecButton");
-
-    // 添加标签
-    QLabel* leftAdjustLabel = new QLabel(ui.page_2);
-    leftAdjustLabel->setGeometry(QRect(290, 330, 40, 30));
-    leftAdjustLabel->setText(QApplication::translate("PaperTrackerMainWindow", "调整:"));
-
-    QLabel* rightAdjustLabel = new QLabel(ui.page_2);
-    rightAdjustLabel->setGeometry(QRect(740, 330, 40, 30));
-    rightAdjustLabel->setText(QApplication::translate("PaperTrackerMainWindow", "调整:"));
-
-    // 连接信号和槽
-    connect(leftIncButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onLeftEyeValueIncrease);
-    connect(leftDecButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onLeftEyeValueDecrease);
-    connect(rightIncButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onRightEyeValueIncrease);
-    connect(rightDecButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onRightEyeValueDecrease);
     // 初始化滚动条的值
-    ui.LeftRotateBar->setValue(current_rotate_angle[LEFT_TAG]);
-    ui.RightRotateBar->setValue(current_rotate_angle[RIGHT_TAG]);
+    LeftRotateBar->setValue(current_rotate_angle[LEFT_TAG]);
+    RightRotateBar->setValue(current_rotate_angle[RIGHT_TAG]);
 
     // 连接滚动条信号到槽
-    connect(ui.LeftRotateBar, &QScrollBar::valueChanged, this, &PaperEyeTrackerWindow::onLeftRotateAngleChanged);
-    connect(ui.RightRotateBar, &QScrollBar::valueChanged, this, &PaperEyeTrackerWindow::onRightRotateAngleChanged);
+    connect(LeftRotateBar, &QScrollBar::valueChanged, this, &PaperEyeTrackerWindow::onLeftRotateAngleChanged);
+    connect(RightRotateBar, &QScrollBar::valueChanged, this, &PaperEyeTrackerWindow::onRightRotateAngleChanged);
     create_sub_thread();
     // 创建自动保存配置的定时器
     auto_save_timer = new QTimer(this);
@@ -463,10 +290,10 @@ PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
 }
 
 void PaperEyeTrackerWindow::setVideoImage(int version, const cv::Mat& image) {
-    auto image_label = version == LEFT_TAG ? ui.LeftEyeImage : ui.RightEyeImage;
+    auto image_label = version == LEFT_TAG ? LeftEyeImage : RightEyeImage;
     auto setting_image_label = version == LEFT_TAG ?
-        ui.page_2->findChild<QLabel*>("leftEyeVideoLabel") :
-        ui.page_2->findChild<QLabel*>("rightEyeVideoLabel");
+        page_2->findChild<QLabel*>("leftEyeVideoLabel") :
+        page_2->findChild<QLabel*>("rightEyeVideoLabel");
 
     if (image.empty()) {
         QMetaObject::invokeMethod(this, [this, image_label, setting_image_label]() {
@@ -528,7 +355,7 @@ void PaperEyeTrackerWindow::create_sub_thread() {
                     // draw rect on frame
                     cv::Mat show_image;
                     if (!frame.empty()) {
-                        cv::resize(frame, frame, cv::Size(ui.LeftEyeImage->size().width(), ui.LeftEyeImage->size().height()), cv::INTER_NEAREST);
+                        cv::resize(frame, frame, cv::Size(LeftEyeImage->size().width(), LeftEyeImage->size().height()), cv::INTER_NEAREST);
                         {
                             // 添加旋转处理
                             auto rotate_angle = getRotateAngle(version);
@@ -809,35 +636,7 @@ void PaperEyeTrackerWindow::create_sub_thread() {
     while (is_running())
     {
         auto start_time = std::chrono::high_resolution_clock::now();
-        if (0) {
-                test_time += 1.0 / 60.0;  // 假设60FPS，每帧增加1/60秒
 
-                TestEyeData testData = generateTestData(test_time);
-
-                // 发送测试数据
-                osc_manager->sendModelOutput({testData.eyeLidLeft}, {"/avatar/parameters/v2/EyeLidLeft"});
-                osc_manager->sendModelOutput({testData.eyeLidRight}, {"/avatar/parameters/v2/EyeLidRight"});
-                osc_manager->sendModelOutput({testData.eyeLeftX}, {"/avatar/parameters/v2/EyeLeftX"});
-                osc_manager->sendModelOutput({testData.eyeLeftY}, {"/avatar/parameters/v2/EyeLeftY"});
-                osc_manager->sendModelOutput({testData.eyeRightX}, {"/avatar/parameters/v2/EyeRightX"});
-                osc_manager->sendModelOutput({testData.eyeRightY}, {"/avatar/parameters/v2/EyeRightY"});
-                osc_manager->sendModelOutput({testData.pupilDilation}, {"/avatar/parameters/v2/PupilDilation"});
-
-                // 日志输出（每秒输出一次）
-                static int log_counter = 0;
-                if (log_counter % 60 == 0) {
-                    LOG_INFO("测试模式 - 时间:{:.2f}s, 眼球位置:({:.2f},{:.2f}), 眼睑:{:.2f}, 瞳孔:{:.2f}",
-                             test_time, testData.eyeLeftX, testData.eyeLeftY, testData.eyeLidLeft, testData.pupilDilation);
-                }
-                log_counter++;
-
-                // 控制帧率
-                auto end_time = std::chrono::high_resolution_clock::now();
-                auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-                int delay_ms = max(0, frame_interval_ms - static_cast<int>(elapsed));
-                std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
-                continue;  // 跳过后面的正常处理
-            }
         if (is_calibrating) {
             // 发送固定的居中(0,0)位置和0.75开度值
             // 左眼眼睑值固定为0.75
@@ -984,14 +783,14 @@ void PaperEyeTrackerWindow::create_sub_thread() {
                         if (xl > 0)
                             out_x = -abs(max(0.0, min(1.0, xl)));
                     }
-                    // float compensation_coefficient_y = 0.8, compensation_max = 0.65;
-                    // // 向下看补偿：当眼睛向下看时(Y值为负)，增加睁眼值
-                    // if (out_y < 0) {
-                    //     // 根据向下看的程度逐渐增加补偿
-                    //     double down_compensation = min(-out_y * compensation_coefficient_y, compensation_max);
-                    //     // 确保补偿后的开合度不超过最大值0.75
-                    //     eye_data[i][0] = min(eye_data[i][0] + down_compensation, 1);
-                    // }
+                    float compensation_coefficient_y = 0.8, compensation_max = 0.65;
+                    // 向下看补偿：当眼睛向下看时(Y值为负)，增加睁眼值
+                    if (out_y < 0) {
+                        // 根据向下看的程度逐渐增加补偿
+                        double down_compensation = min(-out_y * compensation_coefficient_y, compensation_max);
+                        // 确保补偿后的开合度不超过最大值0.75
+                        eye_data[i][0] = min(eye_data[i][0] + down_compensation, 1);
+                    }
 
                     // 添加水平方向补偿：左眼向左看或右眼向右看时增加睁眼值
                     float compensation_coefficient_x = 0.4, compensation_max_x = 0.55; // 可以根据需要调整这些参数
@@ -1033,12 +832,6 @@ void PaperEyeTrackerWindow::create_sub_thread() {
                 eye_data[RIGHT_TAG][2] = eye_data[LEFT_TAG][2]; // Y轴
                 eye_data[RIGHT_TAG][3] = eye_data[LEFT_TAG][3]; // 瞳孔扩张
                 eye_active[RIGHT_TAG] = true;
-
-                // 更新补偿后的值
-                {
-                    std::lock_guard<std::mutex> lock(compensated_data_mutex[RIGHT_TAG]);
-                    compensated_eye_openness[RIGHT_TAG] = eye_data[RIGHT_TAG][0];
-                }
             }
             else if (!eye_active[LEFT_TAG] && eye_active[RIGHT_TAG]) {
                 // 左眼没有数据，使用右眼数据
@@ -1047,115 +840,32 @@ void PaperEyeTrackerWindow::create_sub_thread() {
                 eye_data[LEFT_TAG][2] = eye_data[RIGHT_TAG][2]; // Y轴
                 eye_data[LEFT_TAG][3] = eye_data[RIGHT_TAG][3]; // 瞳孔扩张
                 eye_active[LEFT_TAG] = true;
-
-                // 更新补偿后的值
-                {
-                    std::lock_guard<std::mutex> lock(compensated_data_mutex[LEFT_TAG]);
-                    compensated_eye_openness[LEFT_TAG] = eye_data[LEFT_TAG][0];
-                }
             }
 
-            // *** 新增：第二点五步：眼睛开合度智能平均化处理 ***
-            if (eye_active[LEFT_TAG] && eye_active[RIGHT_TAG]) {
-                // 当两只眼睛都有数据时，进行智能平均化处理
-
-                // 配置参数
-                const double averaging_threshold = 0.25; // 差异阈值，超过此值则不进行平均化
-                const double min_averaging_ratio = 0.1;  // 最小平均化比例
-                const double max_averaging_ratio = 0.8;  // 最大平均化比例
-
-                // 计算两眼开合度差异
-                double left_openness = eye_data[LEFT_TAG][0];
-                double right_openness = eye_data[RIGHT_TAG][0];
-                double openness_diff = std::abs(left_openness - right_openness);
-
-                // 计算平均化比例：差异越小，平均化程度越高
-                double averaging_ratio;
-                if (openness_diff >= averaging_threshold) {
-                    // 差异过大，不进行平均化（或使用最小平均化比例）
-                    averaging_ratio = min_averaging_ratio;
-                } else {
-                    // 根据差异大小线性插值计算平均化比例
-                    // 差异为0时：最大平均化比例
-                    // 差异为threshold时：最小平均化比例
-                    averaging_ratio = max_averaging_ratio -
-                                     (openness_diff / averaging_threshold) *
-                                     (max_averaging_ratio - min_averaging_ratio);
-
-                    // 确保在有效范围内
-                    averaging_ratio = max(min_averaging_ratio,
-                                             min(max_averaging_ratio, averaging_ratio));
-                }
-
-                // 计算平均值
-                double average_openness = (left_openness + right_openness) / 2.0;
-
-                // 应用平滑平均化：原值 + (平均值 - 原值) * 平均化比例
-                double new_left_openness = left_openness + (average_openness - left_openness) * averaging_ratio;
-                double new_right_openness = right_openness + (average_openness - right_openness) * averaging_ratio;
-
-                // 更新开合度值
-                eye_data[LEFT_TAG][0] = new_left_openness;
-                eye_data[RIGHT_TAG][0] = new_right_openness;
-
-                // 更新补偿后的值以供UI显示
-                {
-                    std::lock_guard<std::mutex> lock_left(compensated_data_mutex[LEFT_TAG]);
-                    std::lock_guard<std::mutex> lock_right(compensated_data_mutex[RIGHT_TAG]);
-                    compensated_eye_openness[LEFT_TAG] = new_left_openness;
-                    compensated_eye_openness[RIGHT_TAG] = new_right_openness;
-                }
-
-                // 调试日志（每60帧输出一次，避免日志过多）
-                static int averaging_debug_counter = 0;
-                if (averaging_debug_counter % 60 == 0) {
-                    if (openness_diff >= averaging_threshold) {
-                        LOG_DEBUG("眼睛开合度：差异过大({:.3f})，不进行平均化。左眼:{:.3f} 右眼:{:.3f}",
-                                 openness_diff, left_openness, right_openness);
-                    } else {
-                        LOG_DEBUG("眼睛开合度平均化：差异:{:.3f} 比例:{:.2f} 原值(L:{:.3f} R:{:.3f}) 新值(L:{:.3f} R:{:.3f})",
-                                 openness_diff, averaging_ratio,
-                                 left_openness, right_openness,
-                                 new_left_openness, new_right_openness);
-                    }
-                }
-                averaging_debug_counter++;
-            }
-
-            // 继续原有的第三步：处理眼睛闭眼值平均化，并检测wink状态
-            // 注意：这里的wink检测现在使用的是经过智能平均化处理后的开合度值
-            if (eye_active[LEFT_TAG] && eye_active[RIGHT_TAG]) {
+            // 第三步：处理眼睛闭眼值平均化，并检测wink状态
+            if (eye_active[LEFT_TAG] && eye_active[RIGHT_TAG])
+            {
                 // 根据同步模式处理
-                if (eyeSyncMode == LEFT_CONTROLS) {
-                    // 左眼控制双眼 - 直接复制左眼开合度到右眼
-                    eye_data[RIGHT_TAG][0] = eye_data[LEFT_TAG][0];
-
-                    // 更新补偿后的值
-                    {
-                        std::lock_guard<std::mutex> lock_right(compensated_data_mutex[RIGHT_TAG]);
-                        compensated_eye_openness[RIGHT_TAG] = eye_data[RIGHT_TAG][0];
-                    }
-                }
-                else if (eyeSyncMode == RIGHT_CONTROLS) {
-                    // 右眼控制双眼 - 直接复制右眼开合度到左眼
-                    eye_data[LEFT_TAG][0] = eye_data[RIGHT_TAG][0];
-
-                    // 更新补偿后的值
-                    {
-                        std::lock_guard<std::mutex> lock_left(compensated_data_mutex[LEFT_TAG]);
-                        compensated_eye_openness[LEFT_TAG] = eye_data[LEFT_TAG][0];
-                    }
-                }
-                else {
-                    // 在独立控制模式下，继续检测wink状态
+            if (eyeSyncMode == LEFT_CONTROLS) {
+                // 左眼控制双眼 - 直接复制左眼开合度到右眼
+                eye_data[RIGHT_TAG][0] = eye_data[LEFT_TAG][0];
+            }
+            else if (eyeSyncMode == RIGHT_CONTROLS) {
+                // 右眼控制双眼 - 直接复制右眼开合度到左眼
+                eye_data[LEFT_TAG][0] = eye_data[RIGHT_TAG][0];
+            }
+            else {
+                // 两只眼睛都有数据时
+                // 检测是否有眨眼动作 - 如果一只眼睛的开合度明显小于另一只，则视为眨眼
+                // 检测是否有眨眼动作 - 如果一只眼睛的开合度明显小于另一只，则视为眨眼
                     const double wink_threshold = 0.3; // 眨眼阈值，可调整
-                    const double wink_enhancement = 0.0; // Wink增强系数，闭眼更闭，开眼更开
+                    const double wink_enhancement = 0.2; // Wink增强系数，闭眼更闭，开眼更开
 
-                    // 左眼和右眼的开合度差距（现在使用经过平均化处理的值）
+                    // 左眼和右眼的开合度差距
                     double eye_openness_diff = eye_data[LEFT_TAG][0] - eye_data[RIGHT_TAG][0];
 
                     if (std::abs(eye_openness_diff) >= wink_threshold) {
-                        // 存在wink状态 - 在wink状态下，不应该进行平均化
+                        // 存在wink状态
                         if (eye_openness_diff > 0) {
                             // 左眼更开，右眼在眨眼
                             // 使用左眼数据覆盖右眼的xy坐标
@@ -1175,17 +885,14 @@ void PaperEyeTrackerWindow::create_sub_thread() {
                             eye_data[RIGHT_TAG][0] = min(1.0, eye_data[RIGHT_TAG][0] + wink_enhancement); // 右眼更开
                             eye_data[LEFT_TAG][0] = max(0.0, eye_data[LEFT_TAG][0] - wink_enhancement); // 左眼更闭
                         }
-
-                        // 在wink状态下更新补偿后的值
-                        {
-                            std::lock_guard<std::mutex> lock_left(compensated_data_mutex[LEFT_TAG]);
-                            std::lock_guard<std::mutex> lock_right(compensated_data_mutex[RIGHT_TAG]);
-                            compensated_eye_openness[LEFT_TAG] = eye_data[LEFT_TAG][0];
-                            compensated_eye_openness[RIGHT_TAG] = eye_data[RIGHT_TAG][0];
-                        }
+                    } else {
+                        // 没有wink，两只眼睛都正常打开
+                        // 取平均值用于眼睛开合度，减轻抖动
+                        double avg_openness = (eye_data[LEFT_TAG][0] + eye_data[RIGHT_TAG][0]) / 2.0;
+                        eye_data[LEFT_TAG][0] = avg_openness;
+                        eye_data[RIGHT_TAG][0] = avg_openness;
                     }
-                    // 如果不是wink状态，则保持之前智能平均化的结果
-                }
+            }
             }
 
             // 第四步：仅在非wink状态下，基于X轴视线方向的权重计算
@@ -1353,7 +1060,7 @@ PaperEyeTrackerWindow::~PaperEyeTrackerWindow() {
     config = generate_config();
     config_writer->write_config(config);
     LOG_INFO("系统已安全关闭");
-    remove_log_window(ui.LogText);
+    remove_log_window(LogText);
     instance = nullptr;
 }
 
@@ -1458,36 +1165,474 @@ void PaperEyeTrackerWindow::onFlashButtonClicked() {
     }
 }
 
-void PaperEyeTrackerWindow::retranslateUI() {
-    ui.LeftEyeTrackingLabel->setText(QApplication::translate("PaperTrackerMainWindow", "左眼跟踪"));
-    ui.RightEyeTrackingLabel->setText(QApplication::translate("PaperTrackerMainWindow", "右眼跟踪"));
-    ui.MainPageButton->setText(QApplication::translate("PaperTrackerMainWindow", "主页面"));
-    ui.SettingButton->setText(QApplication::translate("PaperTrackerMainWindow", "设置"));
-    ui.settingsCalibrateButton->setText(QApplication::translate("PaperTrackerMainWindow", "开始眼球位置校准"));
-    ui.settingsCenterButton->setText(QApplication::translate("PaperTrackerMainWindow", "标定眼球中心"));
-    ui.settingsEyeOpenButton->setText(QApplication::translate("PaperTrackerMainWindow", "标定眼睛完全张开"));
-    ui.settingsEyeCloseButton->setText(QApplication::translate("PaperTrackerMainWindow", "标定眼睛完全闭合"));
-    ui.LeftEyeOpennessLabel->setText(QApplication::translate("PaperTrackerMainWindow", "左眼开合度"));
-    ui.RightEyeOpennessLabel->setText(QApplication::translate("PaperTrackerMainWindow", "右眼开合度"));
-    ui.LeftEyeImage->setText(QApplication::translate("PaperTrackerMainWindow", "没有图像输入"));
-    ui.RightEyeImage->setText(QApplication::translate("PaperTrackerMainWindow", "没有图像输入"));
-    ui.label_4->setText(QApplication::translate("PaperTrackerMainWindow", "左眼补光"));
-    ui.label_5->setText(QApplication::translate("PaperTrackerMainWindow", "右眼补光"));
-    ui.LeftRotateLabel->setText(QApplication::translate("PaperTrackerMainWindow", "左眼旋转角度"));
-    ui.RightRotateLabel->setText(QApplication::translate("PaperTrackerMainWindow", "右眼旋转角度"));
-    ui.SendButton->setText(QApplication::translate("PaperTrackerMainWindow", "发送"));
-    ui.RestartButton->setText(QApplication::translate("PaperTrackerMainWindow", "重启"));
-    ui.FlashButton->setText(QApplication::translate("PaperTrackerMainWindow", "刷写固件"));
-    ui.label_3->setText(QApplication::translate("PaperTrackerMainWindow", "模式选择"));
-    ui.label->setText(QApplication::translate("PaperTrackerMainWindow", "左眼IP"));
-    ui.label_2->setText(QApplication::translate("PaperTrackerMainWindow", "右眼IP"));
-    ui.EnergyModelBox->setItemText(0, QApplication::translate("PaperTrackerMainWindow", "普通模式"));
-    ui.EnergyModelBox->setItemText(1, QApplication::translate("PaperTrackerMainWindow", "节能模式"));
-    ui.EnergyModelBox->setItemText(2, QApplication::translate("PaperTrackerMainWindow", "性能模式"));
+void PaperEyeTrackerWindow::initUI() {
+    this->setMinimumSize(1000, 614);
+    this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    stackedWidget = new QStackedWidget(this);
+    stackedWidget->setObjectName("stackedWidget");
+    page = new QWidget();
+    page->setObjectName("page");
+    RightEyeIPAddress = new QPlainTextEdit(page);
+    RightEyeIPAddress->setObjectName("RightEyeIPAddress");
+    label_2 = new QLabel(page);
+    label_2->setObjectName("label_2");
+    LeftEyeIPAddress = new QPlainTextEdit(page);
+    LeftEyeIPAddress->setObjectName("LeftEyeIPAddress");
+    EnergyModelBox = new QComboBox(page);
+    EnergyModelBox->addItem(QString());
+    EnergyModelBox->addItem(QString());
+    EnergyModelBox->addItem(QString());
+    EnergyModelBox->setObjectName("EnergyModelBox");
+    EnergyModelBox->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    LogText = new QPlainTextEdit(page);
+    LogText->setObjectName("LogText");
+    LogText->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    LeftEyeImage = new QLabel(page);
+    LeftEyeImage->setObjectName("LeftEyeImage");
+    LeftEyeImage->setFixedSize(260, 260);
+    RestartButton = new QPushButton(page);
+    RestartButton->setObjectName("RestartButton");
+    label = new QLabel(page);
+    label->setObjectName("label");
+    PassWordInput = new QPlainTextEdit(page);
+    PassWordInput->setObjectName("PassWordInput");
+    SSIDInput = new QPlainTextEdit(page);
+    SSIDInput->setObjectName("SSIDInput");
+    RightEyeImage = new QLabel(page);
+    RightEyeImage->setObjectName("RightEyeImage");
+    RightEyeImage->setFixedSize(260, 260);
+    label_3 = new QLabel(page);
+    label_3->setObjectName("label_3");
+    FlashButton = new QPushButton(page);
+    FlashButton->setObjectName("FlashButton");
+    SendButton = new QPushButton(page);
+    SendButton->setObjectName("SendButton");
+    LeftBrightnessBar = new QScrollBar(page);
+    LeftBrightnessBar->setObjectName("LeftBrightnessBar");
+    LeftBrightnessBar->setOrientation(Qt::Orientation::Horizontal);
+    RightBrightnessBar = new QScrollBar(page);
+    RightBrightnessBar->setObjectName("RightBrightnessBar");
+    RightBrightnessBar->setOrientation(Qt::Orientation::Horizontal);
+    label_4 = new QLabel(page);
+    label_4->setObjectName("label_4");
+    label_5 = new QLabel(page);
+    label_5->setObjectName("label_5");
+    RightEyeBatteryLabel = new QLabel(page);
+    RightEyeBatteryLabel->setObjectName("RightEyeBatteryLabel");
+    QFont font;
+    font.setBold(true);
+    font.setItalic(true);
+    RightEyeBatteryLabel->setFont(font);
+    LeftEyeBatteryLabel = new QLabel(page);
+    LeftEyeBatteryLabel->setObjectName("LeftEyeBatteryLabel");
+    LeftEyeBatteryLabel->setFont(font);
+    LeftRotateLabel = new QLabel(page);
+    LeftRotateLabel->setObjectName("LeftRotateLabel");
+    RightRotateLabel = new QLabel(page);
+    RightRotateLabel->setObjectName("RightRotateLabel");
+    LeftRotateBar = new QScrollBar(page);
+    LeftRotateBar->setObjectName("LeftRotateBar");
+    LeftRotateBar->setMaximum(1080);
+    LeftRotateBar->setPageStep(40);
+    LeftRotateBar->setOrientation(Qt::Orientation::Horizontal);
+    RightRotateBar = new QScrollBar(page);
+    RightRotateBar->setObjectName("RightRotateBar");
+    RightRotateBar->setMaximum(1080);
+    RightRotateBar->setPageStep(40);
+    RightRotateBar->setOrientation(Qt::Orientation::Horizontal);
+    stackedWidget->addWidget(page);
+    page_2 = new QWidget();
+    page_2->setObjectName("page_2");
+    LeftEyeTrackingLabel = new QLabel(page_2);
+    LeftEyeTrackingLabel->setObjectName("LeftEyeTrackingLabel");
+    QFont font1;
+    font1.setPointSize(12);
+    font1.setBold(true);
+    LeftEyeTrackingLabel->setFont(font1);
+    RightEyeTrackingLabel = new QLabel(page_2);
+    RightEyeTrackingLabel->setObjectName("RightEyeTrackingLabel");
+    RightEyeTrackingLabel->setFont(font1);
+    LeftEyePositionFrame = new QFrame(page_2);
+    LeftEyePositionFrame->setObjectName("LeftEyePositionFrame");
+    LeftEyePositionFrame->setFixedSize(250,250);
+    LeftEyePositionFrame->setFrameShape(QFrame::Shape::StyledPanel);
+    LeftEyePositionFrame->setFrameShadow(QFrame::Shadow::Raised);
+    RightEyePositionFrame = new QFrame(page_2);
+    RightEyePositionFrame->setObjectName("RightEyePositionFrame");
+    RightEyePositionFrame->setFixedSize(250,250);
+    RightEyePositionFrame->setFrameShape(QFrame::Shape::StyledPanel);
+    RightEyePositionFrame->setFrameShadow(QFrame::Shadow::Raised);
+    LeftEyeOpennessBar = new QProgressBar(page_2);
+    LeftEyeOpennessBar->setObjectName("LeftEyeOpennessBar");
+    LeftEyeOpennessBar->setValue(0);
+    RightEyeOpennessBar = new QProgressBar(page_2);
+    RightEyeOpennessBar->setObjectName("RightEyeOpennessBar");
+    RightEyeOpennessBar->setValue(0);
+    LeftEyeOpennessLabel = new QLabel(page_2);
+    LeftEyeOpennessLabel->setObjectName("LeftEyeOpennessLabel");
+    RightEyeOpennessLabel = new QLabel(page_2);
+    RightEyeOpennessLabel->setObjectName("RightEyeOpennessLabel");
+    settingsCalibrateButton = new QPushButton(page_2);
+    settingsCalibrateButton->setObjectName("settingsCalibrateButton");
+    settingsCenterButton = new QPushButton(page_2);
+    settingsCenterButton->setObjectName("settingsCenterButton");
+    settingsEyeOpenButton = new QPushButton(page_2);
+    settingsEyeOpenButton->setObjectName("settingsEyeOpenButton");
+    settingsEyeCloseButton = new QPushButton(page_2);
+    settingsEyeCloseButton->setObjectName("settingsEyeCloseButton");
+    stackedWidget->addWidget(page_2);
+    MainPageButton = new QPushButton(this);
+    MainPageButton->setObjectName("MainPageButton");
+    MainPageButton->setFixedHeight(24);
+    MainPageButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    SettingButton = new QPushButton(this);
+    SettingButton->setObjectName("SettingButton");
+    SettingButton->setFixedHeight(24);
+    SettingButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    RightEyeWifiStatus = new QLabel(this);
+    RightEyeWifiStatus->setObjectName("RightEyeWifiStatus");
+    RightEyeWifiStatus->setFont(font);
+    EyeWindowSerialStatus = new QLabel(this);
+    EyeWindowSerialStatus->setObjectName("EyeWindowSerialStatus");
+    EyeWindowSerialStatus->setFont(font);
+    LeftEyeWifiStatus = new QLabel(this);
+    LeftEyeWifiStatus->setObjectName("LeftEyeWifiStatus");
+    LeftEyeWifiStatus->setFont(font);
 
+    // 添加视频流显示到设置页面
+    leftEyeVideoStreamLabel = new QLabel(page_2);
+    leftEyeVideoStreamLabel->setText("左眼视频流");
+    leftEyeVideoStreamLabel->setFrameShape(QFrame::StyledPanel);
+    leftEyeVideoStreamLabel->setObjectName("leftEyeVideoLabel");
+
+    rightEyeVideoStreamLabel = new QLabel(page_2);
+    rightEyeVideoStreamLabel->setText("右眼视频流");
+    rightEyeVideoStreamLabel->setFrameShape(QFrame::StyledPanel);
+    rightEyeVideoStreamLabel->setObjectName("rightEyeVideoLabel");
+
+    // 创建眼睛同步控制下拉框
+    eyeSyncComboBox = new QComboBox(page_2);
+    eyeSyncComboBox->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    eyeSyncComboBox->addItem("双眼眼皮独立控制");
+    eyeSyncComboBox->addItem("左眼眼皮控制双眼眼皮");
+    eyeSyncComboBox->addItem("右眼眼皮控制双眼眼皮");
+    eyeSyncComboBox->setObjectName("eyeSyncComboBox");
+
+    // 连接信号槽
+    connect(eyeSyncComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &PaperEyeTrackerWindow::onEyeSyncModeChanged);
+
+    // 为左眼添加调整按钮
+    leftIncButton = new QPushButton("+", page_2);
+    leftIncButton->setObjectName("AdjustButton");
+    leftIncButton->setFixedSize(40,24);
+
+    leftDecButton = new QPushButton("-", page_2);
+    leftDecButton->setObjectName("AdjustButton");
+    leftDecButton->setFixedSize(40,24);
+
+    // 为右眼添加调整按钮
+    rightIncButton = new QPushButton("+", page_2);
+    rightIncButton->setObjectName("AdjustButton");
+    rightIncButton->setFixedSize(40,24);
+
+    rightDecButton = new QPushButton("-", page_2);
+    rightDecButton->setObjectName("AdjustButton");
+    rightDecButton->setFixedSize(40,24);
+
+    // 添加标签
+    leftAdjustLabel = new QLabel(page_2);
+    leftAdjustLabel->setText(QApplication::translate("PaperTrackerMainWindow", "调整:"));
+
+    rightAdjustLabel = new QLabel(page_2);
+    rightAdjustLabel->setText(QApplication::translate("PaperTrackerMainWindow", "调整:"));
+
+    // 连接信号和槽
+    connect(leftIncButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onLeftEyeValueIncrease);
+    connect(leftDecButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onLeftEyeValueDecrease);
+    connect(rightIncButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onRightEyeValueIncrease);
+    connect(rightDecButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onRightEyeValueDecrease);
+}
+
+void PaperEyeTrackerWindow::initLayout() {
+    // 主窗口整体布局
+    auto* mainLayout = new QVBoxLayout(this);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->setSpacing(0);
+
+    //顶部tab切换按钮和状态label
+    auto* topButtonLayout = new QHBoxLayout();
+    topButtonLayout->addWidget(MainPageButton);
+    topButtonLayout->addWidget(SettingButton);
+    topButtonLayout->addStretch();
+    topButtonLayout->addWidget(EyeWindowSerialStatus);
+    topButtonLayout->addWidget(LeftEyeWifiStatus);
+    topButtonLayout->addWidget(RightEyeWifiStatus);
+    topButtonLayout->addStretch();
+    topButtonLayout->setSpacing(20);  // 设置控件间距
+    topButtonLayout->setContentsMargins(10, 5, 10, 5);  // 设置边距
+
+    mainLayout->addItem(topButtonLayout);
+    mainLayout->addWidget(stackedWidget);
+
+    auto* pageLayout = new QVBoxLayout(page);
+    pageLayout->setContentsMargins(10, 10, 10, 10);
+    pageLayout->setSpacing(10);
+
+    auto topControlLayout = new QHBoxLayout();
+    // 添加图像显示label行
+    auto* imageLayout = new QHBoxLayout();
+    imageLayout->setSpacing(4);
+    imageLayout->addWidget(LeftEyeImage);
+    imageLayout->addWidget(RightEyeImage);
+
+    LeftBrightnessBar->setFixedSize(220,24);
+    RightBrightnessBar->setFixedSize(220,24);
+    LeftRotateBar->setFixedSize(220,24);
+    RightRotateBar->setFixedSize(220,24);
+
+    auto* LeftBrightnessLayout = new QHBoxLayout();
+    LeftBrightnessLayout->addWidget(label_4);
+    LeftBrightnessLayout->addWidget(LeftBrightnessBar);
+
+    auto* RightBrightnessLayout = new QHBoxLayout();
+    RightBrightnessLayout->addWidget(label_5);
+    RightBrightnessLayout->addWidget(RightBrightnessBar);
+
+    auto* LeftRotateLaytout = new QHBoxLayout();
+    LeftRotateLaytout->addWidget(LeftRotateLabel);
+    LeftRotateLaytout->addWidget(LeftRotateBar);
+
+    auto* RightRotateLaytout = new QHBoxLayout();
+    RightRotateLaytout->addWidget(RightRotateLabel);
+    RightRotateLaytout->addWidget(RightRotateBar);
+
+    auto* BatteryStatusLayout = new QHBoxLayout();
+    BatteryStatusLayout->addStretch();
+    BatteryStatusLayout->addWidget(LeftEyeBatteryLabel);
+    BatteryStatusLayout->addSpacing(10);
+    BatteryStatusLayout->addWidget(RightEyeBatteryLabel);
+
+    auto controlLayout = new QVBoxLayout();
+    controlLayout->setSpacing(12);
+    controlLayout->addLayout(LeftBrightnessLayout);
+    controlLayout->addLayout(RightBrightnessLayout);
+    controlLayout->addLayout(LeftRotateLaytout);
+    controlLayout->addLayout(RightRotateLaytout);
+    controlLayout->addStretch();
+    controlLayout->addLayout(BatteryStatusLayout);
+
+    topControlLayout->setSpacing(8);
+    topControlLayout->addItem(imageLayout);
+    topControlLayout->addItem(controlLayout);
+
+    auto column1Layout = new QVBoxLayout();
+    column1Layout->addWidget(SSIDInput);       // SSID 输入框
+    SSIDInput->setFixedSize(160,40);
+    column1Layout->addWidget(PassWordInput);   // 密码 输入框
+    PassWordInput->setFixedSize(160,40);
+
+    auto column2Layout = new QVBoxLayout();
+    column2Layout->addStretch();                  // 上方留白
+    column2Layout->addWidget(SendButton);      // 发送按钮居中
+    SendButton->setFixedSize(88,88);
+    column2Layout->addStretch();                  // 下方留白
+
+    auto column3Layout = new QVBoxLayout();
+    column3Layout->addWidget(RestartButton);   // 重启按钮
+    RestartButton->setFixedHeight(40);
+    column3Layout->addWidget(FlashButton);     // 刷写固件按钮
+    FlashButton->setFixedHeight(40);
+
+    auto column4Layout = new QVBoxLayout();
+    column4Layout->addWidget(label, 1, Qt::AlignCenter);           // 左眼IP标签
+    column4Layout->addWidget(label_2  , 1, Qt::AlignCenter);         // 右眼IP标签
+
+    auto column5Layout = new QVBoxLayout();
+    column5Layout->addWidget(LeftEyeIPAddress);   // 左眼IP地址输入框
+    LeftEyeIPAddress->setFixedSize(180,40);
+    column5Layout->addWidget(RightEyeIPAddress);  // 右眼IP地址输入框
+    RightEyeIPAddress->setFixedSize(180,40);
+
+    auto mainContentLayout = new QHBoxLayout();
+    mainContentLayout->addLayout(column1Layout,1);
+    mainContentLayout->addSpacing(8);
+    mainContentLayout->addLayout(column2Layout,1);
+    mainContentLayout->addSpacing(8);
+    mainContentLayout->addLayout(column3Layout, 1);
+    mainContentLayout->addSpacing(4);
+    mainContentLayout->addLayout(column4Layout , 1);
+    mainContentLayout->addSpacing(2);
+    mainContentLayout->addLayout(column5Layout, 1);
+    mainContentLayout->addSpacing(4);
+    mainContentLayout->addWidget(label_3,1,Qt::AlignCenter);
+    mainContentLayout->addSpacing(4);
+    mainContentLayout->addWidget(EnergyModelBox,1,Qt::AlignCenter);
+    mainContentLayout->addStretch(2);
+
+    pageLayout->addItem(topControlLayout);
+    pageLayout->addItem(mainContentLayout);
+    pageLayout->addWidget(LogText,1, Qt::AlignBottom);
+
+    page->setLayout(pageLayout);
+
+    //page2
+    auto* pageLayout2 = new QVBoxLayout(page_2);
+    pageLayout2->setContentsMargins(10, 10, 10, 10);
+    pageLayout2->setSpacing(10);
+
+    // 中间内容区域布局
+    auto* contentLayout = new QHBoxLayout();
+
+    // 左侧内容布局（左眼追踪）
+    auto* leftContentLayout = new QVBoxLayout();
+    leftContentLayout->setSpacing(4);
+    leftContentLayout->addWidget(LeftEyeTrackingLabel);  // 左眼追踪标签
+    leftContentLayout->addWidget(LeftEyePositionFrame);  // 左眼位置显示控件
+    leftContentLayout->addWidget(LeftEyeOpennessLabel);  // 左眼开合度进度条
+    leftContentLayout->addWidget(LeftEyeOpennessBar);  // 左眼开合度标签
+
+    auto leftAdjustLayout = new QHBoxLayout();
+    leftAdjustLayout->addWidget(leftAdjustLabel);
+    leftAdjustLayout->addSpacing(8);
+    leftAdjustLayout->addWidget(leftIncButton);
+    leftAdjustLayout->addSpacing(4);
+    leftAdjustLayout->addWidget(leftDecButton);
+    leftAdjustLayout->addStretch();
+
+    // 中间内容布局（按钮区域）
+    auto* centerContentLayout = new QVBoxLayout();
+    centerContentLayout->addStretch();
+    centerContentLayout->addWidget(settingsCalibrateButton);
+    settingsCalibrateButton->setFixedHeight(50);
+    centerContentLayout->addWidget(settingsCenterButton);
+    settingsCenterButton->setFixedHeight(50);
+    centerContentLayout->addWidget(settingsEyeOpenButton);
+    settingsEyeOpenButton->setFixedHeight(50);
+    centerContentLayout->addWidget(settingsEyeCloseButton);
+    settingsEyeCloseButton->setFixedHeight(50);
+    centerContentLayout->addStretch();
+    centerContentLayout->addItem(leftAdjustLayout);
+
+    // 右侧内容布局（右眼追踪）
+    auto* rightContentLayout = new QVBoxLayout();
+    rightContentLayout->addWidget(RightEyeTrackingLabel);
+    rightContentLayout->addWidget(RightEyePositionFrame);
+    rightContentLayout->addWidget(RightEyeOpennessLabel);
+    rightContentLayout->addWidget(RightEyeOpennessBar);
+
+    auto rightAdjustLayout = new QHBoxLayout();
+    rightAdjustLayout->addWidget(rightAdjustLabel);
+    rightAdjustLayout->addSpacing(8);
+    rightAdjustLayout->addWidget(rightIncButton);
+    rightAdjustLayout->addSpacing(2);
+    rightAdjustLayout->addWidget(rightDecButton);
+    rightAdjustLayout->addStretch();
+
+    auto* extraLayout = new QVBoxLayout();
+    extraLayout->addWidget(eyeSyncComboBox, 1, Qt::AlignCenter);
+    extraLayout->addStretch();
+    extraLayout->addItem(rightAdjustLayout);
+
+    // 创建容器widget并设置sizePolicy
+    QWidget* leftContainer = new QWidget(page_2);
+    leftContainer->setLayout(leftContentLayout);
+    leftContainer->setMinimumWidth(250);
+    leftContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred); // 水平方向可扩展
+
+    QWidget* centerContainer = new QWidget(page_2);
+    centerContainer->setLayout(centerContentLayout);
+    centerContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+    QWidget* rightContainer = new QWidget(page_2);
+    rightContainer->setLayout(rightContentLayout);
+    rightContainer->setMinimumWidth(250);
+    rightContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+    QWidget* extraContainer = new QWidget(page_2);
+    extraContainer->setLayout(extraLayout);
+    extraContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+    // 设置间距
+    contentLayout->setSpacing(0);
+    leftContainer->setContentsMargins(0, 0, 0, 0);
+    centerContainer->setContentsMargins(0, 0, 0, 0);
+    rightContainer->setContentsMargins(0, 0, 0, 0);
+    extraContainer->setContentsMargins(0, 0, 0, 0);
+    // 将包裹后的 widget 添加到 contentLayout 中
+    contentLayout->addWidget(leftContainer, 0);
+    contentLayout->addWidget(centerContainer, 0);
+    contentLayout->addWidget(rightContainer , 0);
+    contentLayout->addWidget(extraContainer ,0);
+    contentLayout->addStretch();
+
+    auto bottomLayout = new QHBoxLayout();
+    bottomLayout->addWidget(leftEyeVideoStreamLabel);
+    leftEyeVideoStreamLabel->setFixedSize(180,180);
+    bottomLayout->addWidget(rightEyeVideoStreamLabel);
+    rightEyeVideoStreamLabel->setFixedSize(180,180);
+
+    pageLayout2->addItem(contentLayout);
+    pageLayout2->addSpacing(20);
+    pageLayout2->addItem(bottomLayout);
+
+    page_2->setLayout(pageLayout2);
+}
+
+void PaperEyeTrackerWindow::retranslateUI() {
+    LeftEyeTrackingLabel->setText(QApplication::translate("PaperTrackerMainWindow", "左眼跟踪"));
+    RightEyeTrackingLabel->setText(QApplication::translate("PaperTrackerMainWindow", "右眼跟踪"));
+    MainPageButton->setText(QApplication::translate("PaperTrackerMainWindow", "主页面"));
+    SettingButton->setText(QApplication::translate("PaperTrackerMainWindow", "设置"));
+
+    settingsCalibrateButton->setText(QApplication::translate("PaperTrackerMainWindow", "开始眼球位置校准"));
+    settingsCenterButton->setText(QApplication::translate("PaperTrackerMainWindow", "标定眼球中心"));
+    settingsEyeOpenButton->setText(QApplication::translate("PaperTrackerMainWindow", "标定眼睛完全张开"));
+    settingsEyeCloseButton->setText(QApplication::translate("PaperTrackerMainWindow", "标定眼睛完全闭合"));
+    QStringList ButtonStr;
+    ButtonStr << QApplication::translate("PaperTrackerMainWindow", "开始眼球位置校准")
+           << QApplication::translate("PaperTrackerMainWindow", "标定眼球中心")
+           << QApplication::translate("PaperTrackerMainWindow", "标定眼睛完全张开")
+           << QApplication::translate("PaperTrackerMainWindow", "标定眼睛完全闭合");
+    setFixedWidthBasedONLongestText(settingsCalibrateButton, ButtonStr);
+    setFixedWidthBasedONLongestText(settingsCenterButton, ButtonStr);
+    setFixedWidthBasedONLongestText(settingsEyeOpenButton, ButtonStr);
+    setFixedWidthBasedONLongestText(settingsEyeCloseButton, ButtonStr);
+
+
+    LeftEyeOpennessLabel->setText(QApplication::translate("PaperTrackerMainWindow", "左眼开合度"));
+    RightEyeOpennessLabel->setText(QApplication::translate("PaperTrackerMainWindow", "右眼开合度"));
+    LeftEyeImage->setText(QApplication::translate("PaperTrackerMainWindow", "没有图像输入"));
+    RightEyeImage->setText(QApplication::translate("PaperTrackerMainWindow", "没有图像输入"));
+    label_4->setText(QApplication::translate("PaperTrackerMainWindow", "左眼补光"));
+    label_5->setText(QApplication::translate("PaperTrackerMainWindow", "右眼补光"));
+    LeftRotateLabel->setText(QApplication::translate("PaperTrackerMainWindow", "左眼旋转角度"));
+    RightRotateLabel->setText(QApplication::translate("PaperTrackerMainWindow", "右眼旋转角度"));
+    SendButton->setText(QApplication::translate("PaperTrackerMainWindow", "发送"));
+    RestartButton->setText(QApplication::translate("PaperTrackerMainWindow", "重启"));
+    FlashButton->setText(QApplication::translate("PaperTrackerMainWindow", "刷写固件"));
+    label_3->setText(QApplication::translate("PaperTrackerMainWindow", "模式选择"));
+    label->setText(QApplication::translate("PaperTrackerMainWindow", "左眼IP"));
+    label_2->setText(QApplication::translate("PaperTrackerMainWindow", "右眼IP"));
+    EnergyModelBox->setItemText(0, QApplication::translate("PaperTrackerMainWindow", "普通模式"));
+    EnergyModelBox->setItemText(1, QApplication::translate("PaperTrackerMainWindow", "节能模式"));
+    EnergyModelBox->setItemText(2, QApplication::translate("PaperTrackerMainWindow", "性能模式"));
+    QStringList items;
+    items << QApplication::translate("PaperTrackerMainWindow", "普通模式")
+           << QApplication::translate("PaperTrackerMainWindow", "节能模式")
+           << QApplication::translate("PaperTrackerMainWindow", "性能模式");
+
+    setFixedWidthBasedONLongestText(EnergyModelBox, items);
     eyeSyncComboBox->setItemText(0, QApplication::translate("PaperTrackerMainWindow", "双眼眼皮独立控制"));
     eyeSyncComboBox->setItemText(1, QApplication::translate("PaperTrackerMainWindow", "左眼眼皮控制双眼眼皮"));
     eyeSyncComboBox->setItemText(2, QApplication::translate("PaperTrackerMainWindow", "右眼眼皮控制双眼眼皮"));
+    QStringList items2;
+    items2 << QApplication::translate("PaperTrackerMainWindow", "双眼眼皮独立控制")
+           << QApplication::translate("PaperTrackerMainWindow", "左眼眼皮控制双眼眼皮")
+           << QApplication::translate("PaperTrackerMainWindow", "右眼眼皮控制双眼眼皮");
+    setFixedWidthBasedONLongestText(eyeSyncComboBox, items2);
+    this->adjustSize();
+    updatePageWidth();
 }
 
 void PaperEyeTrackerWindow::connect_callbacks() {
@@ -1496,14 +1641,14 @@ void PaperEyeTrackerWindow::connect_callbacks() {
         brightness_timer[i]->setSingleShot(true);
         connect(brightness_timer[i].get(), &QTimer::timeout, this, &PaperEyeTrackerWindow::onSendBrightnessValue);
     }
-    connect(ui.SendButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onSendButtonClicked);
-    connect(ui.RestartButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onRestartButtonClicked);
-    connect(ui.FlashButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onFlashButtonClicked);
-    connect(ui.EnergyModelBox, &QComboBox::currentIndexChanged, this, &PaperEyeTrackerWindow::onEnergyModeChanged);
-    connect(ui.LeftBrightnessBar, &QScrollBar::valueChanged, this, &PaperEyeTrackerWindow::onLeftBrightnessChanged);
-    connect(ui.RightBrightnessBar, &QScrollBar::valueChanged, this, &PaperEyeTrackerWindow::onRightBrightnessChanged);
-    connect(ui.LeftRotateBar, &QScrollBar::valueChanged, this, &PaperEyeTrackerWindow::onLeftRotateAngleChanged);
-    connect(ui.RightRotateBar, &QScrollBar::valueChanged, this, &PaperEyeTrackerWindow::onRightRotateAngleChanged);
+    connect(SendButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onSendButtonClicked);
+    connect(RestartButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onRestartButtonClicked);
+    connect(FlashButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onFlashButtonClicked);
+    connect(EnergyModelBox, &QComboBox::currentIndexChanged, this, &PaperEyeTrackerWindow::onEnergyModeChanged);
+    connect(LeftBrightnessBar, &QScrollBar::valueChanged, this, &PaperEyeTrackerWindow::onLeftBrightnessChanged);
+    connect(RightBrightnessBar, &QScrollBar::valueChanged, this, &PaperEyeTrackerWindow::onRightBrightnessChanged);
+    connect(LeftRotateBar, &QScrollBar::valueChanged, this, &PaperEyeTrackerWindow::onLeftRotateAngleChanged);
+    connect(RightRotateBar, &QScrollBar::valueChanged, this, &PaperEyeTrackerWindow::onRightRotateAngleChanged);
 }
 
 void PaperEyeTrackerWindow::onLeftBrightnessChanged(int value) {
@@ -1559,11 +1704,11 @@ void PaperEyeTrackerWindow::onSendBrightnessValue() {
 }
 
 std::string PaperEyeTrackerWindow::getSSID() const {
-    return ui.SSIDInput->toPlainText().toStdString();
+    return SSIDInput->toPlainText().toStdString();
 }
 
 std::string PaperEyeTrackerWindow::getPassword() const {
-    return ui.PassWordInput->toPlainText().toStdString();
+    return PassWordInput->toPlainText().toStdString();
 }
 
 int PaperEyeTrackerWindow::get_max_fps() const {
@@ -1575,11 +1720,11 @@ bool PaperEyeTrackerWindow::is_running() const {
 }
 
 void PaperEyeTrackerWindow::set_config() {
-    ui.RightEyeIPAddress->setPlainText(QString::fromStdString(config.right_ip));
-    ui.LeftEyeIPAddress->setPlainText(QString::fromStdString(config.left_ip));
-    ui.LeftBrightnessBar->setValue(config.left_brightness);
-    ui.RightBrightnessBar->setValue(config.right_brightness);
-    ui.EnergyModelBox->setCurrentIndex(config.energy_mode);
+    RightEyeIPAddress->setPlainText(QString::fromStdString(config.right_ip));
+    LeftEyeIPAddress->setPlainText(QString::fromStdString(config.left_ip));
+    LeftBrightnessBar->setValue(config.left_brightness);
+    RightBrightnessBar->setValue(config.right_brightness);
+    EnergyModelBox->setCurrentIndex(config.energy_mode);
     roi_rect[LEFT_TAG] = config.left_roi;
     roi_rect[RIGHT_TAG] = config.right_roi;
 
@@ -1606,8 +1751,8 @@ void PaperEyeTrackerWindow::set_config() {
     flip_y_axis = config.flip_y;
 
     // 加载旋转角度
-    ui.LeftRotateBar->setValue(config.left_rotate_angle);
-    ui.RightRotateBar->setValue(config.right_rotate_angle);
+    LeftRotateBar->setValue(config.left_rotate_angle);
+    RightRotateBar->setValue(config.right_rotate_angle);
     current_rotate_angle[LEFT_TAG] = config.left_rotate_angle;
     current_rotate_angle[RIGHT_TAG] = config.right_rotate_angle;
     // 加载眼睛开合度校准数据
@@ -1616,9 +1761,9 @@ void PaperEyeTrackerWindow::set_config() {
     eye_fully_open[RIGHT_TAG] = config.right_eye_fully_open;
     eye_fully_closed[RIGHT_TAG] = config.right_eye_fully_closed;
     // 设置页面上旋转条也需要更新
-    if (ui.page_2) {
-        QScrollBar* leftRotateBar = ui.page_2->findChild<QScrollBar*>("settingLeftRotateBar");
-        QScrollBar* rightRotateBar = ui.page_2->findChild<QScrollBar*>("settingRightRotateBar");
+    if (page_2) {
+        QScrollBar* leftRotateBar = page_2->findChild<QScrollBar*>("settingLeftRotateBar");
+        QScrollBar* rightRotateBar = page_2->findChild<QScrollBar*>("settingRightRotateBar");
 
         if (leftRotateBar) leftRotateBar->setValue(config.left_rotate_angle);
         if (rightRotateBar) rightRotateBar->setValue(config.right_rotate_angle);
@@ -1631,10 +1776,10 @@ void PaperEyeTrackerWindow::set_config() {
 
 void PaperEyeTrackerWindow::setIPText(int version, const QString& text) const {
     if (version == LEFT_TAG) {
-        ui.LeftEyeIPAddress->setPlainText(tr(text.toUtf8().constData()));
+        LeftEyeIPAddress->setPlainText(tr(text.toUtf8().constData()));
     }
     else {
-        ui.RightEyeIPAddress->setPlainText(tr(text.toUtf8().constData()));
+        RightEyeIPAddress->setPlainText(tr(text.toUtf8().constData()));
     }
 }
 
@@ -1667,16 +1812,19 @@ void PaperEyeTrackerWindow::start_image_download(int version) const {
     }
 }
 
-void PaperEyeTrackerWindow::updateWifiLabel(int version) const {
-    if (image_stream[version]->isStreaming()) {
-        setWifiStatusLabel(version, "Wifi已连接");
-    }
-    else {
-        setWifiStatusLabel(version, "Wifi连接失败");
-    }
+void PaperEyeTrackerWindow::updateWifiLabel(int version) {
+    QMetaObject::invokeMethod(this, [this, version]() {
+        // 安全地更新 UI
+        if (version == LEFT_TAG) {
+            LeftEyeWifiStatus->setText("左眼WIFI状态");  // 示例文本
+        } else if (version == RIGHT_TAG) {
+            RightEyeWifiStatus->setText("右眼WIFI状态");  // 示例文本
+        }
+    }, Qt::QueuedConnection);
 }
 
-void PaperEyeTrackerWindow::updateSerialLabel(int version) const {
+void PaperEyeTrackerWindow::updateSerialLabel(int version) {
+    QMetaObject::invokeMethod(this, [this, version]() {
     if (serial_port_->status() == SerialStatus::OPENED) {
         if (version == LEFT_VERSION) {
             setSerialStatusLabel("左眼设备已连接");
@@ -1688,6 +1836,7 @@ void PaperEyeTrackerWindow::updateSerialLabel(int version) const {
     else {
         setSerialStatusLabel("没有设备连接");
     }
+    }, Qt::QueuedConnection);
 }
 
 cv::Mat PaperEyeTrackerWindow::getVideoImage(int version) const {
@@ -1695,25 +1844,25 @@ cv::Mat PaperEyeTrackerWindow::getVideoImage(int version) const {
 }
 
 void PaperEyeTrackerWindow::setSerialStatusLabel(const QString& text) const {
-    ui.EyeWindowSerialStatus->setText(QApplication::translate("PaperTrackerMainWindow",text.toUtf8().constData()));
+    EyeWindowSerialStatus->setText(QApplication::translate("PaperTrackerMainWindow",text.toUtf8().constData()));
 }
 
 void PaperEyeTrackerWindow::setWifiStatusLabel(int version, const QString& text) const {
     if (version == LEFT_TAG) {
-        ui.LeftEyeWifiStatus->setText(QApplication::translate("PaperTrackerMainWindow",text.toUtf8().constData()));
+        LeftEyeWifiStatus->setText(QApplication::translate("PaperTrackerMainWindow",text.toUtf8().constData()));
     }
     else if (version == RIGHT_TAG) {
-        ui.RightEyeWifiStatus->setText(QApplication::translate("PaperTrackerMainWindow",text.toUtf8().constData()));
+        RightEyeWifiStatus->setText(QApplication::translate("PaperTrackerMainWindow",text.toUtf8().constData()));
     }
 }
 
 PaperEyeTrackerConfig PaperEyeTrackerWindow::generate_config() const {
     PaperEyeTrackerConfig res_config;
-    res_config.left_ip = ui.LeftEyeIPAddress->toPlainText().toStdString();
-    res_config.right_ip = ui.RightEyeIPAddress->toPlainText().toStdString();
+    res_config.left_ip = LeftEyeIPAddress->toPlainText().toStdString();
+    res_config.right_ip = RightEyeIPAddress->toPlainText().toStdString();
     res_config.left_brightness = brightness[LEFT_TAG];
     res_config.right_brightness = brightness[RIGHT_TAG];
-    res_config.energy_mode = ui.EnergyModelBox->currentIndex();
+    res_config.energy_mode = EnergyModelBox->currentIndex();
     res_config.left_roi = roi_rect[LEFT_TAG];
     res_config.right_roi = roi_rect[RIGHT_TAG];
 
@@ -1764,11 +1913,13 @@ void PaperEyeTrackerWindow::onEnergyModeChanged(int index) {
 
 void PaperEyeTrackerWindow::bound_pages() {
     // 页面导航逻辑
-    connect(ui.MainPageButton, &QPushButton::clicked, [this] {
-        ui.stackedWidget->setCurrentIndex(0);
+    connect(MainPageButton, &QPushButton::clicked, [this] {
+        stackedWidget->setCurrentIndex(0);
+        updatePageWidth();
         });
-    connect(ui.SettingButton, &QPushButton::clicked, [this] {
-        ui.stackedWidget->setCurrentIndex(1);
+    connect(SettingButton, &QPushButton::clicked, [this] {
+        stackedWidget->setCurrentIndex(1);
+        updatePageWidth();
         });
 }
 
@@ -2068,9 +2219,6 @@ void PaperEyeTrackerWindow::updateEyePosition(int eyeIndex)
             eyeY = max(0.0, min(1.0, eyeY));
         }
 
-        // *** 修改部分：使用补偿后的开合度值进行UI显示 ***
-        // 删除原有的校准计算代码：
-        /*
         // 计算眼睛开合度 (0.0-1.0)
         // 使用校准后的值计算开合度百分比
         double fullyOpen = eye_fully_open[eyeIndex];
@@ -2085,34 +2233,24 @@ void PaperEyeTrackerWindow::updateEyePosition(int eyeIndex)
         }
 
         opennessPct = max(0.0, min(1.0, opennessPct));
-        */
-
-        // 新的实现：直接使用补偿后的值
-        {
-            std::lock_guard<std::mutex> comp_lock(compensated_data_mutex[eyeIndex]);
-            opennessPct = compensated_eye_openness[eyeIndex];
-        }
-
-        // 确保范围在0-1之间（虽然补偿处理已经限制了，但这里再次确保）
-        opennessPct = max(0.0, min(1.0, opennessPct));
     }
 
     // 更新 UI 显示 (线程安全的方式)
     QMetaObject::invokeMethod(this, [this, eyeIndex, eyeX, eyeY, opennessPct]() {
-        if (eyeIndex == LEFT_TAG) {
-            leftEyePositionWidget->setPosition(eyeX, eyeY);
-            leftEyePositionWidget->setOpenness(opennessPct);
-            if (ui.LeftEyeOpennessBar) {
-                ui.LeftEyeOpennessBar->setValue(static_cast<int>(opennessPct * 100));
-            }
-        } else {
-            rightEyePositionWidget->setPosition(eyeX, eyeY);
-            rightEyePositionWidget->setOpenness(opennessPct);
-            if (ui.RightEyeOpennessBar) {
-                ui.RightEyeOpennessBar->setValue(static_cast<int>(opennessPct * 100));
-            }
+    if (eyeIndex == LEFT_TAG) {
+        leftEyePositionWidget->setPosition(eyeX, eyeY);
+        leftEyePositionWidget->setOpenness(opennessPct);
+        if (LeftEyeOpennessBar) {
+            LeftEyeOpennessBar->setValue(static_cast<int>(opennessPct * 100));
         }
-    }, Qt::QueuedConnection);
+    } else {
+        rightEyePositionWidget->setPosition(eyeX, eyeY);
+        rightEyePositionWidget->setOpenness(opennessPct);
+        if (RightEyeOpennessBar) {
+            RightEyeOpennessBar->setValue(static_cast<int>(opennessPct * 100));
+        }
+    }
+}, Qt::QueuedConnection);
 }
 void PaperEyeTrackerWindow::calibrateEyeOpen() {
     // 检查哪些眼睛连接了
@@ -2181,27 +2319,29 @@ void PaperEyeTrackerWindow::calibrateEyeClose() {
     updateCalibrationButtonStates();
     //QMessageBox::information(this, "校准完成", "眼睛完全闭合校准已完成！");
 }
-void PaperEyeTrackerWindow::updateBatteryStatus(int version) const
+void PaperEyeTrackerWindow::updateBatteryStatus(int version)
 {
+    QMetaObject::invokeMethod(this, [this, version]() {
     if (image_stream[version] && image_stream[version]->isStreaming())
     {
         float battery = image_stream[version]->getBatteryPercentage();
         QString batteryText = QString("电池电量: %1%").arg(battery, 0, 'f', 1);
 
         if (version == LEFT_TAG) {
-            ui.LeftEyeBatteryLabel->setText(batteryText);
+            LeftEyeBatteryLabel->setText(batteryText);
         } else if (version == RIGHT_TAG) {
-            ui.RightEyeBatteryLabel->setText(batteryText);
+            RightEyeBatteryLabel->setText(batteryText);
         }
     }
     else
     {
         if (version == LEFT_TAG) {
-            ui.LeftEyeBatteryLabel->setText("左眼电池: 未知");
+            LeftEyeBatteryLabel->setText("左眼电池: 未知");
         } else if (version == RIGHT_TAG) {
-            ui.RightEyeBatteryLabel->setText("右眼电池: 未知");
+            RightEyeBatteryLabel->setText("右眼电池: 未知");
         }
     }
+    }, Qt::QueuedConnection);
 }
 void PaperEyeTrackerWindow::updateCalibrationButtonStates()
 {
@@ -2210,10 +2350,10 @@ void PaperEyeTrackerWindow::updateCalibrationButtonStates()
     QString calibratedStyle = ""; // 默认样式
 
     // 更新每个按钮的样式
-    ui.settingsCalibrateButton->setStyleSheet(calibrated_position ? calibratedStyle : uncalibratedStyle);
-    ui.settingsCenterButton->setStyleSheet(calibrated_center ? calibratedStyle : uncalibratedStyle);
-    ui.settingsEyeOpenButton->setStyleSheet(calibrated_eye_open ? calibratedStyle : uncalibratedStyle);
-    ui.settingsEyeCloseButton->setStyleSheet(calibrated_eye_close ? calibratedStyle : uncalibratedStyle);
+    settingsCalibrateButton->setStyleSheet(calibrated_position ? calibratedStyle : uncalibratedStyle);
+    settingsCenterButton->setStyleSheet(calibrated_center ? calibratedStyle : uncalibratedStyle);
+    settingsEyeOpenButton->setStyleSheet(calibrated_eye_open ? calibratedStyle : uncalibratedStyle);
+    settingsEyeCloseButton->setStyleSheet(calibrated_eye_close ? calibratedStyle : uncalibratedStyle);
 }
 void PaperEyeTrackerWindow::onEyeSyncModeChanged(int index) {
     eyeSyncMode = static_cast<EyeSyncMode>(index);
@@ -2247,4 +2387,78 @@ void PaperEyeTrackerWindow::onRightEyeValueDecrease() {
     std::lock_guard<std::mutex> lock(results_mutex[RIGHT_TAG]);
     eye_fully_closed[RIGHT_TAG] = max(5.0, eye_fully_closed[RIGHT_TAG] - 1.0); // 减少闭合值，但不低于5
     LOG_INFO("右眼闭合值减少到: {:.3f}", eye_fully_closed[RIGHT_TAG]);
+}
+
+void PaperEyeTrackerWindow::setFixedWidthBasedONLongestText(QWidget* widget, const QStringList& texts) {
+    QFontMetrics fm(widget->font());
+    int max_width = 0;
+    for (const QString& text : texts) {
+        int w = fm.horizontalAdvance(text);
+        if (w > max_width) max_width = w;
+    }
+    widget->setFixedWidth(max_width + 30); // 加上 padding
+}
+
+void PaperEyeTrackerWindow::updatePageWidth()
+{
+    if (stackedWidget && stackedWidget->currentIndex() == 1) {
+        // 增加延迟确保UI更新完成
+        QTimer::singleShot(200, this, [this]() {
+            // 安全检查
+            if (!settingsCalibrateButton || !eyeSyncComboBox) {
+                return;
+            }
+
+            // 确保控件已完成样式更新
+            settingsCalibrateButton->ensurePolished();
+            eyeSyncComboBox->ensurePolished();
+
+            // 使用sizeHint获取更准确的建议尺寸
+            int buttonWidth = settingsCalibrateButton->width();
+            int comboWidth = eyeSyncComboBox->width();
+
+            // 更全面的宽度计算（包含所有关键元素）
+            int totalWidth = comboWidth + buttonWidth +
+                            LeftEyePositionFrame->width() +
+                            RightEyePositionFrame->width() +
+                            100; // 额外边距
+
+            // 设置最小宽度防止UI错乱
+            setFixedWidth(totalWidth);
+
+            // 强制立即更新布局
+            updateGeometry();
+        });
+    }
+    else {
+        // 增加延迟确保UI更新完成
+        QTimer::singleShot(100, this, [this]() {
+            // 安全检查
+            if (!label || !label_3 || !EnergyModelBox) {
+                return;
+            }
+
+            // 确保控件已完成样式更新
+            label->ensurePolished();
+            label_3->ensurePolished();
+            EnergyModelBox->ensurePolished();
+
+            // 使用sizeHint获取更准确的建议尺寸
+            int labelWidth = label->sizeHint().width();
+            int labelWidth2 = label_3->sizeHint().width();
+            int comboWidth = EnergyModelBox->sizeHint().width();
+
+            // 更全面的宽度计算（包含所有关键元素）
+            int totalWidth = comboWidth + labelWidth + labelWidth2 + SendButton->width() +
+                            RestartButton->width() + SSIDInput->width() +
+                            LeftEyeIPAddress->width() + 80;
+
+            // 设置最小宽度防止UI错乱
+            setMinimumWidth(totalWidth);
+            setFixedWidth(totalWidth);
+
+            // 强制立即更新布局
+            updateGeometry();
+        });
+    }
 }

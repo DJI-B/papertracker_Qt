@@ -236,6 +236,10 @@ void PaperFaceTrackerWindow::InitUi() {
     page_2 = new QWidget(this);
     page_2->setObjectName("page_2");
 
+    QFont font;
+    font.setBold(true);
+    font.setItalic(true);
+
     // 初始化主页面控件
     ImageLabel = new QLabel(page);
     ImageLabel->setObjectName("ImageLabel");
@@ -395,11 +399,16 @@ void PaperFaceTrackerWindow::InitUi() {
     label_20 = new QLabel(page_2);
     MainPageButton = new QPushButton(this);
     MainPageButton->setFixedHeight(24);
+    MainPageButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     CalibrationPageButton = new QPushButton(this);
     CalibrationPageButton->setFixedHeight(24);
+    CalibrationPageButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     WifiConnectLabel = new QLabel(this);
+    WifiConnectLabel->setFont(font);
     SerialConnectLabel = new QLabel(this);
+    SerialConnectLabel->setFont(font);
     BatteryStatusLabel = new QLabel(this);
+    BatteryStatusLabel->setFont(font);
 
     // 添加到 stackedWidget
     stackedWidget->addWidget(page);
@@ -426,9 +435,11 @@ void PaperFaceTrackerWindow::InitLayout() {
     auto* topButtonLayout = new QHBoxLayout();
     topButtonLayout->addWidget(MainPageButton);
     topButtonLayout->addWidget(CalibrationPageButton);
+    topButtonLayout->addStretch();
     topButtonLayout->addWidget(WifiConnectLabel);
     topButtonLayout->addWidget(SerialConnectLabel);
     topButtonLayout->addWidget(BatteryStatusLabel);
+    topButtonLayout->addStretch();
     topButtonLayout->setSpacing(10);  // 设置控件间距
     topButtonLayout->setContentsMargins(10, 5, 10, 5);  // 设置边距
 

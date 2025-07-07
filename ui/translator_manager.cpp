@@ -7,11 +7,20 @@
 #include <QBoxLayout>
 #include <QGraphicsDropShadowEffect>
 #include <QMouseEvent>
+#include <QStandardPaths>
+#include <QSettings>
 
 TranslatorManager::TranslatorManager(QObject* parent) : QObject(parent)
 {
-    //todo:后续需要调整为读取本地缓存
-    setLanguage("en_US");
+    // 初始化配置文件路径（以用户配置目录为例）
+    QString configPath = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    QDir().mkpath(configPath); // 确保目录存在
+    QString configFilePath = QDir(configPath).filePath("config.ini");
+
+    // 读取配置
+    QSettings settings(configFilePath, QSettings::IniFormat);
+    QString savedLang = settings.value("Language/Current", "en_US").toString();
+    setLanguage(savedLang);
 }
 
 TranslatorManager::~TranslatorManager() {
@@ -32,6 +41,10 @@ void TranslatorManager::setLanguage(const QString& langCode) {
         QApplication::installTranslator(&m_translator);
         m_currentLang = langCode;
         emit languageSwitched();  // 触发界面更新
+
+        // 保存到配置文件
+        QSettings settings(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/config.ini", QSettings::IniFormat);
+        settings.setValue("Language/Current", langCode);
     } else {
         qWarning() << "无法加载翻译文件：" << qmPath;
     }
