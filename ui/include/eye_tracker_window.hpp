@@ -100,7 +100,7 @@ public:
 
     int get_max_fps() const;
     bool is_running() const;
-    void updateBatteryStatus(int version) const;
+    void updateBatteryStatus(int version);
     void set_config();
     void setIPText(int version, const QString& text) const;
     void start_image_download(int version) const;
@@ -108,8 +108,8 @@ public:
     void setWifiStatusLabel(int version, const QString& text) const;
 
     void setVideoImage(int version, const cv::Mat& image);
-    void updateWifiLabel(int version) const;
-    void updateSerialLabel(int version) const;
+    void updateWifiLabel(int version) ;
+    void updateSerialLabel(int version);
     cv::Mat getVideoImage(int version) const;
 
     Rect getRoiRect(int version);
@@ -117,8 +117,6 @@ public:
     void startCalibration();
     void centerCalibration();
     PaperEyeTrackerConfig generate_config() const;
-    void enableTestMode(bool enable) { test_mode_enabled = enable; }
-    bool isTestModeEnabled() const { return test_mode_enabled; }
 private slots:
     void onSendButtonClicked();
     void onRestartButtonClicked();
@@ -137,17 +135,16 @@ private slots:
     void onRightEyeValueIncrease();
     void onRightEyeValueDecrease();
 private:
+    void initUI();
+    void initLayout();
     void retranslateUI();
     void connect_callbacks();
 
-    double compensated_eye_openness[EYE_NUM] = {0.0, 0.0};
-    std::mutex compensated_data_mutex[EYE_NUM];
-    bool test_mode_enabled = false;
-    double test_time = 0.0;
     double eye_fully_open[EYE_NUM] = {30.0, 30.0};    // 默认值
     double eye_fully_closed[EYE_NUM] = {10.0, 10.0};  // 默认值
     void create_sub_thread();
     void launchETVR();
+    void setFixedWidthBasedONLongestText(QWidget* widget, const QStringList& texts);
     enum EyeSyncMode {
         NO_SYNC = 0,       // 双眼独立控制
         LEFT_CONTROLS = 1, // 左眼控制双眼
@@ -304,6 +301,60 @@ private:
     void centerEye(int eyeIndex);
     void updateEyePosition(int eyeIndex);
     void finishCalibration(int eyeIndex, QProgressBar* progressBar, QTimer* updateTimer);
+    void updatePageWidth();
+
+    QStackedWidget *stackedWidget;
+    QWidget *page;
+    QPlainTextEdit *RightEyeIPAddress;
+    QLabel *label_2;
+    QPlainTextEdit *LeftEyeIPAddress;
+    QComboBox *EnergyModelBox;
+    QPlainTextEdit *LogText;
+    QLabel *LeftEyeImage;
+    QPushButton *RestartButton;
+    QLabel *label;
+    QPlainTextEdit *PassWordInput;
+    QPlainTextEdit *SSIDInput;
+    QLabel *RightEyeImage;
+    QLabel *label_3;
+    QPushButton *FlashButton;
+    QPushButton *SendButton;
+    QScrollBar *LeftBrightnessBar;
+    QScrollBar *RightBrightnessBar;
+    QLabel *label_4;
+    QLabel *label_5;
+    QLabel *RightEyeBatteryLabel;
+    QLabel *LeftEyeBatteryLabel;
+    QLabel *LeftRotateLabel;
+    QLabel *RightRotateLabel;
+    QScrollBar *LeftRotateBar;
+    QScrollBar *RightRotateBar;
+    QWidget *page_2;
+    QLabel *LeftEyeTrackingLabel;
+    QLabel *RightEyeTrackingLabel;
+    QFrame *LeftEyePositionFrame;
+    QFrame *RightEyePositionFrame;
+    QProgressBar *LeftEyeOpennessBar;
+    QProgressBar *RightEyeOpennessBar;
+    QLabel *LeftEyeOpennessLabel;
+    QLabel *RightEyeOpennessLabel;
+    QPushButton *settingsCalibrateButton;
+    QPushButton *settingsCenterButton;
+    QPushButton *settingsEyeOpenButton;
+    QPushButton *settingsEyeCloseButton;
+    QPushButton *MainPageButton;
+    QPushButton *SettingButton;
+    QLabel *RightEyeWifiStatus;
+    QLabel *EyeWindowSerialStatus;
+    QLabel *LeftEyeWifiStatus;
+    QLabel *leftEyeVideoStreamLabel;
+    QLabel *rightEyeVideoStreamLabel;
+    QLabel *leftAdjustLabel;
+    QLabel *rightAdjustLabel;
+    QPushButton *leftIncButton;
+    QPushButton *leftDecButton;
+    QPushButton *rightIncButton;
+    QPushButton *rightDecButton;
 };
 
 

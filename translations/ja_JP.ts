@@ -564,7 +564,7 @@
         <name>PaperTrackerMainWindow</name>
         <message>
             <source>眼追界面</source>
-            <translation>アイトラッキングインターフェース</translation>
+            <translation>眼追跡ページ</translation>
         </message>
     </context>
     <context>
@@ -697,7 +697,7 @@
         <name>PaperTrackerMainWindow</name>
         <message>
             <source>面捕界面</source>
-            <translation>フェイシャルキャプチャインターフェース</translation>
+            <translation>顔追跡ページ</translation>
         </message>
     </context>
     <context>

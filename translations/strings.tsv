@@ -79,7 +79,7 @@ x3	x3	x3	x3	x3
 没有图像输入	没有图像输入	No Image Input	画像入力なし	이미지 입력 없음
 版本检查	版本检查	Version Check	バージョン確認	버전 확인
 电池电量: 未知	电池电量: 未知	Battery Level: Unknown	バッテリー残量: 不明	배터리 수준: 알 수 없음
-眼追界面	眼追界面	Eye Tracking Interface	アイトラッキングインターフェース	아이트래킹 인터페이스
+眼追界面	眼追界面	Eye Tracking Interface	眼追跡ページ	눈 추적 인터페이스
 舌头伸出	舌头伸出	Tongue Extended	舌を出す	혀 내밀기
 舌头向上	舌头向上	Tongue Up	舌を上に	혀 위로
 舌头向下	舌头向下	Tongue Down	舌を下に	혀 아래로
@@ -98,7 +98,7 @@ x3	x3	x3	x3	x3
 错误	错误	Error	エラー	오류
 面捕wifi未连接	面捕wifi未连接	Facial Capture WiFi not connected	フェイシャルキャプチャWiFi未接続	페이셜 캡처 WiFi 미연결
 面捕数据线未连接	面捕数据线未连接	Facial Capture USB cable not connected	フェイシャルキャプチャUSBケーブル未接続	페이셜 캡처 USB 케이블 미연결
-面捕界面	面捕界面	Facial Capture Interface	フェイシャルキャプチャインターフェース	페이셜 캡처 인터페이스
+面捕界面	面捕界面	Facial Capture Interface	顔追跡ページ	페이셜 캡처 인터페이스
 点击查看眼追说明书	点击查看眼追说明书	Click to view eye tracking instructions	アイトラッキングマニュアルを表示するにはクリック	아이트래킹 설명서 보기
 点击查看面捕说明书	点击查看面捕说明书	Click to view facial capture instructions	フェイシャルキャプチャマニュアルを表示するにはクリック	페이셜 캡처 설명서 보기
 test	测试	Test window	テストウィンドウ	테스트 창

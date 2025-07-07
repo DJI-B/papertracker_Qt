@@ -564,7 +564,7 @@
         <name>PaperTrackerMainWindow</name>
         <message>
             <source>眼追界面</source>
-            <translation>아이트래킹 인터페이스</translation>
+            <translation>눈 추적 인터페이스</translation>
         </message>
     </context>
     <context>
