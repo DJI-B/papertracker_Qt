@@ -1,5 +1,5 @@
 <!DOCTYPE RCC>
-<RCC version="1.0">
+<RCC version="2.0">
     <qresource prefix="/models">
         <file>model/eye_model.onnx</file>
         <file>model/face_model.onnx</file>
