@@ -1,0 +1,141 @@
+SourceKey	zh_CN	en_US	ja_JP	ko_KR
+<html><head/></head><body><p><span style=" color:#ffffff;">点击查看眼追说明书</span></p></body></html>	<html><head/></head><body><p><span style=" color:#ffffff;">点击查看眼追说明书</span></p></body></html>	Click to view eye tracking instructions	アイトラッキングのマニュアルを表示するにはクリック	아이트래킹 설명서를 보려면 클릭
+<html><head/></head><body><p><span style=" color:#ffffff;">点击查看面捕说明书</span></p></body></html>	<html><head/></head><body><p><span style=" color:#ffffff;">点击查看面捕说明书</span></p></body></html>	Click to view facial capture instructions	フェイシャルキャプチャのマニュアルを表示するにはクリック	페이셜 캡처 설명서를 보려면 클릭
+Based on Project Babble: https://babble.diy/	Based on Project Babble: https://babble.diy/	Based on Project Babble: https://babble.diy/	Project Babble: https://babble.diy/ 基準	프로젝트 바블 기반: https://babble.diy/
+IP地址：	IP地址：	IP Address:	IPアドレス:	IP 주소:
+PaperEyeTrackerWindow	PaperEyeTrackerWindow	Paper Eye Tracker Window	ペーパーアイトラッカー ウィンドウ	페이퍼아이트래커 윈도우
+PaperTrack	PaperTrack	PaperTrack	PaperTrack	페이퍼트랙
+PaperTrackerMainWindow	PaperTrackerMainWindow	Paper Tracker Main Window	ペーパートラッカー メインウィンドウ	페이퍼트래커 메인 윈도우
+VRCFT已成功启动	VRCFT已成功启动	VRCFT started successfully	VRCFTが正常に起動しました	VRCFT가 성공적으로 시작됨
+VRCFT已成功重启	VRCFT已成功重启	VRCFT restarted successfully	VRCFTが正常に再起動しました	VRCFT가 성공적으로 재시작됨
+x1	x1	x1	x1	x1
+x3	x3	x3	x3	x3
+上唇内卷	上唇内卷	Upper lip inward curl	上唇内巻き	윗입술 안쪽으로 말림
+上唇耸起	上唇耸起	Upper lip raised	上唇を持ち上げ	윗입술 들림
+下唇内卷	下唇内卷	Lower lip inward curl	下唇内巻き	아랫입술 안쪽으로 말림
+下唇耸起	下唇耸起	Lower lip raised	下唇を持ち上げ	아랫입술 들림
+下巴下移	下巴下移	Jaw moves downward	顎を下に移動	턱 아래로 이동
+下巴右移	下巴右移	Jaw moves right	顎を右に移動	턱 오른쪽으로 이동
+下巴左移	下巴左移	Jaw moves left	顎を左に移動	턱 왼쪽으로 이동
+串口日志	串口日志	Serial Log	シリアルログ	시리얼 로그
+主页面	主页面	Main Page	メインページ	메인 페이지
+亮度调整	亮度调整	Brightness Adjustment	明るさ調整	밝기 조정
+偏置值	偏置值	Bias Value	バイアス値	바이어스 값
+刷写固件	刷写固件	Flash Firmware	ファームウェア書き込み	펌웨어 플래싱
+发送	发送	Send	送信	전송
+右眼IP	右眼IP	Right Eye IP	右目のIP	오른쪽 눈 IP
+右眼WIFI未连接	右眼WIFI未连接	Right Eye WIFI not connected	右目のWIFI未接続	오른쪽 눈 WIFI 연결되지 않음
+右眼开合度	右眼开合度	Right Eye Opening Degree	右目の開閉角度	오른쪽 눈 개폐 각도
+右眼旋转角度	右眼旋转角度	Right Eye Rotation Angle	右目の回転角度	오른쪽 눈 회전 각도
+右眼电池: 未知	右眼电池: 未知	Right Eye Battery: Unknown	右目のバッテリー: 不明	오른쪽 눈 배터리: 알 수 없음
+右眼补光	右眼补光	Right Eye Fill Light	右目の補光	오른쪽 눈 필 라이트
+右眼跟踪	右眼跟踪	Right Eye Tracking	右目の追跡	오른쪽 눈 트래킹
+右脸颊	右脸颊	Right Cheek	右頬	오른쪽 뺨
+启用滤波（减少抖动）	启用滤波（减少抖动）	Enable Filtering (Reduce Jitter)	フィルタを有効化（ジッターを減少）	필터 활성화(지터 감소)
+嘴右移	嘴右移	Mouth moves right	口を右に移動	입 오른쪽으로 이동
+嘴左移	嘴左移	Mouth moves left	口を左に移動	입 왼쪽으로 이동
+嘴撅起	嘴撅起	Mouth pouts	口を突き出す	입 벌름
+嘴漏斗形	嘴漏斗形	Mouth funnel shape	口が漏斗状	입 모양이 확대됨
+嘴闭合	嘴闭合	Mouth closed	口を閉じる	입 닫음
+客户端更新检查	客户端更新检查	Client Update Check	クライアント更新確認	클라이언트 업데이트 확인
+左眼IP	左眼IP	Left Eye IP	左目のIP	왼쪽 눈 IP
+左眼WIFI未连接	左眼WIFI未连接	Left Eye WIFI not connected	左目のWIFI未接続	왼쪽 눈 WIFI 연결되지 않음
+左眼开合度	左眼开合度	Left Eye Opening Degree	左目の開閉角度	왼쪽 눈 개폐 각도
+左眼旋转角度	左眼旋转角度	Left Eye Rotation Angle	左目の回転角度	왼쪽 눈 회전 각도
+左眼电池: 未知	左眼电池: 未知	Left Eye Battery: Unknown	左目のバッテリー: 不明	왼쪽 눈 배터리: 알 수 없음
+左眼补光	左眼补光	Left Eye Fill Light	左目の補光	왼쪽 눈 필 라이트
+左眼跟踪	左眼跟踪	Left Eye Tracking	左目の追跡	왼쪽 눈 트래킹
+左脸颊	左脸颊	Left Cheek	左頬	왼쪽 뺨
+开始眼球位置校准	开始眼球位置校准	Start Eye Position Calibration	眼球位置キャリブレーションを開始	눈 위치 교정 시작
+当前客户端版本为最新版本	当前客户端版本为最新版本	Current client version is the latest	現在のクライアントバージョンは最新です	현재 클라이언트 버전이 최신입니다
+当前客户端版本已是最新版本	当前客户端版本已是最新版本	Current client version is already up-to-date	現在のクライアントバージョンは既に最新です	현재 클라이언트 버전이 이미 최신입니다
+当前无串口连接	当前无串口连接	No serial port connection currently	現在、シリアルポート接続なし	현재 시리얼 포트 연결 없음
+性能模式	性能模式	Performance Mode	パフォーマンスモード	성능 모드
+性能模式选择	性能模式选择	Mode Selection	モード選択	모드 선택
+成功	成功	Success	成功	성공
+放大倍率	放大倍率	Magnification	拡大率	확대 배율
+旋转角度调整	旋转角度调整	Rotation Angle Adjustment	回転角度調整	회전 각도 조정
+无法启动VRCFT: 	无法启动VRCFT: 	Failed to start VRCFT:	VRCFTを起動できません:	VRCFT 시작 실패:
+无法获取到当前客户端版本	无法获取到当前客户端版本	Unable to retrieve current client version	現在のクライアントバージョンを取得できません	현재 클라이언트 버전을 가져올 수 없음
+无法获取当前客户端版本信息	无法获取当前客户端版本信息	Unable to get current client version info	現在のクライアントバージョン情報を取得できません	현재 클라이언트 버전 정보를 가져올 수 없음
+无法连接到服务器，请检查网络	无法连接到服务器，请检查网络	Failed to connect to server, please check network	サーバーに接続できません。ネットワークを確認してください	서버에 연결할 수 없습니다. 네트워크 확인
+无法重启VRCFT: 	无法重启VRCFT: 	Failed to restart VRCFT:	VRCFTを再起動できません:	VRCFT 재시작 실패:
+无线模式未连接	无线模式未连接	WiFi mode not connected	WiFiモード未接続	WiFi 모드 미연결
+日志窗口：	日志窗口：	Log Window:	ログウィンドウ:	로그 창:
+普通模式	普通模式	Normal Mode	ノーマルモード	표준 모드
+有新版本可用: 	有新版本可用:	New version available:	新バージョンがあります:	새 버전 사용 가능:
+有线模式未连接	有线模式未连接	Wired mode not connected	有線モード未接続	유선 모드 미연결
+未找到VRCFT可执行文件，路径: 	未找到VRCFT可执行文件，路径: 	VRCFT executable not found at path:	パスにVRCFT実行ファイルが見つかりません:	VRCFT 실행 파일 없음 경로:
+未找到右眼配置文件信息，请将设备通过数据线连接到电脑进行首次配置	未找到右眼配置文件信息，请将设备通过数据线连接到电脑进行首次配置	Right eye configuration file not found. Please connect the device via USB cable and configure it for the first time.	右目のコンフィギュレーションファイルが見つかりません。USBケーブルで接続して初期設定を行ってください。	오른쪽 눈 구성 파일 없음. 장치를 USB 케이블로 연결하여 초기 설정 진행
+未找到左眼配置文件信息，请将设备通过数据线连接到电脑进行首次配置	未找到左眼配置文件信息，请将设备通过数据线连接到电脑进行首次配置	Left eye configuration file not found. Please connect the device via USB cable and configure it for the first time.	左目のコンフィギュレーションファイルが見つかりません。USBケーブルで接続して初期設定を行ってください。	왼쪽 눈 구성 파일 없음. 장치를 USB 케이블로 연결하여 초기 설정 진행
+未找到配置文件信息，请将面捕通过数据线连接到电脑进行首次配置	未找到配置文件信息，请将面捕通过数据线连接到电脑进行首次配置	Configuration file not found. Please connect the face tracker via USB cable and configure it for the first time.	コンフィギュレーションファイルが見つかりません。USBケーブルでフェイストラッカーを接続して初期設定を行ってください。	구성 파일 없음. 페이셜 트래커를 USB 케이블로 연결하여 초기 설정 진행
+标定眼球中心	标定眼球中心	Calibrate Eye Center	眼球中心のキャリブレーション	눈 중심 교정
+标定眼睛完全张开	标定眼睛完全张开	Calibrate Eyes Fully Opened	目を完全に開いた状態をキャリブレーション	눈 완전 개방 교정
+标定眼睛完全闭合	标定眼睛完全闭合	Calibrate Eyes Fully Closed	目を完全に閉じた状態をキャリブレーション	눈 완전 폐쇄 교정
+标定页面	标定页面	Calibration Page	キャリブレーションページ	교정 페이지
+检测到	检测到	Detected	検出しました	탐지됨
+检测到面捕设备，请打开面捕界面进行设置	检测到面捕设备，请打开面捕界面进行设置	Facial capture device detected. Please open the face capture interface to configure.	顔キャプチャデバイスを検出しました。設定を開くには顔キャプチャインターフェースを開いてください。	페이셜 캡처 장치 탐지됨. 설정을 위해 페이셜 캡처 인터페이스 열기
+模式选择	模式选择	Mode Selection	モード選択	모드 선택
+没有图像输入	没有图像输入	No Image Input	画像入力なし	이미지 입력 없음
+版本检查	版本检查	Version Check	バージョン確認	버전 확인
+电池电量: 未知	电池电量: 未知	Battery Level: Unknown	バッテリー残量: 不明	배터리 수준: 알 수 없음
+眼追界面	眼追界面	Eye Tracking Interface	眼追跡ページ	눈 추적 인터페이스
+舌头伸出	舌头伸出	Tongue Extended	舌を出す	혀 내밀기
+舌头向上	舌头向上	Tongue Up	舌を上に	혀 위로
+舌头向下	舌头向下	Tongue Down	舌を下に	혀 아래로
+舌头向右	舌头向右	Tongue Right	舌を右に	혀 오른쪽으로
+舌头向左	舌头向左	Tongue Left	舌を左に	혀 왼쪽으로
+节能模式	节能模式	Power Saving Mode	省電力モード	절전 모드
+设备，请打开眼追界面进行设置	设备，请打开眼追界面进行设置	Device. Please open the eye tracking interface to configure.	デバイス。アイトラッキングインターフェースを開いて設定してください。	장치. 아이트래킹 인터페이스 열어 설정
+设置	设置	Settings	設定	설정
+请输入WIFI名字（仅支持2.4ghz）	请输入WIFI名字（仅支持2.4ghz）	Please enter WIFI name (2.4GHz only)	WIFI名を入力してください（2.4GHzのみ）	WiFi 이름 입력(2.4GHz만 지원)
+请输入WIFI密码	请输入WIFI密码	Please enter WIFI password	WIFIパスワードを入力してください	WiFi 비밀번호 입력
+请输入有效的WIFI名字	请输入有效的WIFI名字	Please enter a valid WIFI name	有効なWIFI名を入力してください	유효한 WiFi 이름 입력
+请输入有效的密码	请输入有效的密码	Please enter a valid password	有効なパスワードを入力してください	유효한 비밀번호 입력
+输入错误	输入错误	Input Error	入力エラー	입력 오류
+重启	重启	Restart	再起動	재시작
+重启VRCFT	重启VRCFT	Restart VRCFT	VRCFTを再起動	VRCFT 재시작
+错误	错误	Error	エラー	오류
+面捕wifi未连接	面捕wifi未连接	Facial Capture WiFi not connected	フェイシャルキャプチャWiFi未接続	페이셜 캡처 WiFi 미연결
+面捕数据线未连接	面捕数据线未连接	Facial Capture USB cable not connected	フェイシャルキャプチャUSBケーブル未接続	페이셜 캡처 USB 케이블 미연결
+面捕界面	面捕界面	Facial Capture Interface	顔追跡ページ	페이셜 캡처 인터페이스
+点击查看眼追说明书	点击查看眼追说明书	Click to view eye tracking instructions	アイトラッキングマニュアルを表示するにはクリック	아이트래킹 설명서 보기
+点击查看面捕说明书	点击查看面捕说明书	Click to view facial capture instructions	フェイシャルキャプチャマニュアルを表示するにはクリック	페이셜 캡처 설명서 보기
+test	测试	Test window	テストウィンドウ	테스트 창
+&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;点击查看眼追说明书&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;	点击查看眼追说明书	Click to view eye tracking instructions	アイトラッキングマニュアルを表示するにはクリック	아이트래킹 설명서 보기
+PaperTracker v1.0	PaperTracker v1.0	PaperTracker v1.0	PaperTracker v1.0	페이퍼트래커 v1.0
+主题设置	主题设置	Theme Settings	テーマ設定	테마 설정
+关于	关于	About	情報	정보
+其他设置	其他设置	Other Settings	その他の設定	기타 설정
+基本设置	基本设置	Basic Settings	基本設定	기본 설정
+帮助	帮助	Help	ヘルプ	도움말
+语言设置	语言设置	Language Settings	言語設定	언어 설정
+面捕调整教程	面捕调整教程	Tutorial	チュートリアル	튜토리얼
+高级设置	高级设置	Advanced Settings	高度な設定	고급 설정
+主页	主页	Main Page	メインページ	메인 페이지
+PaperTracker %1	PaperTracker %1	PaperTracker %1	PaperTracker %1	페이퍼트래커 %1
+未知版本	未知版本	Unknown version	不明なバージョン	알 수 없는 버전
+进入基本设置界面	进入基本设置界面	Enter Basic Settings Interface	基本設定画面に入る	기본 설정 화면 진입
+进入高级设置界面	进入高级设置界面	Enter Advanced Settings Interface	高度な設定画面に入る	고급 설정 화면 진입
+选择界面主题	选择界面主题	Select Interface Theme	インターフェーステーマを選択	인터페이스 테마 선택
+选择语言设置	选择语言设置	Select Language Settings	言語設定を選択	언어 설정 선택
+Wifi连接失败	Wifi连接失败	WiFi connection failed	WiFi接続失敗	WiFi 연결 실패
+电池电量: %1%	电池电量: %1%	Battery Level: %1%%	バッテリー残量: %1%%	배터리 수준: %1%%
+面捕有线模式已连接	面捕有线模式已连接	Facial capture wired mode connected	フェイシャルキャプチャ有線モード接続済み	페이셜 캡처 유선 모드 연결됨
+面捕有线模式连接失败	面捕有线模式连接失败	Facial capture wired mode connect failed	フェイシャルキャプチャ有線モード接続失敗	페이셜 캡처 유선 모드 연결 실패
+右眼追	右眼追	Right Eye Tracking	右目の追跡	오른쪽 눈 트래킹
+停止显示串口数据	停止显示串口数据	Stop displaying serial data	シリアルデータ表示を停止	시리얼 데이터 표시 중지
+显示串口数据	显示串口数据	Display serial data	シリアルデータを表示	시리얼 데이터 표시
+时间步长(dt):	时间步长(dt):	Time step (dt):	時間ステップ (dt):	시간 간격(dt):
+测量噪声系数(r):	测量噪声系数(r):	Measurement noise coefficient (r):	測定ノイズ係数 (r):	측정 노이즈 계수(r):
+过程噪声系数(q):	过程噪声系数(q):	Process noise coefficient (q):	プロセスノイズ係数 (q):	프로세스 노이즈 계수(q):
+减小q值, 增大r值: 更平滑, 反应更滞后	减小q值, 增大r值: 更平滑, 反应更滞后	Decrease q value, increase r value: Smoother, more lagging response	q値を小さく、r値を大きく：滑らかで反応遅延	q값 감소, r값 증가: 부드럽고 반응 지연
+增大q值, 减小r值: 更灵敏, 抖动更明显	增大q值, 减小r值: 更灵敏, 抖动更明显	Increase q value, decrease r value: More responsive, more noticeable jitter	q値を大きく、r値を小さく：より敏感でジッターが目立つ	q값 증가, r값 감소: 더 민감하고 지터가 뚜렷함
+左眼追	左眼追	Left Eye Tracking	左目の追跡	왼쪽 눈 트래킹
+未知状态	未知状态	Unknown Status	不明なステータス	알 수 없는 상태
+检查更新	检查更新	Check for Updates	アップデート確認	업데이트 확인
+调整建议:	调整建议:	Adjustment Suggestions:	調整提案:	조정 제안:
+双眼眼皮独立控制	双眼眼皮独立控制	Both eyes control eyelids independently	両目のまぶたを個別に制御	양쪽 눈꺼풀 독립 제어
+右眼眼皮控制双眼眼皮	右眼眼皮控制双眼眼皮	Right eye controls both eyelids	右目のまぶたが両方を制御	오른쪽 눈꺼풀이 양쪽 제어
+左眼眼皮控制双眼眼皮	左眼眼皮控制双眼眼皮	Left eye controls both eyelids	左目のまぶたが両方を制御	왼쪽 눈꺼풀이 양쪽 제어
+有线模式眼追连接成功	有线模式眼追连接成功	Eye tracking wired mode connected successfully	アイトラッキング有線モード接続成功	아이트래킹 유선 모드 연결 성공

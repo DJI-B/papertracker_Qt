@@ -239,49 +239,12 @@ public:
         LeftEyeWifiStatus->setGeometry(QRect(490, 10, 161, 31));
         LeftEyeWifiStatus->setFont(font);
 
-        retranslateUi(PaperEyeTrackerWindow);
-
         stackedWidget->setCurrentIndex(1);
 
 
         QMetaObject::connectSlotsByName(PaperEyeTrackerWindow);
     } // setupUi
 
-    void retranslateUi(QWidget *PaperEyeTrackerWindow)
-    {
-        PaperEyeTrackerWindow->setWindowTitle(QCoreApplication::translate("PaperEyeTrackerWindow", "PaperEyeTrackerWindow", nullptr));
-        label_2->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\345\217\263\347\234\274IP", nullptr));
-        EnergyModelBox->setItemText(0, QCoreApplication::translate("PaperEyeTrackerWindow", "\346\231\256\351\200\232\346\250\241\345\274\217", nullptr));
-        EnergyModelBox->setItemText(1, QCoreApplication::translate("PaperEyeTrackerWindow", "\350\212\202\350\203\275\346\250\241\345\274\217", nullptr));
-        EnergyModelBox->setItemText(2, QCoreApplication::translate("PaperEyeTrackerWindow", "\346\200\247\350\203\275\346\250\241\345\274\217", nullptr));
-
-        LeftEyeImage->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "                          \346\262\241\346\234\211\345\233\276\345\203\217\350\276\223\345\205\245", nullptr));
-        RestartButton->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\351\207\215\345\220\257", nullptr));
-        label->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\345\267\246\347\234\274IP", nullptr));
-        RightEyeImage->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "                          \346\262\241\346\234\211\345\233\276\345\203\217\350\276\223\345\205\245", nullptr));
-        label_3->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\346\250\241\345\274\217\351\200\211\346\213\251", nullptr));
-        FlashButton->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\345\210\267\345\206\231\345\233\272\344\273\266", nullptr));
-        SendButton->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\345\217\221\351\200\201", nullptr));
-        label_4->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\345\267\246\347\234\274\350\241\245\345\205\211", nullptr));
-        label_5->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\345\217\263\347\234\274\350\241\245\345\205\211", nullptr));
-        RightEyeBatteryLabel->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\345\217\263\347\234\274\347\224\265\346\261\240: \346\234\252\347\237\245", nullptr));
-        LeftEyeBatteryLabel->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\345\267\246\347\234\274\347\224\265\346\261\240: \346\234\252\347\237\245", nullptr));
-        LeftRotateLabel->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\345\267\246\347\234\274\346\227\213\350\275\254\350\247\222\345\272\246", nullptr));
-        RightRotateLabel->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\345\217\263\347\234\274\346\227\213\350\275\254\350\247\222\345\272\246", nullptr));
-        LeftEyeTrackingLabel->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\345\267\246\347\234\274\350\267\237\350\270\252", nullptr));
-        RightEyeTrackingLabel->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\345\217\263\347\234\274\350\267\237\350\270\252", nullptr));
-        LeftEyeOpennessLabel->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\345\267\246\347\234\274\345\274\200\345\220\210\345\272\246", nullptr));
-        RightEyeOpennessLabel->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\345\217\263\347\234\274\345\274\200\345\220\210\345\272\246", nullptr));
-        settingsCalibrateButton->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\345\274\200\345\247\213\347\234\274\347\220\203\344\275\215\347\275\256\346\240\241\345\207\206", nullptr));
-        settingsCenterButton->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\346\240\207\345\256\232\347\234\274\347\220\203\344\270\255\345\277\203", nullptr));
-        settingsEyeOpenButton->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\346\240\207\345\256\232\347\234\274\347\235\233\345\256\214\345\205\250\345\274\240\345\274\200", nullptr));
-        settingsEyeCloseButton->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\346\240\207\345\256\232\347\234\274\347\235\233\345\256\214\345\205\250\351\227\255\345\220\210", nullptr));
-        MainPageButton->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\344\270\273\351\241\265\351\235\242", nullptr));
-        SettingButton->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\350\256\276\347\275\256", nullptr));
-        RightEyeWifiStatus->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\345\217\263\347\234\274WIFI\346\234\252\350\277\236\346\216\245", nullptr));
-        EyeWindowSerialStatus->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\345\275\223\345\211\215\346\227\240\344\270\262\345\217\243\350\277\236\346\216\245", nullptr));
-        LeftEyeWifiStatus->setText(QCoreApplication::translate("PaperEyeTrackerWindow", "\345\267\246\347\234\274WIFI\346\234\252\350\277\236\346\216\245", nullptr));
-    } // retranslateUi
 
 };
 

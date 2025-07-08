@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.30)
-project(PaperTracker)
+project(PaperTracker LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -7,46 +7,221 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MT /Zc:preprocessor")
+if (MSVC)
+    # 设置预处理器标志
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor")
+    
+    # 根据构建类型设置正确的运行时库
+    if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+        add_definitions(-DDEBUG)
+    else()
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+    endif()
+    
+    # 确保包含标准库路径
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8")
+endif()
 
-if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MTd")
-    add_definitions(-DDEBUG)
-endif ()
+# 调试资源文件路径
+message(STATUS "模型资源文件路径: ${CMAKE_CURRENT_SOURCE_DIR}/models.qrc")
+message(STATUS "模型文件路径: ${CMAKE_CURRENT_SOURCE_DIR}/model/eye_model.onnx")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/models.qrc")
+    message(STATUS "models.qrc 文件存在")
+else()
+    message(WARNING "models.qrc 文件不存在!")
+endif()
 
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/model/eye_model.onnx")
+    message(STATUS "eye_model.onnx 文件存在")
+else()
+    message(WARNING "eye_model.onnx 文件不存在!")
+endif()
 
 # set 3rd party lib path
 
-#if develop qt is on set path to the qt path else set the path to the qt path
+# Qt installation path - configurable option
+set(QT_INSTALL_PATH "D:/QtNew/6.8.2/msvc2022_64" CACHE PATH "Path to Qt installation directory")
 
-if (EXISTS "D:/QtNew/6.8.2/msvc2022_64")
-    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "D:/QtNew/6.8.2/msvc2022_64")
-else ()
-    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "E:/Qt/6.8.2/msvc2022_64")
-endif ()
+if(EXISTS "${QT_INSTALL_PATH}")
+    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${QT_INSTALL_PATH}")
+else()
+    message(WARNING "Qt installation path not found: ${QT_INSTALL_PATH}")
+endif()
 
-set(CURL_DIR ${CMAKE_SOURCE_DIR}/3rdParty/curl-install/lib/cmake/CURL)
-set(OpenCV_DIR ${CMAKE_SOURCE_DIR}/3rdParty/opencv-mvsc/opencv/build)
+## download dependencies
+include(FetchContent)
+
+# download opencv
+set(OPENCV_INSTALL_PATH ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/opencv)
+set(OPENCV_CMAKE_FILE ${OPENCV_INSTALL_PATH}/build/x64/vc16/lib/OpenCVConfig.cmake)
+set(OPENCV_VERSION 4.11.0)
+if(NOT EXISTS ${OPENCV_CMAKE_FILE})
+    message(STATUS "OpenCV not found, downloading...")
+    
+    FetchContent_Declare(
+        prebuilt_opencv
+        URL https://github.com/opencv/opencv/releases/download/${OPENCV_VERSION}/opencv-${OPENCV_VERSION}-windows.exe
+        SOURCE_DIR ${OPENCV_INSTALL_PATH}
+    )
+    
+    FetchContent_MakeAvailable(prebuilt_opencv)
+else()
+    message(STATUS "OpenCV already exists at: ${OPENCV_INSTALL_PATH}")
+endif()
+set(OpenCV_DIR ${OPENCV_INSTALL_PATH}/build/x64/vc16/lib)
+find_package(OpenCV REQUIRED)
+
+# download onnxruntime
+set(ONNXRUNTIME_VERSION 1.22.0)
+set(ONNXRUNTIME_INSTALL_PATH ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/onnxruntime)
+set(ONNXRUNTIME_HEADER_FILE ${ONNXRUNTIME_INSTALL_PATH}/include/onnxruntime_cxx_api.h)
 find_package(CUDA)
 if(CUDA_FOUND)
     message("CUDA found")
     add_definitions(-DUSE_CUDA)
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -gencode arch=compute_75,code=sm_75")
-    set(ONNXRUNTIME_ROOT ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime-win-x64-1.20.1)
+    if(NOT EXISTS ${ONNXRUNTIME_HEADER_FILE})
+        message(STATUS "ONNXRUNTIME not found, downloading...")
+        FetchContent_Declare(
+            onnxruntime
+            URL https://github.com/microsoft/onnxruntime/releases/download/v${ONNXRUNTIME_VERSION}/onnxruntime-win-x64-gpu-${ONNXRUNTIME_VERSION}.zip
+            SOURCE_DIR ${ONNXRUNTIME_INSTALL_PATH}
+        )
+        FetchContent_MakeAvailable(onnxruntime)
+        message(STATUS "ONNXRUNTIME download completed")
+    else()
+        message(STATUS "ONNXRUNTIME already exists at: ${ONNXRUNTIME_INSTALL_PATH}")
+    endif()
 else()
     message("CUDA no found")
-    set(ONNXRUNTIME_ROOT ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime-win-x64-gpu-1.20.1)
+    if(NOT EXISTS ${ONNXRUNTIME_HEADER_FILE})
+        message(STATUS "ONNXRUNTIME not found, downloading...")
+        FetchContent_Declare(
+            onnxruntime
+            URL https://github.com/microsoft/onnxruntime/releases/download/v${ONNXRUNTIME_VERSION}/onnxruntime-win-x64-${ONNXRUNTIME_VERSION}.zip
+            SOURCE_DIR ${ONNXRUNTIME_INSTALL_PATH}
+        )
+        FetchContent_MakeAvailable(onnxruntime)
+        message(STATUS "ONNXRUNTIME download completed")
+    else()
+        message(STATUS "ONNXRUNTIME already exists at: ${ONNXRUNTIME_INSTALL_PATH}")
+    endif()
 endif ()
-find_package(OpenCV CONFIG REQUIRED)
-find_package(CURL CONFIG REQUIRED)
-find_package(Qt6 COMPONENTS Core Gui Widgets Network WebSockets SerialPort REQUIRED)
+set(ONNXRUNTIME_ROOT ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime)
 
-IF(WIN32)
-    set(IpSystemTypePath ip/win32)
-    set(LIBS ${LIBS} Ws2_32 winmm)
-ELSE(WIN32)
-    set(IpSystemTypePath ip/posix)
-ENDIF(WIN32)
+# download oscpack
+include(ExternalProject)
+set(OSCPACK_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/oscpack)
+set(SOURCE_DIR ${OSCPACK_PREFIX}/src)
+set(BUILD_DIR ${OSCPACK_PREFIX}/build)
+
+function(build_oscpack_both_configs)
+    if(NOT EXISTS ${SOURCE_DIR})
+        message(STATUS "Downloading oscpack...")
+        execute_process(
+            COMMAND git clone --depth 1 https://github.com/RossBencina/oscpack.git ${SOURCE_DIR}
+            RESULT_VARIABLE result
+        )
+        if(NOT result EQUAL 0)
+            message(FATAL_ERROR "Failed to download oscpack")
+        endif()
+    endif()
+    
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(target_lib "${BUILD_DIR}/Debug/oscpack.lib")
+        set(build_config "Debug")
+    else()
+        set(target_lib "${BUILD_DIR}/Release/oscpack.lib")
+        set(build_config "Release")
+    endif()
+    
+    if(NOT EXISTS ${target_lib})
+        message(STATUS "Building oscpack in ${build_config} mode...")
+        
+        file(MAKE_DIRECTORY ${BUILD_DIR})
+        
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -S ${SOURCE_DIR} -B ${BUILD_DIR} 
+                -DCMAKE_BUILD_TYPE=${build_config}
+                -DOSC_BUILD_TESTS=OFF
+                -DOSC_BUILD_EXAMPLES=OFF
+            RESULT_VARIABLE result
+        )
+        if(NOT result EQUAL 0)
+            message(FATAL_ERROR "Failed to configure oscpack")
+        endif()
+        
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} --build ${BUILD_DIR} --config Debug
+            RESULT_VARIABLE result_debug
+        )
+        
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} --build ${BUILD_DIR} --config Release
+            RESULT_VARIABLE result_release
+        )
+        
+        if(NOT result_debug EQUAL 0 AND NOT result_release EQUAL 0)
+            message(FATAL_ERROR "Failed to build oscpack")
+        endif()
+        
+        message(STATUS "oscpack built successfully")
+    endif()
+endfunction()
+
+build_oscpack_both_configs()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(OSCPACK_LIBRARY "${BUILD_DIR}/Debug/oscpack.lib")
+else()
+    set(OSCPACK_LIBRARY "${BUILD_DIR}/Release/oscpack.lib")
+endif()
+
+if(NOT EXISTS ${OSCPACK_LIBRARY})
+    message(FATAL_ERROR "oscpack library not found: ${OSCPACK_LIBRARY}")
+endif()
+
+add_library(oscpack::oscpack STATIC IMPORTED)
+set_target_properties(oscpack::oscpack PROPERTIES
+    IMPORTED_LOCATION ${OSCPACK_LIBRARY}
+    INTERFACE_INCLUDE_DIRECTORIES ${SOURCE_DIR}
+)
+if(WIN32)
+    target_link_libraries(oscpack::oscpack INTERFACE ws2_32 winmm)
+endif()
+
+message(STATUS "Using oscpack library: ${OSCPACK_LIBRARY}")
+
+# download esptools
+set(ESPTOOL_INSTALL_PATH ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/esptools)
+
+if(NOT EXISTS ${ESPTOOL_INSTALL_PATH}/esptool.exe)
+    message(STATUS "Downloading esptool...")
+
+    FetchContent_Declare(
+        esptool
+        URL https://github.com/espressif/esptool/releases/download/v5.0.0/esptool-v5.0.0-windows-amd64.zip
+        SOURCE_DIR ${ESPTOOL_INSTALL_PATH}
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    )
+    
+    FetchContent_MakeAvailable(esptool)
+    message(STATUS "esptool downloaded and extracted to: ${ESPTOOL_INSTALL_PATH}")
+else()
+    message(STATUS "esptool already exists at: ${ESPTOOL_INSTALL_PATH}")
+endif()
+
+set(ESPTOOL_EXECUTABLE ${ESPTOOL_INSTALL_PATH}/esptool.exe)
+
+if(EXISTS ${ESPTOOL_EXECUTABLE})
+    message(STATUS "esptool executable: ${ESPTOOL_EXECUTABLE}")
+else()
+    message(WARNING "esptool executable not found at: ${ESPTOOL_EXECUTABLE}")
+endif()
+
+
+find_package(Qt6 COMPONENTS Core Gui Widgets Network WebSockets SerialPort REQUIRED)
 
 if(MSVC)
     # Force to always compile with W4
@@ -69,30 +244,12 @@ add_library(
 
 target_link_libraries(
         utilities PUBLIC
-        Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Network Qt6::WebSockets Qt6::SerialPort CURL::libcurl
+        Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Network Qt6::WebSockets Qt6::SerialPort
 )
 
 target_include_directories(
         utilities PUBLIC
         utilities/include
-)
-
-
-############### osc pack ################
-add_library(oscpack
-        3rdParty/oscpack/ip/IpEndpointName.cpp
-        3rdParty/oscpack/${IpSystemTypePath}/NetworkingUtils.cpp
-        3rdParty/oscpack/${IpSystemTypePath}/UdpSocket.cpp
-        3rdParty/oscpack/osc/OscTypes.cpp
-        3rdParty/oscpack/osc/OscReceivedElements.cpp
-        3rdParty/oscpack/osc/OscPrintReceivedElements.cpp
-        3rdParty/oscpack/osc/OscOutboundPacketStream.cpp
-)
-
-target_include_directories(
-        oscpack
-        PUBLIC
-        ${CMAKE_SOURCE_DIR}/3rdParty/oscpack
 )
 
 ############### algorithm ################
@@ -120,6 +277,14 @@ target_link_libraries(
         utilities
 )
 
+# Add CUDA support if available
+if(USE_CUDA AND CUDAToolkit_FOUND)
+    target_link_libraries(algorithm PUBLIC CUDA::cudart)
+    # 确保链接CUDA提供者库
+    target_link_libraries(algorithm PUBLIC onnxruntime_providers_cuda)
+    target_link_libraries(algorithm PUBLIC onnxruntime_providers_shared)
+endif()
+
 ############### transfer ################
 add_library(
         transfer
@@ -136,7 +301,7 @@ target_include_directories(
         transfer/include
         ${OpenCV_INCLUDE_DIRS}
         ${ONNXRUNTIME_ROOT}/include
-        ${CMAKE_SOURCE_DIR}/3rdParty/oscpack
+        ${CMAKE_SOURCE_DIR}/3rdParty/oscpack/src
 )
 
 target_link_libraries(
@@ -145,12 +310,17 @@ target_link_libraries(
         Qt6::Core Qt6::WebSockets  Qt6::Network Qt6::SerialPort
         ${OpenCV_LIBS}
         onnxruntime
-        oscpack
-        CURL::libcurl
+        oscpack::oscpack
         utilities
         Setupapi
         User32
 )
+
+# Add CUDA support for transfer if available
+if(USE_CUDA AND CUDAToolkit_FOUND)
+    target_link_libraries(transfer PUBLIC onnxruntime_providers_cuda)
+    target_link_libraries(transfer PUBLIC onnxruntime_providers_shared)
+endif()
 
 ############### ui ################
 add_library(
@@ -162,6 +332,8 @@ add_library(
         ui/main_window.ui
         ui/eye_tracker_window.cpp
         ui/eye_tracker_window.ui
+        ui/translator_manager.cpp
+        ui/include/translator_manager.h
 )
 
 target_include_directories(
@@ -170,7 +342,7 @@ target_include_directories(
         ui/include
         ${OpenCV_INCLUDE_DIRS}
         ${ONNXRUNTIME_ROOT}/include
-        ${CMAKE_SOURCE_DIR}/3rdParty/oscpack
+        ${CMAKE_SOURCE_DIR}/3rdParty/oscpack/src
 )
 
 target_link_libraries(
@@ -179,12 +351,17 @@ target_link_libraries(
         Qt6::Core Qt6::Gui Qt6::Widgets Qt6::SerialPort
         ${OpenCV_LIBS}
         onnxruntime
-        oscpack
+        oscpack::oscpack
         transfer
         algorithm
-        CURL::libcurl
         utilities
 )
+
+# Add CUDA support for ui if available
+if(USE_CUDA AND CUDAToolkit_FOUND)
+    target_link_libraries(ui PUBLIC onnxruntime_providers_cuda)
+    target_link_libraries(ui PUBLIC onnxruntime_providers_shared)
+endif()
 
 ############### executable ################
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
@@ -197,7 +374,7 @@ target_include_directories(
         PaperTracker PUBLIC
         ${OpenCV_INCLUDE_DIRS}
         ${ONNXRUNTIME_ROOT}/include
-        ${CMAKE_SOURCE_DIR}/3rdParty/oscpack
+        ${CMAKE_SOURCE_DIR}/3rdParty/oscpack/src
 )
 
 target_link_directories(
@@ -213,9 +390,8 @@ target_link_libraries(PaperTracker PRIVATE
         Qt6::WebSockets
         Qt6::SerialPort
         onnxruntime
-        oscpack
+        oscpack::oscpack
         ${LIBS}
-        CURL::libcurl
         ${OpenCV_LIBS}
         #add windows library
         Setupapi
@@ -226,34 +402,70 @@ target_link_libraries(PaperTracker PRIVATE
         transfer
 )
 
+# Add CUDA support for main executable if available
+if(USE_CUDA AND CUDAToolkit_FOUND)
+    target_link_libraries(PaperTracker PRIVATE onnxruntime_providers_cuda)
+    target_link_libraries(PaperTracker PRIVATE onnxruntime_providers_shared)
+    target_link_libraries(PaperTracker PRIVATE CUDA::cudart)
+    
+    # Copy cuDNN DLLs to the build directory
+    set(CUDNN_ROOT "C:/Program Files/NVIDIA/CUDNN/v9.10")
+    # 根据CUDA版本选择合适的cuDNN二进制文件
+    if(CUDAToolkit_VERSION_MAJOR EQUAL 12)
+        set(CUDNN_BIN_DIR "${CUDNN_ROOT}/bin/12.9")
+    else()
+        set(CUDNN_BIN_DIR "${CUDNN_ROOT}/bin/11.8")
+    endif()
+    
+    message(STATUS "Using cuDNN binaries from: ${CUDNN_BIN_DIR}")
+    
+    # 复制所有必需的cuDNN DLL文件
+    file(GLOB CUDNN_DLLS "${CUDNN_BIN_DIR}/*.dll")
+    foreach(CUDNN_DLL ${CUDNN_DLLS})
+        get_filename_component(DLL_NAME ${CUDNN_DLL} NAME)
+        add_custom_command(TARGET PaperTracker POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CUDNN_DLL}"
+            "$<TARGET_FILE_DIR:PaperTracker>/${DLL_NAME}"
+            COMMENT "Copying ${DLL_NAME} to build directory")
+    endforeach()
+endif()
+
 # install dir model to the same dir as the executable
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/model/  DESTINATION ${CMAKE_BINARY_DIR}/model)
-
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/opencv-mvsc/opencv/build/x64/vc16/bin/  DESTINATION ${CMAKE_BINARY_DIR})
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/curl-install/bin/  DESTINATION ${CMAKE_BINARY_DIR})
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/translations/  DESTINATION ${CMAKE_BINARY_DIR}/translations)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/opencv/build/x64/vc16/bin/  DESTINATION ${CMAKE_BINARY_DIR})
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/esptools/  DESTINATION ${CMAKE_BINARY_DIR})
 #install(DIRECTORY "D:/QtMVSC/6.8.2/msvc2022_64/bin/"  DESTINATION ${CMAKE_BINARY_DIR})
-if (CUDA_FOUND)
-    install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime-win-x64-gpu-1.20.1/lib/  DESTINATION ${CMAKE_BINARY_DIR})
-else ()
-    install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime-win-x64-1.20.1/lib/  DESTINATION ${CMAKE_BINARY_DIR})
+if (USE_CUDA AND CUDAToolkit_FOUND)
+    
+    # Install cuDNN DLLs
+    set(CUDNN_ROOT "C:/Program Files/NVIDIA/CUDNN/v9.10")
+    if(CUDAToolkit_VERSION_MAJOR EQUAL 12)
+        set(CUDNN_BIN_DIR "${CUDNN_ROOT}/bin/12.9")
+    else()
+        set(CUDNN_BIN_DIR "${CUDNN_ROOT}/bin/11.8")
+    endif()
+    install(DIRECTORY ${CUDNN_BIN_DIR}/ DESTINATION ${CMAKE_BINARY_DIR} FILES_MATCHING PATTERN "*.dll")
 endif ()
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime/lib/  DESTINATION ${CMAKE_BINARY_DIR})
 # install resources
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})
 
-if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+if (WIN32)
     set(DEBUG_SUFFIX)
     if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
         set(DEBUG_SUFFIX "d")
     endif()
-    set(QT_INSTALL_PATH "${CMAKE_PREFIX_PATH}")
-    if(NOT EXISTS "${QT_INSTALL_PATH}/bin")
-        set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
-        if(NOT EXISTS "${QT_INSTALL_PATH}/bin")
-            set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
-        endif()
-    endif()
+    
+    # Debug information
+    message(STATUS "Qt DLL copy: QT_INSTALL_PATH = ${QT_INSTALL_PATH}")
+    message(STATUS "Qt DLL copy: DEBUG_SUFFIX = ${DEBUG_SUFFIX}")
+    message(STATUS "Qt DLL copy: Target file dir = $<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    
+    # Copy Qt platform plugin
     if(EXISTS "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
+        message(STATUS "Copying Qt platform plugin from: ${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E make_directory
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
@@ -261,11 +473,20 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 COMMAND ${CMAKE_COMMAND} -E copy
                 "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
+    else()
+        message(WARNING "Qt platform plugin not found: ${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
     endif()
-    foreach(QT_LIB Core Gui Widgets Network Websockets SerialPort)
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    
+    # Copy Qt core libraries
+    foreach(QT_LIB Core Gui Widgets Network WebSockets SerialPort)
+        if(EXISTS "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll")
+            message(STATUS "Copying Qt library: Qt6${QT_LIB}${DEBUG_SUFFIX}.dll")
+            add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy
+                    "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"
+                    "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+        else()
+            message(WARNING "Qt library not found: ${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll")
+        endif()
     endforeach(QT_LIB)
 endif()

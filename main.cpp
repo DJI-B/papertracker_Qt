@@ -3,19 +3,18 @@
 #include <QFile>
 #include <QMessageBox>
 #include <QProgressDialog>
-#include <curl/curl.h>
 #include <face_inference.hpp>
-#include <main_window.hpp>
+#include <main_window.h>
 #include <QApplication>
-#include <QThread>
 #include <updater.hpp>
-
+#include <QDir>
+#include <QDebug>
+#include "translator_manager.h"
 
 int main(int argc, char *argv[]) {
     system("chcp 65001");
     // Create ui application
     QApplication app(argc, argv);
-    curl_global_init(CURL_GLOBAL_ALL);
     QFile qssFile("./resources/material.qss"); // 使用资源路径
     QIcon icon("./resources/window_icon.png");
     if (qssFile.open(QFile::ReadOnly)) {
@@ -28,6 +27,8 @@ int main(int argc, char *argv[]) {
         box.setText(QObject::tr("无法打开 QSS 文件"));
         box.exec();
     }
+
+    TranslatorManager::instance();  // 触发单例初始化
 
     PaperTrackerMainWindow window;
     window.setWindowIcon(icon);  // 设置窗口图标
