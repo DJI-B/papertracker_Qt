@@ -4,9 +4,11 @@
 
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![Status: Beta](https://img.shields.io/badge/Status-Beta-orange.svg)]()
-[![Qt6](https://img.shields.io/badge/Qt-6.8-green.svg)](https://www.qt.io/)
+[![Qt6](https://img.shields.io/badge/Qt-6.8.2-green.svg)](https://www.qt.io/)
 [![C++20](https://img.shields.io/badge/C++-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)]()
+[![OpenCV](https://img.shields.io/badge/OpenCV-4.11.0-blue.svg)](https://opencv.org/)
+[![ONNX Runtime](https://img.shields.io/badge/ONNX%20Runtime-1.22.0-orange.svg)](https://onnxruntime.ai/)
 
 </div>
 
@@ -14,56 +16,209 @@
 
 ## 项目简介
 
-PaperTracker 是一款高性能的面部表情和眼部追踪应用程序，专为VR和实时应用设计。使用先进的深度学习算法和优化的C++实现，提供低延迟、高精度的面部表情识别、眼部追踪与OSC数据传输功能。
+PaperTracker 是一款基于C++20和Qt6开发的高性能面部表情和眼部追踪应用程序，专为VR和实时应用设计。项目采用现代化的CMake构建系统，集成了先进的深度学习算法，提供低延迟、高精度的面部表情识别、眼部追踪与OSC数据传输功能。
 
 ### 核心特性
 
 - **🎯 双重追踪**：集成面部表情和眼部追踪，提供完整的面部捕捉解决方案
-- **⚡ 高性能处理**：C++优化实现，显著降低CPU占用，提供实时响应
-- **🔌 多设备支持**：兼容ESP32摄像头和本地摄像头设备
+- **⚡ 高性能处理**：C++20优化实现，支持CUDA加速，显著降低延迟
+- **🔌 多设备支持**：兼容ESP32摄像头、USB摄像头和ETVR眼追设备
 - **📡 标准化输出**：通过OSC协议传输blendshape数据，兼容VRChat、Resonite等平台
-- **🛠️ 开发者友好**：完整的CMake构建系统，支持MSVC编译器
+- **🛠️ 开发者友好**：完整的CMake构建系统，自动依赖管理，支持MSVC编译器
+- **🌐 国际化支持**：内置多语言支持和翻译管理系统
 
-## 配网指南
+## 系统架构
 
-详细配网步骤请参考：[ESP32设备配网指南](https://fcnk6r4c64fa.feishu.cn/wiki/B4pNwz2avi4kNqkVNw9cjRRXnth?from=from_copylink)
+### 模块化设计
+项目采用模块化架构，包含以下核心组件：
 
-## 主要功能
+```
+PaperTracker/
+├── utilities/          # 通用工具库（日志、更新器等）
+├── algorithm/          # AI推理算法库（面部/眼部识别）
+├── transfer/          # 数据传输库（串口、网络、OSC）
+├── ui/                # 用户界面库（Qt6界面组件）
+├── model/             # AI模型文件
+├── translations/      # 国际化翻译文件
+├── resources/         # 应用资源文件
+└── 3rdParty/         # 第三方依赖库（自动管理）
+```
 
-### 追踪功能
-- 👁️ **眼部追踪**：基于ETVR技术，支持眨眼、眼球转动、瞳孔追踪等精细动作
-- 👄 **面部表情追踪**：基于Project Babble技术，识别说话、微笑、惊讶等表情动作
-- 🎭 **表情融合**：输出标准blendshape数据，支持复合表情和眼部动作
-
-### 硬件接口
-- 📷 **ESP32摄像头**：无线连接，支持固件更新和WiFi配置
-- 💻 **本地摄像头**：支持USB摄像头和内置摄像头
-- 🔧 **固件管理**：集成ESP32固件烧录和更新工具
-- 👀 **眼追设备**：支持ETVR兼容的眼部追踪硬件
-
-### 数据输出
-- 📊 **OSC协议**：实时传输blendshape和眼追数据
-- 📈 **性能监控**：实时显示帧率、延迟等性能指标
-- 📝 **日志系统**：详细的运行状态和错误信息记录
+### 技术栈
+- **前端框架**：Qt6.8.2 (Core, Gui, Widgets, Network, WebSockets, SerialPort)
+- **计算机视觉**：OpenCV 4.11.0
+- **AI推理引擎**：ONNX Runtime 1.22.0 (支持CPU和CUDA GPU加速)
+- **网络通信**：OSCPack、WebSockets、HTTP服务器
+- **构建系统**：CMake 3.30+ with MSVC 2022
+- **硬件接口**：ESP32固件管理、串口通信
 
 ## 系统要求
 
 ### 硬件要求
 - **操作系统**：Windows 10/11 (x64)
 - **处理器**：支持AVX2指令集的现代CPU
-- **内存**：至少4GB RAM（推荐8GB）
+- **内存**：至少4GB RAM（推荐8GB以上）
+- **显卡**：可选NVIDIA GPU（支持CUDA 11.x/12.x加速）
 - **摄像头设备**：
-  - **面部追踪**：ESP32-S3设备 + OV2640摄像头（需烧录[face_tracker固件](https://github.com/paper-tei/face_tracker)）或USB/内置摄像头
+  - **面部追踪**：ESP32-S3设备 + OV2640摄像头或USB摄像头
   - **眼部追踪**：ETVR兼容的眼追设备（可选）
 
 ### 软件依赖
 - Visual C++ Redistributable 2022
-- .NET Framework 4.8（用于固件更新工具）
+- .NET Framework 4.8（固件更新工具）
+- Windows SDK（开发环境）
+
+## 开发环境配置
+
+### 必需工具
+```bash
+# Windows开发工具链
+- Visual Studio 2022 Community/Professional (包含MSVC v143工具集)
+- CMake 3.30或更高版本
+- Qt 6.8.2 MSVC版本
+- Git (用于拉取第三方依赖)
+```
+
+### Qt6配置
+```cmake
+# 项目支持的Qt6模块
+find_package(Qt6 COMPONENTS 
+    Core Gui Widgets           # 基础UI组件
+    Network WebSockets         # 网络通信
+    SerialPort                 # 串口通信
+    REQUIRED
+)
+```
+
+### CUDA支持（可选）
+如果系统安装了CUDA，项目将自动启用GPU加速：
+```cmake
+# CUDA支持配置
+find_package(CUDA)
+if(CUDA_FOUND)
+    add_definitions(-DUSE_CUDA)
+    # 自动配置cuDNN库和运行时依赖
+endif()
+```
+
+## 构建步骤
+
+### 1. 环境准备
+```bash
+# 确保已安装必需工具
+- Visual Studio 2022 with C++ workload
+- CMake 3.30+
+- Qt 6.8.2 (MSVC 2022 64-bit)
+```
+
+### 2. 克隆项目
+```bash
+git clone https://github.com/your-org/PaperTracker.git
+cd PaperTracker
+```
+
+### 3. 配置CMake
+```bash
+# 创建构建目录
+mkdir build
+cd build
+
+# 配置项目（Debug模式）
+cmake .. -G "Visual Studio 17 2022" -A x64 ^
+  -DCMAKE_BUILD_TYPE=Debug ^
+  -DQT_INSTALL_PATH="D:/QtNew/6.8.2/msvc2022_64"
+
+# 或配置Release模式
+cmake .. -G "Visual Studio 17 2022" -A x64 ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DQT_INSTALL_PATH="D:/QtNew/6.8.2/msvc2022_64"
+```
+
+### 4. 构建项目
+```bash
+# 构建Debug版本
+cmake --build . --config Debug
+
+# 构建Release版本
+cmake --build . --config Release
+```
+
+### 5. 安装依赖文件
+```bash
+# 复制运行时依赖到构建目录
+cmake --install .
+```
+
+## 依赖管理
+
+### 自动依赖下载
+项目使用CMake的FetchContent功能自动管理第三方依赖：
+
+```cmake
+# OpenCV 4.11.0 - 计算机视觉库
+FetchContent_Declare(prebuilt_opencv 
+    URL https://github.com/opencv/opencv/releases/download/4.11.0/opencv-4.11.0-windows.exe)
+
+# ONNX Runtime 1.22.0 - AI推理引擎
+FetchContent_Declare(onnxruntime 
+    URL https://github.com/microsoft/onnxruntime/releases/download/v1.22.0/onnxruntime-win-x64-1.22.0.zip)
+
+# OSCPack - OSC协议库
+ExternalProject_Add(oscpack 
+    GIT_REPOSITORY https://github.com/RossBencina/oscpack.git)
+
+# ESPTool - ESP32固件烧录工具
+FetchContent_Declare(esptool 
+    URL https://github.com/espressif/esptool/releases/download/v5.0.0/esptool-v5.0.0-windows-amd64.zip)
+```
+
+### 目录结构
+```
+build/
+├── 3rdParty/          # 自动下载的第三方库
+│   ├── opencv/        # OpenCV 4.11.0
+│   ├── onnxruntime/   # ONNX Runtime 1.22.0
+│   ├── oscpack/       # OSCPack库
+│   └── esptools/      # ESP32工具
+├── Debug/             # Debug构建输出
+├── Release/           # Release构建输出
+└── model/             # AI模型文件
+```
+
+## 配置说明
+
+### CMake配置选项
+```cmake
+# 可配置的CMake选项
+set(QT_INSTALL_PATH "D:/QtNew/6.8.2/msvc2022_64" CACHE PATH "Qt安装路径")
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "构建类型：Debug或Release")
+set(CMAKE_CXX_STANDARD 20)                         # C++20标准
+set(CMAKE_AUTOMOC ON)                              # Qt MOC自动处理
+set(CMAKE_AUTORCC ON)                              # Qt资源文件自动处理
+set(CMAKE_AUTOUIC ON)                              # Qt UI文件自动处理
+```
+
+### MSVC编译器优化
+```cmake
+if (MSVC)
+    # 预处理器优化
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor")
+    # UTF-8编码支持
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8")
+    # 警告级别设置
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+    # 运行时库配置
+    if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+    else()
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+    endif()
+endif()
+```
 
 ## 快速开始
 
-### 安装步骤
-
+### 安装预编译版本
 1. **下载应用程序**
    ```
    从 [Releases](../../releases) 页面下载最新版本
@@ -94,7 +249,7 @@ PaperTracker 是一款高性能的面部表情和眼部追踪应用程序，专�
 3. 执行眼部校准流程
 4. 开始眼部追踪
 
-### 与VR应用集成
+### VR应用集成
 
 #### VRChat配置
 ```
@@ -110,188 +265,51 @@ IP地址：127.0.0.1
 数据格式：VRC兼容blendshape
 ```
 
-## 开发与构建
+## 故障排除
 
-### 开发环境配置
+### 常见构建问题
 
-#### 必需工具
-```bash
-# Windows构建工具链
-- Visual Studio 2022 Community/Professional
-- CMake 3.30+
-- Qt 6.8.2 MSVC版本
-```
-
-#### 第三方依赖
-```bash
-# 自动管理的依赖
-- OpenCV 4.x
-- ONNX Runtime 1.20.1
-- libcurl
-- OSCPack
-```
-
-### 构建步骤
-
-```bash
-# 1. 克隆项目
-git clone https://github.com/yourusername/PaperTracker.git
-cd PaperTracker
-
-# 2. 配置CMake
-mkdir build && cd build
-cmake .. -G "Visual Studio 17 2022" -A x64
-
-# 3. 构建项目
-cmake --build . --config Release
-
-# 4. 安装依赖文件
-cmake --install .
-```
-
-### CMakeLists.txt配置
-
-项目使用模块化的CMake配置，主要包含以下组件：
-
+#### Qt6路径配置
 ```cmake
-# 核心组件
-- utilities: 日志、更新等工具库
-- algorithm: 推理算法库  
-- transfer: 数据传输库
-- ui: 用户界面库
-- oscpack: OSC协议库
+# 如果CMake找不到Qt6，请设置正确的Qt安装路径
+set(QT_INSTALL_PATH "你的Qt安装路径" CACHE PATH "Qt安装目录路径")
 ```
 
-### Qt6模块依赖
+#### OpenCV下载失败
+```bash
+# 手动下载OpenCV并放置到指定目录
+mkdir 3rdParty/opencv
+# 下载并解压OpenCV到该目录
+```
 
+#### ONNX Runtime配置问题
 ```cmake
-find_package(Qt6 COMPONENTS 
-    Core Gui Widgets 
-    Network WebSockets SerialPort 
-    REQUIRED
-)
+# 检查ONNX Runtime路径配置
+set(ONNXRUNTIME_ROOT ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime)
 ```
 
-## 许可证信息
+### 运行时问题
 
-### 主项目许可
-
-本项目采用 **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License** (CC BY-NC-SA 4.0) 进行许可。
-
-#### 许可特点
-
-**✅ 您可以**
-- **共享**：在任何媒介以任何形式复制、发布和分发本作品
-- **演绎**：修改、变换或以本作品为基础进行创作
-- **个人使用**：用于个人学习、研究和非商业目的
-
-**📋 您必须遵守的条件**
-- **署名**：必须给出适当的署名，提供指向本许可协议的链接，同时标明是否对原始作品作了修改
-- **非商业性使用**：不得将本作品用于商业目的
-- **相同方式共享**：如果您修改、变换或以本作品为基础进行创作，您必须基于与原始作品相同的许可协议分发您贡献的作品
-
-**❌ 限制**
-- **禁止商业使用**：不得用于商业目的，包括但不限于：
-  - 销售本软件或基于本软件的产品
-  - 集成到商业硬件产品中
-  - 提供基于本软件的付费服务
-  - 在商业环境中使用（除非用于研究目的）
-
-### 第三方组件许可
-
-#### Project Babble 2.0.7 组件
-```
-来源：Project Babble v2.0.7
-许可证：Babble Software Distribution License 1.0
-使用范围：面部表情识别模型
-使用限制：非商业使用（与本项目许可证一致）
-项目地址：https://github.com/Project-Babble/ProjectBabble
+#### DLL缺失错误
+项目会自动复制所需的DLL文件到构建目录：
+```cmake
+# Qt6 DLL自动复制
+# OpenCV DLL自动复制  
+# ONNX Runtime DLL自动复制
+# CUDA DLL自动复制（如果启用）
 ```
 
-#### EyeTrackVR (ETVR) 组件
+#### 资源文件缺失
+```cmake
+# 资源文件自动安装
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/model/ DESTINATION ${CMAKE_BINARY_DIR}/model)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/translations/ DESTINATION ${CMAKE_BINARY_DIR}/translations)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})
 ```
-来源：EyeTrackVR 早期开源版本
-许可证：MIT License
-使用范围：眼部追踪算法和相关代码
-使用时间：基于许可证更新前的开源版本
-项目地址：https://github.com/EyeTrackVR
-```
-
-#### 其他依赖库
-```
-- OpenCV：BSD 3-Clause License
-- ONNX Runtime：MIT License  
-- Qt6：GPL/LGPL双重许可
-- libcurl：MIT License
-- OSCPack：自定义开源许可
-```
-
-完整的第三方组件信息请参考 [THIRD-PARTY.txt](THIRD-PARTY.txt)。
-
-## 商业使用说明
-
-### 非商业许可限制
-
-本项目采用 CC BY-NC-SA 4.0 许可证，**严格禁止任何形式的商业使用**，包括但不限于：
-
-- ❌ **软件销售**：不得销售本软件或包含本软件的产品
-- ❌ **硬件集成**：不得将本软件集成到商业硬件产品中
-- ❌ **商业服务**：不得基于本软件提供付费服务
-- ❌ **企业使用**：不得在商业环境中使用（研究用途除外）
-
-### 适用的使用场景
-
-**✅ 允许的使用**
-- 个人学习和娱乐
-- 学术研究和教育
-- 非营利组织的项目
-- 开源项目的开发
-- VR爱好者的个人项目
-
-### 商业授权
-
-如果您需要将本项目用于商业目的，请通过以下方式联系我们获得特殊商业许可：
-- GitHub Issues：说明您的商业使用需求
-- 项目主页：查看联系方式
-
-## 贡献指南
-
-### 参与开发
-
-我们欢迎各种形式的非商业贡献：
-
-1. **问题反馈**：通过 [GitHub Issues](../../issues) 报告bug或建议新功能
-2. **代码贡献**：提交Pull Request改进代码质量
-3. **文档完善**：帮助改进项目文档和使用指南
-4. **测试支持**：在不同环境下测试并反馈兼容性问题
-
-### 贡献者许可协议
-
-通过向本项目贡献代码，您同意：
-- 您的贡献将基于 CC BY-NC-SA 4.0 许可证发布
-- 您拥有贡献内容的合法权利
-- 您的贡献不会违反任何第三方权利
-
-### 代码规范
-
-#### C++编码标准
-```cpp
-// 1. 使用C++20标准特性
-// 2. 遵循RAII原则
-// 3. 优先使用智能指针
-// 4. 统一的命名规范（snake_case）
-```
-
-#### 提交要求
-- 确保代码能在MSVC 2022下编译通过
-- 包含适当的单元测试
-- 遵循现有的代码风格
-- 提供清晰的提交信息
 
 ## 性能优化
 
 ### 系统调优建议
-
 ```
 1. CPU优化
    - 启用AVX2指令集支持
@@ -299,28 +317,69 @@ find_package(Qt6 COMPONENTS
    - 关闭不必要的后台程序
 
 2. 内存优化  
-   - 确保有足够的可用RAM
-   - 考虑使用专用显卡进行推理加速
+   - 确保足够的可用RAM
+   - 考虑使用专用GPU进行推理加速
 
 3. 网络优化（ESP32模式）
-   - 减少网络延迟和丢包
+   - 降低网络延迟和丢包率
+   - 使用5GHz WiFi频段
 ```
 
-## 联系方式
+### CUDA加速配置
+```cmake
+# 自动检测并配置CUDA支持
+if(CUDA_FOUND)
+    # CUDA架构配置
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -gencode arch=compute_75,code=sm_75")
+    # 链接CUDA运行时库
+    target_link_libraries(PaperTracker PRIVATE CUDA::cudart)
+    # 链接ONNX Runtime CUDA提供程序
+    target_link_libraries(PaperTracker PRIVATE onnxruntime_providers_cuda)
+endif()
+```
 
-- **问题反馈**：[GitHub Issues](../../issues)
+## 开发指南
+
+### 代码规范
+```cpp
+// 1. 使用C++20现代特性
+// 2. 遵循Qt编码规范
+// 3. 使用智能指针管理内存
+// 4. 统一命名约定（snake_case）
+```
+
+### 提交要求
+- 确保代码在MSVC 2022下编译通过
+- 包含适当的单元测试
+- 遵循现有代码风格
+- 提供清晰的提交消息
+
+## 版权信息
+
+### 主项目许可证
+本项目采用 **知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议** (CC BY-NC-SA 4.0) 进行许可。
+
+### 第三方组件
+- Qt6：LGPL v3许可证
+- OpenCV：Apache 2.0许可证
+- ONNX Runtime：MIT许可证
+- OSCPack：自定义开源许可证
+
+## 联系信息
+
+- **问题报告**：[GitHub Issues](../../issues)
 - **功能建议**：[GitHub Discussions](../../discussions)
-- **技术交流**：请通过Issues进行
-- **商业授权**：请通过项目主页联系方式洽谈
+- **技术交流**：请使用Issues进行讨论
+- **商业授权**：请通过项目主页联系
 
 ## 致谢
 
 ### 特别贡献者
-- **[JellyfishKnight (Liu Han)](https://github.com/JellyfishKnight)**：为项目开发提供了重要的技术支持和代码贡献
+- **[JellyfishKnight (Liu Han)](https://github.com/JellyfishKnight)**：为项目提供了重要的技术支持和代码贡献
 
 ### 开源项目和团队
 - **Project Babble团队**：提供优秀的面部追踪算法和模型
-- **EyeTrackVR团队**：提供开源的眼部追踪技术
+- **EyeTrackVR团队**：提供开源眼部追踪技术
 - **Qt社区**：提供强大的跨平台GUI框架
 - **OpenCV团队**：提供计算机视觉基础库
 
@@ -331,10 +390,10 @@ find_package(Qt6 COMPONENTS
 
 <div align="center">
 
-**本项目仅供非商业使用 | 基于 CC BY-NC-SA 4.0 许可证发布**
+**本项目仅供非商业用途使用 | 基于 CC BY-NC-SA 4.0 许可证发布**
 
-**如果这个项目对您有帮助，请考虑给我们一个Star ⭐**
+**如果这个项目对您有帮助，请考虑给我们一个 Star ⭐**
 
-[⬆️ 回到顶部](#papertracker)
+[⬆️ 返回顶部](#papertracker)
 
 </div>
