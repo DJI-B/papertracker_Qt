@@ -1,3 +1,11 @@
 3rdParty/*
 out/*
 build/*
+cmake-build-debug
+cmake-build-release
+.idea/*
+*.iml
+*.user
+1.md
+bp.md
+claude
