@@ -4,9 +4,11 @@
 
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![Status: Beta](https://img.shields.io/badge/Status-Beta-orange.svg)]()
-[![Qt6](https://img.shields.io/badge/Qt-6.8-green.svg)](https://www.qt.io/)
+[![Qt6](https://img.shields.io/badge/Qt-6.8.2-green.svg)](https://www.qt.io/)
 [![C++20](https://img.shields.io/badge/C++-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)]()
+[![OpenCV](https://img.shields.io/badge/OpenCV-4.11.0-blue.svg)](https://opencv.org/)
+[![ONNX Runtime](https://img.shields.io/badge/ONNX%20Runtime-1.22.0-orange.svg)](https://onnxruntime.ai/)
 
 </div>
 
@@ -14,56 +16,209 @@
 
 ## Overview
 
-PaperTracker is a high-performance facial expression and eye tracking application designed for VR and real-time applications. Built with advanced deep learning algorithms and optimized C++ implementation, it provides low-latency, high-precision facial expression recognition, eye tracking, and OSC data transmission.
+PaperTracker is a high-performance facial expression and eye tracking application built with C++20 and Qt6, designed for VR and real-time applications. The project features modern CMake build system integration with advanced deep learning algorithms, providing low-latency, high-precision facial expression recognition, eye tracking, and OSC data transmission capabilities.
 
 ### Core Features
 
-- **🎯 Dual Tracking**: Integrates facial expression and eye tracking for complete facial capture solutions
-- **⚡ High-Performance Processing**: C++ optimized implementation with significantly reduced CPU usage for real-time response
-- **🔌 Multi-Device Support**: Compatible with ESP32 cameras and local camera devices
-- **📡 Standardized Output**: Transmits blendshape data via OSC protocol, compatible with VRChat, Resonite, and other platforms
-- **🛠️ Developer-Friendly**: Complete CMake build system with MSVC compiler support
+- **🎯 Dual Tracking**: Integrated facial expression and eye tracking for complete facial capture solutions
+- **⚡ High Performance**: C++20 optimized implementation with CUDA acceleration support for significantly reduced latency
+- **🔌 Multi-Device Support**: Compatible with ESP32 cameras, USB cameras, and ETVR eye tracking devices
+- **📡 Standardized Output**: OSC protocol transmission of blendshape data, compatible with VRChat, Resonite, and other platforms
+- **🛠️ Developer Friendly**: Complete CMake build system with automatic dependency management and MSVC compiler support
+- **🌐 Internationalization**: Built-in multi-language support and translation management system
 
-## Setup Guide
+## System Architecture
 
-For detailed ESP32 device setup: [ESP32 Device Configuration Guide](https://fcnk6r4c64fa.feishu.cn/wiki/B4pNwz2avi4kNqkVNw9cjRRXnth?from=from_copylink)
+### Modular Design
+The project adopts a modular architecture with the following core components:
 
-## Main Features
+```
+PaperTracker/
+├── utilities/          # Common utilities library (logging, updater, etc.)
+├── algorithm/          # AI inference algorithm library (face/eye recognition)
+├── transfer/          # Data transmission library (serial, network, OSC)
+├── ui/                # User interface library (Qt6 UI components)
+├── model/             # AI model files
+├── translations/      # Internationalization translation files
+├── resources/         # Application resource files
+└── 3rdParty/         # Third-party dependency libraries (auto-managed)
+```
 
-### Tracking Capabilities
-- 👁️ **Eye Tracking**: Based on ETVR technology, supports blinking, eye movement, pupil tracking, and other fine movements
-- 👄 **Facial Expression Tracking**: Based on Project Babble technology, recognizes speech, smiling, surprise, and other facial expressions
-- 🎭 **Expression Blending**: Outputs standard blendshape data supporting composite expressions and eye movements
-
-### Hardware Interface
-- 📷 **ESP32 Camera**: Wireless connection with firmware update and WiFi configuration support
-- 💻 **Local Camera**: Supports USB cameras and built-in cameras
-- 🔧 **Firmware Management**: Integrated ESP32 firmware flashing and update tools
-- 👀 **Eye Tracking Device**: Supports ETVR-compatible eye tracking hardware
-
-### Data Output
-- 📊 **OSC Protocol**: Real-time transmission of blendshape and eye tracking data
-- 📈 **Performance Monitoring**: Real-time display of framerate, latency, and other performance metrics
-- 📝 **Logging System**: Detailed runtime status and error information logging
+### Technology Stack
+- **Frontend Framework**: Qt6.8.2 (Core, Gui, Widgets, Network, WebSockets, SerialPort)
+- **Computer Vision**: OpenCV 4.11.0
+- **AI Inference Engine**: ONNX Runtime 1.22.0 (CPU and CUDA GPU acceleration support)
+- **Network Communication**: OSCPack, WebSockets, HTTP Server
+- **Build System**: CMake 3.30+ with MSVC 2022
+- **Hardware Interface**: ESP32 firmware management, serial communication
 
 ## System Requirements
 
 ### Hardware Requirements
 - **Operating System**: Windows 10/11 (x64)
 - **Processor**: Modern CPU with AVX2 instruction set support
-- **Memory**: At least 4GB RAM (8GB recommended)
+- **Memory**: At least 4GB RAM (8GB+ recommended)
+- **Graphics Card**: Optional NVIDIA GPU (CUDA 11.x/12.x acceleration support)
 - **Camera Devices**:
-  - **Facial Tracking**: ESP32-S3 device + OV2640 camera (requires [face_tracker firmware](https://github.com/paper-tei/face_tracker)) or USB/built-in camera
+  - **Facial Tracking**: ESP32-S3 device + OV2640 camera or USB camera
   - **Eye Tracking**: ETVR-compatible eye tracking device (optional)
 
 ### Software Dependencies
 - Visual C++ Redistributable 2022
-- .NET Framework 4.8 (for firmware update tools)
+- .NET Framework 4.8 (firmware update tools)
+- Windows SDK (development environment)
+
+## Development Environment Setup
+
+### Required Tools
+```bash
+# Windows Development Toolchain
+- Visual Studio 2022 Community/Professional (including MSVC v143 toolset)
+- CMake 3.30 or higher
+- Qt 6.8.2 MSVC version
+- Git (for pulling third-party dependencies)
+```
+
+### Qt6 Configuration
+```cmake
+# Qt6 modules supported by the project
+find_package(Qt6 COMPONENTS 
+    Core Gui Widgets           # Basic UI components
+    Network WebSockets         # Network communication
+    SerialPort                 # Serial communication
+    REQUIRED
+)
+```
+
+### CUDA Support (Optional)
+If CUDA is installed on the system, the project will automatically enable GPU acceleration:
+```cmake
+# CUDA support configuration
+find_package(CUDA)
+if(CUDA_FOUND)
+    add_definitions(-DUSE_CUDA)
+    # Automatically configure cuDNN libraries and runtime dependencies
+endif()
+```
+
+## Build Steps
+
+### 1. Environment Preparation
+```bash
+# Ensure required tools are installed
+- Visual Studio 2022 with C++ workload
+- CMake 3.30+
+- Qt 6.8.2 (MSVC 2022 64-bit)
+```
+
+### 2. Clone Project
+```bash
+git clone https://github.com/your-org/PaperTracker.git
+cd PaperTracker
+```
+
+### 3. Configure CMake
+```bash
+# Create build directory
+mkdir build
+cd build
+
+# Configure project (Debug mode)
+cmake .. -G "Visual Studio 17 2022" -A x64 ^
+  -DCMAKE_BUILD_TYPE=Debug ^
+  -DQT_INSTALL_PATH="D:/QtNew/6.8.2/msvc2022_64"
+
+# Or configure Release mode
+cmake .. -G "Visual Studio 17 2022" -A x64 ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DQT_INSTALL_PATH="D:/QtNew/6.8.2/msvc2022_64"
+```
+
+### 4. Build Project
+```bash
+# Build Debug version
+cmake --build . --config Debug
+
+# Build Release version
+cmake --build . --config Release
+```
+
+### 5. Install Dependencies
+```bash
+# Copy runtime dependencies to build directory
+cmake --install .
+```
+
+## Dependency Management
+
+### Automatic Dependency Download
+The project uses CMake's FetchContent functionality to automatically manage third-party dependencies:
+
+```cmake
+# OpenCV 4.11.0 - Computer Vision Library
+FetchContent_Declare(prebuilt_opencv 
+    URL https://github.com/opencv/opencv/releases/download/4.11.0/opencv-4.11.0-windows.exe)
+
+# ONNX Runtime 1.22.0 - AI Inference Engine
+FetchContent_Declare(onnxruntime 
+    URL https://github.com/microsoft/onnxruntime/releases/download/v1.22.0/onnxruntime-win-x64-1.22.0.zip)
+
+# OSCPack - OSC Protocol Library
+ExternalProject_Add(oscpack 
+    GIT_REPOSITORY https://github.com/RossBencina/oscpack.git)
+
+# ESPTool - ESP32 Firmware Flashing Tool
+FetchContent_Declare(esptool 
+    URL https://github.com/espressif/esptool/releases/download/v5.0.0/esptool-v5.0.0-windows-amd64.zip)
+```
+
+### Directory Structure
+```
+build/
+├── 3rdParty/          # Auto-downloaded third-party libraries
+│   ├── opencv/        # OpenCV 4.11.0
+│   ├── onnxruntime/   # ONNX Runtime 1.22.0
+│   ├── oscpack/       # OSCPack library
+│   └── esptools/      # ESP32 tools
+├── Debug/             # Debug build output
+├── Release/           # Release build output
+└── model/             # AI model files
+```
+
+## Configuration Details
+
+### CMake Configuration Options
+```cmake
+# Configurable CMake options
+set(QT_INSTALL_PATH "D:/QtNew/6.8.2/msvc2022_64" CACHE PATH "Qt installation path")
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type: Debug or Release")
+set(CMAKE_CXX_STANDARD 20)                         # C++20 standard
+set(CMAKE_AUTOMOC ON)                              # Qt MOC auto-processing
+set(CMAKE_AUTORCC ON)                              # Qt resource file auto-processing
+set(CMAKE_AUTOUIC ON)                              # Qt UI file auto-processing
+```
+
+### MSVC Compiler Optimization
+```cmake
+if (MSVC)
+    # Preprocessor optimization
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor")
+    # UTF-8 encoding support
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8")
+    # Warning level settings
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+    # Runtime library configuration
+    if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+    else()
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+    endif()
+endif()
+```
 
 ## Quick Start
 
-### Installation Steps
-
+### Install Pre-compiled Version
 1. **Download Application**
    ```
    Download the latest version from [Releases](../../releases) page
@@ -110,188 +265,51 @@ Listen Port: 9000
 Data Format: VRC-compatible blendshape
 ```
 
-## Development and Building
+## Troubleshooting
 
-### Development Environment Setup
+### Common Build Issues
 
-#### Required Tools
-```bash
-# Windows Build Toolchain
-- Visual Studio 2022 Community/Professional
-- CMake 3.30+
-- Qt 6.8.2 MSVC version
-```
-
-#### Third-Party Dependencies
-```bash
-# Automatically managed dependencies
-- OpenCV 4.x
-- ONNX Runtime 1.20.1
-- libcurl
-- OSCPack
-```
-
-### Build Steps
-
-```bash
-# 1. Clone project
-git clone https://github.com/yourusername/PaperTracker.git
-cd PaperTracker
-
-# 2. Configure CMake
-mkdir build && cd build
-cmake .. -G "Visual Studio 17 2022" -A x64
-
-# 3. Build project
-cmake --build . --config Release
-
-# 4. Install dependency files
-cmake --install .
-```
-
-### CMakeLists.txt Configuration
-
-The project uses modular CMake configuration with the following main components:
-
+#### Qt6 Path Configuration
 ```cmake
-# Core Components
-- utilities: Logging, update utilities library
-- algorithm: Inference algorithm library  
-- transfer: Data transmission library
-- ui: User interface library
-- oscpack: OSC protocol library
+# If CMake cannot find Qt6, set the correct Qt installation path
+set(QT_INSTALL_PATH "Your-Qt-Installation-Path" CACHE PATH "Qt installation directory path")
 ```
 
-### Qt6 Module Dependencies
+#### OpenCV Download Failure
+```bash
+# Manually download OpenCV and place in the specified directory
+mkdir 3rdParty/opencv
+# Download and extract OpenCV to this directory
+```
 
+#### ONNX Runtime Configuration Issues
 ```cmake
-find_package(Qt6 COMPONENTS 
-    Core Gui Widgets 
-    Network WebSockets SerialPort 
-    REQUIRED
-)
+# Check ONNX Runtime path configuration
+set(ONNXRUNTIME_ROOT ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime)
 ```
 
-## License Information
+### Runtime Issues
 
-### Main Project License
-
-This project is licensed under the **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License** (CC BY-NC-SA 4.0).
-
-#### License Features
-
-**✅ You are free to**
-- **Share**: Copy and redistribute the material in any medium or format
-- **Adapt**: Remix, transform, and build upon the material
-- **Personal Use**: Use for personal learning, research, and non-commercial purposes
-
-**📋 Under the following terms**
-- **Attribution**: You must give appropriate credit, provide a link to the license, and indicate if changes were made
-- **NonCommercial**: You may not use the material for commercial purposes
-- **ShareAlike**: If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original
-
-**❌ Restrictions**
-- **Prohibited Commercial Use**: May not be used for commercial purposes, including but not limited to:
-  - Selling this software or products based on this software
-  - Integrating into commercial hardware products
-  - Providing paid services based on this software
-  - Using in commercial environments (except for research purposes)
-
-### Third-Party Component Licenses
-
-#### Project Babble 2.0.7 Components
-```
-Source: Project Babble v2.0.7
-License: Babble Software Distribution License 1.0
-Usage Scope: Facial expression recognition models
-Usage Restrictions: Non-commercial use (consistent with this project's license)
-Project URL: https://github.com/Project-Babble/ProjectBabble
+#### Missing DLL Errors
+The project automatically copies required DLL files to the build directory:
+```cmake
+# Qt6 DLL auto-copy
+# OpenCV DLL auto-copy  
+# ONNX Runtime DLL auto-copy
+# CUDA DLL auto-copy (if enabled)
 ```
 
-#### EyeTrackVR (ETVR) Components
+#### Missing Resource Files
+```cmake
+# Resource files auto-installation
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/model/ DESTINATION ${CMAKE_BINARY_DIR}/model)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/translations/ DESTINATION ${CMAKE_BINARY_DIR}/translations)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})
 ```
-Source: EyeTrackVR early open source version
-License: MIT License
-Usage Scope: Eye tracking algorithms and related code
-Usage Timeline: Based on open source version before license updates
-Project URL: https://github.com/EyeTrackVR
-```
-
-#### Other Dependencies
-```
-- OpenCV: BSD 3-Clause License
-- ONNX Runtime: MIT License  
-- Qt6: GPL/LGPL dual licensing
-- libcurl: MIT License
-- OSCPack: Custom open source license
-```
-
-For complete third-party component information, see [THIRD-PARTY.txt](THIRD-PARTY.txt).
-
-## Commercial Use Information
-
-### Non-Commercial License Restrictions
-
-This project uses CC BY-NC-SA 4.0 license, which **strictly prohibits any form of commercial use**, including but not limited to:
-
-- ❌ **Software Sales**: May not sell this software or products containing this software
-- ❌ **Hardware Integration**: May not integrate this software into commercial hardware products
-- ❌ **Commercial Services**: May not provide paid services based on this software
-- ❌ **Enterprise Use**: May not use in commercial environments (except for research purposes)
-
-### Applicable Use Cases
-
-**✅ Permitted Uses**
-- Personal learning and entertainment
-- Academic research and education
-- Non-profit organization projects
-- Open source project development
-- VR enthusiast personal projects
-
-### Commercial Licensing
-
-If you need to use this project for commercial purposes, please contact us for special commercial licensing through:
-- GitHub Issues: Explain your commercial use requirements
-- Project Homepage: Check contact information
-
-## Contributing Guidelines
-
-### Development Participation
-
-We welcome all forms of non-commercial contributions:
-
-1. **Issue Reporting**: Report bugs or suggest new features via [GitHub Issues](../../issues)
-2. **Code Contributions**: Submit Pull Requests to improve code quality
-3. **Documentation Improvement**: Help improve project documentation and usage guides
-4. **Testing Support**: Test in different environments and provide compatibility feedback
-
-### Contributor License Agreement
-
-By contributing code to this project, you agree that:
-- Your contributions will be released under CC BY-NC-SA 4.0 license
-- You have legal rights to the contributed content
-- Your contributions will not violate any third-party rights
-
-### Code Standards
-
-#### C++ Coding Standards
-```cpp
-// 1. Use C++20 standard features
-// 2. Follow RAII principles
-// 3. Prefer smart pointers
-// 4. Unified naming convention (snake_case)
-```
-
-#### Submission Requirements
-- Ensure code compiles under MSVC 2022
-- Include appropriate unit tests
-- Follow existing code style
-- Provide clear commit messages
 
 ## Performance Optimization
 
 ### System Tuning Recommendations
-
 ```
 1. CPU Optimization
    - Enable AVX2 instruction set support
@@ -304,13 +322,61 @@ By contributing code to this project, you agree that:
 
 3. Network Optimization (ESP32 mode)
    - Reduce network latency and packet loss
+   - Use 5GHz WiFi band
 ```
+
+### CUDA Acceleration Configuration
+```cmake
+# Automatically detect and configure CUDA support
+if(CUDA_FOUND)
+    # CUDA architecture configuration
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -gencode arch=compute_75,code=sm_75")
+    # Link CUDA runtime library
+    target_link_libraries(PaperTracker PRIVATE CUDA::cudart)
+    # Link ONNX Runtime CUDA providers
+    target_link_libraries(PaperTracker PRIVATE onnxruntime_providers_cuda)
+endif()
+```
+
+## Development Guide
+
+### Code Standards
+```cpp
+// 1. Use C++20 modern features
+// 2. Follow Qt coding conventions
+// 3. Use smart pointers for memory management
+// 4. Unified naming convention (snake_case)
+```
+
+### Submission Requirements
+- Ensure code compiles under MSVC 2022
+- Include appropriate unit tests
+- Follow existing code style
+- Provide clear commit messages
+
+## Configuration Guides
+
+For detailed configuration steps, please refer to:
+- [ESP32 Device Configuration Guide](https://fcnk6r4c64fa.feishu.cn/wiki/B4pNwz2avi4kNqkVNw9cjRRXnth?from=from_copylink)
+- [Facial Tracking Manual](https://fcnk6r4c64fa.feishu.cn/wiki/LZdrwWWozi7zffkLt5pc81WanAd)
+- [Eye Tracking Manual](https://fcnk6r4c64fa.feishu.cn/wiki/Dg4qwI3mDiJ3fHk5iZtc2z6Rn47)
+
+## License Information
+
+### Main Project License
+This project is licensed under the **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License** (CC BY-NC-SA 4.0).
+
+### Third-Party Components
+- Qt6: LGPL v3 License
+- OpenCV: Apache 2.0 License
+- ONNX Runtime: MIT License
+- OSCPack: Custom Open Source License
 
 ## Contact Information
 
 - **Issue Reporting**: [GitHub Issues](../../issues)
 - **Feature Suggestions**: [GitHub Discussions](../../discussions)
-- **Technical Communication**: Please use Issues
+- **Technical Communication**: Please use Issues for discussions
 - **Commercial Licensing**: Please contact via project homepage
 
 ## Acknowledgments
