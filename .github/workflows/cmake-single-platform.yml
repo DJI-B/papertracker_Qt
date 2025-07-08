@@ -24,7 +24,7 @@ jobs:
         host: 'windows'
         target: 'desktop'
         arch: 'win64_msvc2022_64'
-        modules: 'qtwebsockets qtserialport qtnetwork'
+        modules: 'qtwebsockets qtserialport'
 
     # 配置CMake - 所有其他依赖将通过FetchContent自动下载
     - name: Configure CMake
