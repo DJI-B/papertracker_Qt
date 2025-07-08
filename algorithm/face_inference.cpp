@@ -41,7 +41,7 @@ FaceInference::FaceInference()
 }
 void FaceInference::load_model(const std::string &model_path) {
     try {
-        std::string actual_model_path = ":/models/model/face_model.onnx";
+        std::string actual_model_path = ":/resources/model/face_model.onnx";
 
         // 创建环境 - 只需要创建一次
         static Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "ONNXRuntimeDemo");

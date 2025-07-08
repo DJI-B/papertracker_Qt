@@ -34,7 +34,7 @@ void TranslatorManager::setLanguage(const QString& langCode) {
     QApplication::removeTranslator(&m_translator);
 
     // 构建翻译文件路径（需确保文件存在 ./translations/ 目录）
-    QString qmPath = QString("./translations/%1.qm").arg(langCode);
+    QString qmPath = QString(":/resources/translations/%1.qm").arg(langCode);
 
     if (m_translator.load(qmPath)) {
         // 安装新翻译
@@ -59,7 +59,7 @@ QStringList TranslatorManager::getAvailableLanguages() const {
     QStringList availableLangNames;
 
     // 1. 获取 translations 目录下的所有 .qm 文件
-    QDir dir("./translations/");
+    QDir dir(":/resources/translations");
     if (!dir.exists()) {
         qWarning() << "translations 目录不存在：" << dir.path();
         return availableLangNames;
