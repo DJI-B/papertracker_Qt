@@ -15,8 +15,15 @@ int main(int argc, char *argv[]) {
     system("chcp 65001");
     // Create ui application
     QApplication app(argc, argv);
-    QFile qssFile("./resources/material.qss"); // 使用资源路径
-    QIcon icon("./resources/window_icon.png");
+
+    QFile qssFile(":/resources/resources/material.qss");
+    QIcon icon(":/resources/resources/window_icon.png");
+
+    // 检查文件是否存在
+    if (!QFile::exists(":/resources/resources/material.qss")) {
+        QMessageBox::critical(nullptr, "Error", "Resource file not found!");
+    }
+
     if (qssFile.open(QFile::ReadOnly)) {
         QString styleSheet = QLatin1String(qssFile.readAll());
         app.setStyleSheet(styleSheet);

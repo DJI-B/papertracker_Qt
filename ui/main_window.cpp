@@ -204,7 +204,7 @@ void PaperTrackerMainWindow::initUI()
     EyeTrackerButton = new QPushButton(QApplication::translate("PaperTrackerMainWindow", "眼追界面"), this);
 
     // 创建标签
-    QFile Logo = QFile("./resources/logo.png");
+    QFile Logo = QFile(":/resources/resources/logo.png");
     Logo.open(QIODevice::ReadOnly);
     QPixmap pixmap;
     pixmap.loadFromData(Logo.readAll());

@@ -1,0 +1,21 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/resources">
+	    <file>model/eye_model.onnx</file>
+        <file>model/face_model.onnx</file>
+		
+        <file>translations/en_US.qm</file>
+        <file>translations/en_US.ts</file>
+        <file>translations/ko_KR.qm</file>
+        <file>translations/ko_KR.ts</file>
+        <file>translations/ja_JP.qm</file>
+        <file>translations/ja_JP.ts</file>
+        <file>translations/zh_CN.qm</file>
+        <file>translations/zh_CN.ts</file>
+		
+        <file>resources/logo.png</file>
+        <file>resources/material.qss</file>
+        <file>resources/window_icon.ico</file>
+        <file>resources/window_icon.png</file>
+    </qresource>
+</RCC>

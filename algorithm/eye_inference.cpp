@@ -144,7 +144,7 @@ std::vector<float> EyeInference::get_output() {
 }
 void EyeInference::load_model(const std::string &model_path) {
     try {
-        std::string actual_model_path = ":/models/model/eye_model.onnx";
+        std::string actual_model_path = ":/resources/model/eye_model.onnx";
 
         if (actual_model_path.substr(0, 2) == ":/") {
             // 从Qt资源加载

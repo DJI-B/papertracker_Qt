@@ -24,12 +24,12 @@ if (MSVC)
 endif()
 
 # 调试资源文件路径
-message(STATUS "模型资源文件路径: ${CMAKE_CURRENT_SOURCE_DIR}/models.qrc")
+message(STATUS "资源文件路径: ${CMAKE_CURRENT_SOURCE_DIR}/resources.qrc")
 message(STATUS "模型文件路径: ${CMAKE_CURRENT_SOURCE_DIR}/model/eye_model.onnx")
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/models.qrc")
-    message(STATUS "models.qrc 文件存在")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/resources.qrc")
+    message(STATUS "resources.qrc 文件存在")
 else()
-    message(WARNING "models.qrc 文件不存在!")
+    message(WARNING "resources.qrc 文件不存在!")
 endif()
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/model/eye_model.onnx")
@@ -365,9 +365,9 @@ endif()
 
 ############### executable ################
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    add_executable(PaperTracker main.cpp models.qrc)
+    add_executable(PaperTracker main.cpp resources.qrc)
 else ()
-    add_executable(PaperTracker WIN32 main.cpp models.qrc)
+    add_executable(PaperTracker WIN32 main.cpp resources.qrc)
 endif ()
 
 target_include_directories(
@@ -432,8 +432,6 @@ if(USE_CUDA AND CUDAToolkit_FOUND)
 endif()
 
 # install dir model to the same dir as the executable
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/model/  DESTINATION ${CMAKE_BINARY_DIR}/model)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/translations/  DESTINATION ${CMAKE_BINARY_DIR}/translations)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/opencv/build/x64/vc16/bin/  DESTINATION ${CMAKE_BINARY_DIR})
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/esptools/  DESTINATION ${CMAKE_BINARY_DIR})
 #install(DIRECTORY "D:/QtMVSC/6.8.2/msvc2022_64/bin/"  DESTINATION ${CMAKE_BINARY_DIR})
@@ -449,8 +447,6 @@ if (USE_CUDA AND CUDAToolkit_FOUND)
     install(DIRECTORY ${CUDNN_BIN_DIR}/ DESTINATION ${CMAKE_BINARY_DIR} FILES_MATCHING PATTERN "*.dll")
 endif ()
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/onnxruntime/lib/  DESTINATION ${CMAKE_BINARY_DIR})
-# install resources
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})
 
 if (WIN32)
     set(DEBUG_SUFFIX)
