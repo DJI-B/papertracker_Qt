@@ -61,7 +61,7 @@ jobs:
       if: failure()
       shell: bash
       run: |
-        payload=$(cat <<EOF
+        payload=$(cat <<'EOF'
         {
           "msg_type": "interactive",
           "card": {
@@ -69,7 +69,7 @@ jobs:
               {
                 "tag": "div",
                 "text": {
-                  "content": "🚨 **PaperTracker CI构建失败**",
+                  "content": "🚨 **PaperTracker CI Build Failed**",
                   "tag": "lark_md"
                 }
               },
@@ -79,28 +79,28 @@ jobs:
                   {
                     "is_short": true,
                     "text": {
-                      "content": "**项目:**\n${{ github.repository }}",
+                      "content": "**Repository:**\nREPO_NAME",
                       "tag": "lark_md"
                     }
                   },
                   {
                     "is_short": true,
                     "text": {
-                      "content": "**分支:**\n${{ github.ref_name }}",
+                      "content": "**Branch:**\nBRANCH_NAME",
                       "tag": "lark_md"
                     }
                   },
                   {
                     "is_short": true,
                     "text": {
-                      "content": "**作者:**\n${{ github.actor }}",
+                      "content": "**Author:**\nAUTHOR_NAME",
                       "tag": "lark_md"
                     }
                   },
                   {
                     "is_short": true,
                     "text": {
-                      "content": "**提交:**\n\`${{ github.sha }}\`",
+                      "content": "**Commit:**\n`COMMIT_SHA`",
                       "tag": "lark_md"
                     }
                   }
@@ -112,10 +112,10 @@ jobs:
                   {
                     "tag": "button",
                     "text": {
-                      "content": "查看详情",
+                      "content": "View Details",
                       "tag": "plain_text"
                     },
-                    "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                    "url": "ACTION_URL",
                     "type": "primary"
                   }
                 ]
@@ -123,15 +123,22 @@ jobs:
             ],
             "header": {
               "title": {
-                "content": "CI构建失败通知",
+                "content": "CI Build Failure",
                 "tag": "plain_text"
               },
               "template": "red"
             }
           }
         }
-        EOF
+EOF
         )
+        
+        # Replace placeholders with actual values
+        payload=$(echo "$payload" | sed "s|REPO_NAME|${{ github.repository }}|g")
+        payload=$(echo "$payload" | sed "s|BRANCH_NAME|${{ github.ref_name }}|g")
+        payload=$(echo "$payload" | sed "s|AUTHOR_NAME|${{ github.actor }}|g")
+        payload=$(echo "$payload" | sed "s|COMMIT_SHA|${{ github.sha }}|g")
+        payload=$(echo "$payload" | sed "s|ACTION_URL|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g")
         
         curl -X POST "${{ secrets.FEISHU_WEBHOOK_URL }}" \
           -H "Content-Type: application/json" \
