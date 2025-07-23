@@ -18,7 +18,7 @@
         <name>PaperTrackerMainWindow</name>
         <message>
             <source>Based on Project Babble: https://babble.diy/</source>
-            <translation>Project Babble: https://babble.diy/ 基準</translation>
+            <translation>Based on Project Babble: https://babble.diy/</translation>
         </message>
     </context>
     <context>
@@ -32,7 +32,7 @@
         <name>PaperTrackerMainWindow</name>
         <message>
             <source>PaperEyeTrackerWindow</source>
-            <translation>ペーパーアイトラッカー ウィンドウ</translation>
+            <translation>PaperEyeTrackerWindow</translation>
         </message>
     </context>
     <context>
@@ -46,7 +46,7 @@
         <name>PaperTrackerMainWindow</name>
         <message>
             <source>PaperTrackerMainWindow</source>
-            <translation>ペーパートラッカー メインウィンドウ</translation>
+            <translation>PaperTrackerMainWindow</translation>
         </message>
     </context>
     <context>
@@ -978,6 +978,69 @@
         <message>
             <source>有线模式眼追连接成功</source>
             <translation>アイトラッキング有線モード接続成功</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>Wifi已连接</source>
+            <translation>Wifi接続済み</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>没有设备连接</source>
+            <translation>デバイス接続がありません</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>左眼设备已连接</source>
+            <translation>左眼デバイスが接続されている</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>右眼设备已连接</source>
+            <translation>右眼デバイスが接続されている</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>当前已经打开了眼追窗口，请不要重复打开</source>
+            <translation>現在、アイキャッチウィンドウが開いていますので、繰り返し開かないでください</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>当前已经打开了面捕窗口，请不要重复打开</source>
+            <translation>フェイストラッキングウィンドウは既に開かれています。また開かないでください</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>保存</source>
+            <translation>保存</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>取消</source>
+            <translation>キャンセル</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>选择语言</source>
+            <translation>言語を選択</translation>
         </message>
     </context>
 </TS>

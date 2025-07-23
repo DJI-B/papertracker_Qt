@@ -15,13 +15,20 @@
 #include <osc.hpp>
 #include <QTimer>
 #include <QLineEdit>  // 确保包含该头文件
-#include "ui_face_tracker_window.h"
 #include "face_inference.hpp"
 #include "serial.hpp"
 #include "logger.hpp"
 #include "updater.hpp"
 #include "translator_manager.h"
 #include <QGridLayout>
+#include <QStackedWidget>
+#include <QScrollArea>
+#include <QLabel>
+#include <QApplication>
+#include <QScrollBar>
+#include <QCheckBox>
+#include <QComboBox>
+#include <QProgressBar>
 struct Rect
 {
 public:

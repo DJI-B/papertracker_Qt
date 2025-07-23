@@ -20,7 +20,6 @@
 
 #include <opencv2/imgproc.hpp>
 #include "face_tracker_window.hpp"
-#include "ui_face_tracker_window.h"
 #include <QMessageBox>
 #include <codecvt>
 #include <locale>
@@ -39,7 +38,7 @@ PaperFaceTrackerWindow::PaperFaceTrackerWindow(QWidget *parent)
     if (instance == nullptr)
         instance = this;
     else
-        throw std::exception("当前已经打开了面捕窗口，请不要重复打开");
+        throw std::exception(QApplication::translate("PaperTrackerMainWindow", "当前已经打开了面捕窗口，请不要重复打开").toUtf8().constData());
     // 基本UI设置
     setFixedSize(848, 538);
     InitUi();
@@ -259,7 +258,7 @@ void PaperFaceTrackerWindow::InitUi() {
     label->setFixedHeight(20);
     wifi_send_Button = new QPushButton(page);
     wifi_send_Button->setObjectName("wifi_send_Button");
-    wifi_send_Button->setFixedHeight(92);
+    wifi_send_Button->setFixedSize(92, 92);
     FlashFirmwareButton = new QPushButton(page);
     FlashFirmwareButton->setObjectName("FlashFirmwareButton");
     FlashFirmwareButton->setFixedHeight(40);

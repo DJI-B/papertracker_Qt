@@ -32,7 +32,7 @@
         <name>PaperTrackerMainWindow</name>
         <message>
             <source>PaperEyeTrackerWindow</source>
-            <translation>Paper Eye Tracker Window</translation>
+            <translation>PaperEyeTrackerWindow</translation>
         </message>
     </context>
     <context>
@@ -46,7 +46,7 @@
         <name>PaperTrackerMainWindow</name>
         <message>
             <source>PaperTrackerMainWindow</source>
-            <translation>Paper Tracker Main Window</translation>
+            <translation>PaperTrackerMainWindow</translation>
         </message>
     </context>
     <context>
@@ -978,6 +978,69 @@
         <message>
             <source>有线模式眼追连接成功</source>
             <translation>Eye tracking wired mode connected successfully</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>Wifi已连接</source>
+            <translation>Wifi connected</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>没有设备连接</source>
+            <translation>No device connection</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>左眼设备已连接</source>
+            <translation>Left eye device connected</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>右眼设备已连接</source>
+            <translation>Right eye device connected</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>当前已经打开了眼追窗口，请不要重复打开</source>
+            <translation>The eye tracking window has already been opened, please do not open it again</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>当前已经打开了面捕窗口，请不要重复打开</source>
+            <translation>The face tracking window has already been opened, please do not open it again</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>保存</source>
+            <translation>Save</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>取消</source>
+            <translation>Cancel</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>选择语言</source>
+            <translation>Select language</translation>
         </message>
     </context>
 </TS>
