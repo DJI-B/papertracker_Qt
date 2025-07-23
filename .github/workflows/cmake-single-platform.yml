@@ -55,3 +55,16 @@ jobs:
           ${{github.workspace}}/build/model/
           ${{github.workspace}}/build/translations/
         retention-days: 30
+
+    # 飞书通知 - 构建失败时发送
+    - name: Notify Feishu on failure
+      if: failure()
+      run: |
+        curl -X POST "${{ secrets.FEISHU_WEBHOOK_URL }}" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "msg_type": "text",
+            "content": {
+              "text": "🚨 PaperTracker CI构建失败\n\n项目: ${{ github.repository }}\n分支: ${{ github.ref_name }}\n提交: ${{ github.sha }}\n作者: ${{ github.actor }}\n\n查看详情: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+          }'
