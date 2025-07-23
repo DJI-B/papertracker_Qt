@@ -18,7 +18,7 @@
         <name>PaperTrackerMainWindow</name>
         <message>
             <source>Based on Project Babble: https://babble.diy/</source>
-            <translation>프로젝트 바블 기반: https://babble.diy/</translation>
+            <translation>Based on Project Babble: https://babble.diy/</translation>
         </message>
     </context>
     <context>
@@ -32,21 +32,21 @@
         <name>PaperTrackerMainWindow</name>
         <message>
             <source>PaperEyeTrackerWindow</source>
-            <translation>페이퍼아이트래커 윈도우</translation>
+            <translation>PaperEyeTrackerWindow</translation>
         </message>
     </context>
     <context>
         <name>PaperTrackerMainWindow</name>
         <message>
             <source>PaperTrack</source>
-            <translation>페이퍼트랙</translation>
+            <translation>PaperTrack</translation>
         </message>
     </context>
     <context>
         <name>PaperTrackerMainWindow</name>
         <message>
             <source>PaperTrackerMainWindow</source>
-            <translation>페이퍼트래커 메인 윈도우</translation>
+            <translation>PaperTrackerMainWindow</translation>
         </message>
     </context>
     <context>
@@ -978,6 +978,69 @@
         <message>
             <source>有线模式眼追连接成功</source>
             <translation>아이트래킹 유선 모드 연결 성공</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>Wifi已连接</source>
+            <translation>Wifi 연결</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>没有设备连接</source>
+            <translation>장치 연결 없음</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>左眼设备已连接</source>
+            <translation>왼쪽 눈 장치 연결</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>右眼设备已连接</source>
+            <translation>오른쪽 눈 장치가 연결되었습니다</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>当前已经打开了眼追窗口，请不要重复打开</source>
+            <translation>눈 추적 창이 이미 열렸습니다. 다시 열지 마십시오</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>当前已经打开了面捕窗口，请不要重复打开</source>
+            <translation>얼굴 추적 창이 이미 열렸습니다. 다시 열지 마십시오</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>保存</source>
+            <translation>저장</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>取消</source>
+            <translation>취소</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>选择语言</source>
+            <translation>언어 선택</translation>
         </message>
     </context>
 </TS>

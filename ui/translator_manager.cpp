@@ -114,14 +114,14 @@ void LanguageThemeDialog::setupUI() {
     contentLayout->setContentsMargins(20, 10, 20, 10);
 
     // 语言选择区域
-    QLabel* languageLabel = new QLabel(tr("选择语言设置"), contentWidget);
+    QLabel* languageLabel = new QLabel(QApplication::translate("PaperTrackerMainWindow", "选择语言"), contentWidget);
     languageComboBox = new QComboBox(contentWidget);
     languageComboBox->setFixedHeight(30);
 
     // 按钮区域
     QHBoxLayout* buttonLayout = new QHBoxLayout();
-    applyButton = new QPushButton(tr("应用"));
-    cancelButton = new QPushButton(tr("取消"));
+    applyButton = new QPushButton(QApplication::translate("PaperTrackerMainWindow", "保存"));
+    cancelButton = new QPushButton(QApplication::translate("PaperTrackerMainWindow", "取消"));
     applyButton->setFixedHeight(32);
     cancelButton->setFixedHeight(32);
 
