@@ -1,11 +1,11 @@
 SourceKey	zh_CN	en_US	ja_JP	ko_KR
 <html><head/></head><body><p><span style=" color:#ffffff;">点击查看眼追说明书</span></p></body></html>	<html><head/></head><body><p><span style=" color:#ffffff;">点击查看眼追说明书</span></p></body></html>	Click to view eye tracking instructions	アイトラッキングのマニュアルを表示するにはクリック	아이트래킹 설명서를 보려면 클릭
 <html><head/></head><body><p><span style=" color:#ffffff;">点击查看面捕说明书</span></p></body></html>	<html><head/></head><body><p><span style=" color:#ffffff;">点击查看面捕说明书</span></p></body></html>	Click to view facial capture instructions	フェイシャルキャプチャのマニュアルを表示するにはクリック	페이셜 캡처 설명서를 보려면 클릭
-Based on Project Babble: https://babble.diy/	Based on Project Babble: https://babble.diy/	Based on Project Babble: https://babble.diy/	Project Babble: https://babble.diy/ 基準	프로젝트 바블 기반: https://babble.diy/
+Based on Project Babble: https://babble.diy/	Based on Project Babble: https://babble.diy/	Based on Project Babble: https://babble.diy/	Based on Project Babble: https://babble.diy/	Based on Project Babble: https://babble.diy/
 IP地址：	IP地址：	IP Address:	IPアドレス:	IP 주소:
-PaperEyeTrackerWindow	PaperEyeTrackerWindow	Paper Eye Tracker Window	ペーパーアイトラッカー ウィンドウ	페이퍼아이트래커 윈도우
-PaperTrack	PaperTrack	PaperTrack	PaperTrack	페이퍼트랙
-PaperTrackerMainWindow	PaperTrackerMainWindow	Paper Tracker Main Window	ペーパートラッカー メインウィンドウ	페이퍼트래커 메인 윈도우
+PaperEyeTrackerWindow	PaperEyeTrackerWindow	PaperEyeTrackerWindow	PaperEyeTrackerWindow	PaperEyeTrackerWindow
+PaperTrack	PaperTrack	PaperTrack	PaperTrack	PaperTrack
+PaperTrackerMainWindow	PaperTrackerMainWindow	PaperTrackerMainWindow	PaperTrackerMainWindow	PaperTrackerMainWindow
 VRCFT已成功启动	VRCFT已成功启动	VRCFT started successfully	VRCFTが正常に起動しました	VRCFT가 성공적으로 시작됨
 VRCFT已成功重启	VRCFT已成功重启	VRCFT restarted successfully	VRCFTが正常に再起動しました	VRCFT가 성공적으로 재시작됨
 x1	x1	x1	x1	x1
@@ -139,3 +139,12 @@ Wifi连接失败	Wifi连接失败	WiFi connection failed	WiFi接続失敗	WiFi �
 右眼眼皮控制双眼眼皮	右眼眼皮控制双眼眼皮	Right eye controls both eyelids	右目のまぶたが両方を制御	오른쪽 눈꺼풀이 양쪽 제어
 左眼眼皮控制双眼眼皮	左眼眼皮控制双眼眼皮	Left eye controls both eyelids	左目のまぶたが両方を制御	왼쪽 눈꺼풀이 양쪽 제어
 有线模式眼追连接成功	有线模式眼追连接成功	Eye tracking wired mode connected successfully	アイトラッキング有線モード接続成功	아이트래킹 유선 모드 연결 성공
+Wifi已连接	Wifi已连接	Wifi connected	Wifi接続済み	Wifi 연결
+没有设备连接	没有设备连接	No device connection	デバイス接続がありません	장치 연결 없음
+左眼设备已连接	左眼设备已连接	Left eye device connected	左眼デバイスが接続されている	왼쪽 눈 장치 연결
+右眼设备已连接	右眼设备已连接	Right eye device connected	右眼デバイスが接続されている	오른쪽 눈 장치가 연결되었습니다
+当前已经打开了眼追窗口，请不要重复打开	当前已经打开了眼追窗口，请不要重复打开	The eye tracking window has already been opened, please do not open it again	現在、アイキャッチウィンドウが開いていますので、繰り返し開かないでください	눈 추적 창이 이미 열렸습니다. 다시 열지 마십시오
+当前已经打开了面捕窗口，请不要重复打开	当前已经打开了面捕窗口，请不要重复打开	The face tracking window has already been opened, please do not open it again	フェイストラッキングウィンドウは既に開かれています。また開かないでください	얼굴 추적 창이 이미 열렸습니다. 다시 열지 마십시오
+保存	保存	Save	保存	저장
+取消	取消	Cancel	キャンセル	취소
+选择语言	选择语言	Select language	言語を選択	언어 선택

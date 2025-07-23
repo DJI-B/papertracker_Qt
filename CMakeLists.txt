@@ -41,7 +41,7 @@ endif()
 # set 3rd party lib path
 
 # Qt installation path - configurable option
-set(QT_INSTALL_PATH "D:/QtNew/6.8.2/msvc2022_64" CACHE PATH "Path to Qt installation directory")
+set(QT_INSTALL_PATH "C:/Qt/6.9.1/msvc2022_64" CACHE PATH "Path to Qt installation directory")
 
 if(EXISTS "${QT_INSTALL_PATH}")
     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${QT_INSTALL_PATH}")
@@ -327,11 +327,8 @@ add_library(
         ui
         ui/roi_event.cpp
         ui/face_tracker_window.cpp
-        ui/face_tracker_window.ui
         ui/main_window.cpp
-        ui/main_window.ui
         ui/eye_tracker_window.cpp
-        ui/eye_tracker_window.ui
         ui/translator_manager.cpp
         ui/include/translator_manager.h
 )
@@ -434,7 +431,7 @@ endif()
 # install dir model to the same dir as the executable
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/opencv/build/x64/vc16/bin/  DESTINATION ${CMAKE_BINARY_DIR})
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/3rdParty/esptools/  DESTINATION ${CMAKE_BINARY_DIR})
-#install(DIRECTORY "D:/QtMVSC/6.8.2/msvc2022_64/bin/"  DESTINATION ${CMAKE_BINARY_DIR})
+
 if (USE_CUDA AND CUDAToolkit_FOUND)
     
     # Install cuDNN DLLs

@@ -9,7 +9,6 @@
 #include <QMessageBox>
 #include <roi_event.hpp>
 
-#include "ui_eye_tracker_window.h"
 #include <QInputDialog>
 #include "tools.hpp"
 #include <algorithm>
@@ -20,7 +19,7 @@ PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
     if (instance == nullptr)
         instance = this;
     else
-        throw std::exception("当前已经打开了眼追窗口，请不要重复打开");
+        throw std::exception(QApplication::translate("PaperTrackerMainWindow", "当前已经打开了眼追窗口，请不要重复打开").toUtf8().constData());
     initUI();
     initLayout();
     setWindowFlags(windowFlags() | Qt::WindowMinimizeButtonHint);
@@ -1580,6 +1579,13 @@ void PaperEyeTrackerWindow::initLayout() {
 }
 
 void PaperEyeTrackerWindow::retranslateUI() {
+
+    for (int version = 0; version < EYE_NUM; ++version) {
+        updateWifiLabel(version);
+        updateBatteryStatus(version);
+    }
+    updateSerialLabel(current_esp32_version);
+
     LeftEyeTrackingLabel->setText(QApplication::translate("PaperTrackerMainWindow", "左眼跟踪"));
     RightEyeTrackingLabel->setText(QApplication::translate("PaperTrackerMainWindow", "右眼跟踪"));
     MainPageButton->setText(QApplication::translate("PaperTrackerMainWindow", "主页面"));
@@ -1815,10 +1821,11 @@ void PaperEyeTrackerWindow::start_image_download(int version) const {
 void PaperEyeTrackerWindow::updateWifiLabel(int version) {
     QMetaObject::invokeMethod(this, [this, version]() {
         // 安全地更新 UI
-        if (version == LEFT_TAG) {
-            LeftEyeWifiStatus->setText("左眼WIFI状态");  // 示例文本
-        } else if (version == RIGHT_TAG) {
-            RightEyeWifiStatus->setText("右眼WIFI状态");  // 示例文本
+        if (image_stream[version]->isStreaming()) {
+            setWifiStatusLabel(version, "Wifi已连接");
+        }
+        else {
+            setWifiStatusLabel(version, "Wifi连接失败");
         }
     }, Qt::QueuedConnection);
 }
@@ -2444,9 +2451,9 @@ void PaperEyeTrackerWindow::updatePageWidth()
             EnergyModelBox->ensurePolished();
 
             // 使用sizeHint获取更准确的建议尺寸
-            int labelWidth = label->sizeHint().width();
-            int labelWidth2 = label_3->sizeHint().width();
-            int comboWidth = EnergyModelBox->sizeHint().width();
+            int labelWidth = label->width();
+            int labelWidth2 = label_3->width();
+            int comboWidth = EnergyModelBox->width();
 
             // 更全面的宽度计算（包含所有关键元素）
             int totalWidth = comboWidth + labelWidth + labelWidth2 + SendButton->width() +

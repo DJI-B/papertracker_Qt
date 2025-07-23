@@ -8,7 +8,6 @@
 #include <eye_inference.hpp>
 #include <face_tracker_window.hpp>
 
-#include "ui_eye_tracker_window.h"
 #include "serial.hpp"
 #include "image_downloader.hpp"
 #include "osc.hpp"
@@ -161,7 +160,6 @@ private:
 
     // 更新按钮状态的方法
     void updateCalibrationButtonStates();
-    Ui::PaperEyeTrackerWindow ui{};
 
     std::shared_ptr<ESP32VideoStream> image_stream[EYE_NUM];
     std::shared_ptr<SerialPortManager> serial_port_;
