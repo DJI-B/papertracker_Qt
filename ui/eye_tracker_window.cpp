@@ -15,9 +15,6 @@
 #include <algorithm>
 #include <QFontMetrics>
 
-
-达达瓦的
-
 PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
     QWidget(parent) {
     if (instance == nullptr)

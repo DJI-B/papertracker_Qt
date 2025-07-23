@@ -59,12 +59,80 @@ jobs:
     # 飞书通知 - 构建失败时发送
     - name: Notify Feishu on failure
       if: failure()
+      shell: bash
       run: |
+        payload=$(cat <<EOF
+        {
+          "msg_type": "interactive",
+          "card": {
+            "elements": [
+              {
+                "tag": "div",
+                "text": {
+                  "content": "🚨 **PaperTracker CI构建失败**",
+                  "tag": "lark_md"
+                }
+              },
+              {
+                "tag": "div",
+                "fields": [
+                  {
+                    "is_short": true,
+                    "text": {
+                      "content": "**项目:**\n${{ github.repository }}",
+                      "tag": "lark_md"
+                    }
+                  },
+                  {
+                    "is_short": true,
+                    "text": {
+                      "content": "**分支:**\n${{ github.ref_name }}",
+                      "tag": "lark_md"
+                    }
+                  },
+                  {
+                    "is_short": true,
+                    "text": {
+                      "content": "**作者:**\n${{ github.actor }}",
+                      "tag": "lark_md"
+                    }
+                  },
+                  {
+                    "is_short": true,
+                    "text": {
+                      "content": "**提交:**\n\`${{ github.sha }}\`",
+                      "tag": "lark_md"
+                    }
+                  }
+                ]
+              },
+              {
+                "tag": "action",
+                "actions": [
+                  {
+                    "tag": "button",
+                    "text": {
+                      "content": "查看详情",
+                      "tag": "plain_text"
+                    },
+                    "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                    "type": "primary"
+                  }
+                ]
+              }
+            ],
+            "header": {
+              "title": {
+                "content": "CI构建失败通知",
+                "tag": "plain_text"
+              },
+              "template": "red"
+            }
+          }
+        }
+        EOF
+        )
+        
         curl -X POST "${{ secrets.FEISHU_WEBHOOK_URL }}" \
           -H "Content-Type: application/json" \
-          -d '{
-            "msg_type": "text",
-            "content": {
-              "text": "🚨 PaperTracker CI构建失败\n\n项目: ${{ github.repository }}\n分支: ${{ github.ref_name }}\n提交: ${{ github.sha }}\n作者: ${{ github.actor }}\n\n查看详情: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            }
-          }'
+          -d "$payload"
