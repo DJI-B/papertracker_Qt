@@ -38,7 +38,7 @@ PaperFaceTrackerWindow::PaperFaceTrackerWindow(QWidget *parent)
     if (instance == nullptr)
         instance = this;
     else
-        throw std::exception(QApplication::translate("PaperTrackerMainWindow", "当前已经打开了面捕窗口，请不要重复打开").toUtf8().constData());
+        throw std::exception(Translator::tr("当前已经打开了面捕窗口，请不要重复打开").toUtf8().constData());
     // 基本UI设置
     setFixedSize(848, 538);
     InitUi();
@@ -48,7 +48,7 @@ PaperFaceTrackerWindow::PaperFaceTrackerWindow(QWidget *parent)
     append_log_window(LogText);
     LOG_INFO("系统初始化中...");
     // 初始化串口连接状态
-    SerialConnectLabel->setText(QApplication::translate("PaperTrackerMainWindow", "有线模式未连接"));
+    SerialConnectLabel->setText(Translator::tr("有线模式未连接"));
     WifiConnectLabel->setText(tr("无线模式未连接"));
     // 初始化页面导航
     bound_pages();
@@ -144,12 +144,12 @@ PaperFaceTrackerWindow::PaperFaceTrackerWindow(QWidget *parent)
             if (version != 1)
             {
                 static bool version_warning = false;
-                QString version_str = version == 2 ? QApplication::translate("PaperTrackerMainWindow", "左眼追") : QApplication::translate("PaperTrackerMainWindow", "右眼追");
+                QString version_str = version == 2 ? Translator::tr("左眼追") : Translator::tr("右眼追");
                 if (!version_warning)
                 {
                     QMessageBox msgBox;
                     msgBox.setWindowIcon(this->windowIcon());
-                    msgBox.setText(QApplication::translate("PaperTrackerMainWindow", "检测到") + version_str + QApplication::translate("PaperTrackerMainWindow", "设备，请打开眼追界面进行设置"));
+                    msgBox.setText(Translator::tr("检测到") + version_str + Translator::tr("设备，请打开眼追界面进行设置"));
                     msgBox.exec();
                     version_warning = true;
                 }
@@ -196,7 +196,7 @@ PaperFaceTrackerWindow::PaperFaceTrackerWindow(QWidget *parent)
         {
             QMessageBox msgBox;
             msgBox.setWindowIcon(this->windowIcon());
-            msgBox.setText(QApplication::translate("PaperTrackerMainWindow", "未找到配置文件信息，请将面捕通过数据线连接到电脑进行首次配置"));
+            msgBox.setText(Translator::tr("未找到配置文件信息，请将面捕通过数据线连接到电脑进行首次配置"));
             msgBox.exec();
         }
     } else
@@ -417,7 +417,7 @@ void PaperFaceTrackerWindow::InitUi() {
     // 添加教程链接文本
     tutorialLink = new QLabel(page);
     tutorialLink->setText(QString("<a href='https://fcnk6r4c64fa.feishu.cn/wiki/VSlnw4Zr0i4VzXFkvT8TcbQFMn7c' style='color: #0066cc; font-size: 14pt; font-weight: bold;'>%1</a>")
-                          .arg(QApplication::translate("PaperTrackerMainWindow", "面捕调整教程")));
+                          .arg(Translator::tr("面捕调整教程")));
     tutorialLink->setOpenExternalLinks(true);
     tutorialLink->setTextFormat(Qt::RichText);
     tutorialLink->setStyleSheet("background-color: #f0f0f0; padding: 5px; border-radius: 5px;");
@@ -507,9 +507,9 @@ void PaperFaceTrackerWindow::InitLayout() {
     // 模式选择
     auto* modeLayout = new QHBoxLayout();
     modeLayout->setSpacing(8);
-    EnergyModeBox->addItem(QApplication::translate("PaperTrackerMainWindow", "普通模式"));
-    EnergyModeBox->addItem(QApplication::translate("PaperTrackerMainWindow", "节能模式"));
-    EnergyModeBox->addItem(QApplication::translate("PaperTrackerMainWindow", "性能模式"));
+    EnergyModeBox->addItem(Translator::tr("普通模式"));
+    EnergyModeBox->addItem(Translator::tr("节能模式"));
+    EnergyModeBox->addItem(Translator::tr("性能模式"));
     EnergyModeBox->setCurrentIndex(0);
     modeLayout->addWidget(label_18);
     modeLayout->addWidget(EnergyModeBox);
@@ -666,10 +666,10 @@ void PaperFaceTrackerWindow::setVideoImage(const cv::Mat& image)
         {
             if (stackedWidget->currentIndex() == 0) {
                 ImageLabel->clear(); // 清除图片
-                ImageLabel->setText(QApplication::translate("PaperTrackerMainWindow", "没有图像输入")); // 恢复默认文本
+                ImageLabel->setText(Translator::tr("没有图像输入")); // 恢复默认文本
             } else if (stackedWidget->currentIndex() == 1) {
                 ImageLabelCal->clear(); // 清除图片
-                ImageLabelCal->setText(QApplication::translate("PaperTrackerMainWindow", "没有图像输入"));
+                ImageLabelCal->setText(Translator::tr("没有图像输入"));
             }
         }, Qt::QueuedConnection);
         return ;
@@ -735,11 +735,11 @@ bool PaperFaceTrackerWindow::eventFilter(QObject *obj, QEvent *event)
     if (event->type() == QEvent::FocusOut) {
         if (obj == SSIDText) {
             if (SSIDText->toPlainText().isEmpty()) {
-                SSIDText->setPlainText(QApplication::translate("PaperTrackerMainWindow", "请输入WIFI名字（仅支持2.4ghz）"));
+                SSIDText->setPlainText(Translator::tr("请输入WIFI名字（仅支持2.4ghz）"));
             }
         } else if (obj == PasswordText) {
             if (PasswordText->toPlainText().isEmpty()) {
-                PasswordText->setPlainText(QApplication::translate("PaperTrackerMainWindow", "请输入WIFI密码"));
+                PasswordText->setPlainText(Translator::tr("请输入WIFI密码"));
             }
         }
     }
@@ -901,12 +901,12 @@ void PaperFaceTrackerWindow::setOnUseFilterClickedFunc(FuncWithVal func)
 
 void PaperFaceTrackerWindow::setSerialStatusLabel(const QString& text) const
 {
-    SerialConnectLabel->setText(QApplication::translate("PaperTrackerMainWindow", text.toUtf8().constData()));
+    SerialConnectLabel->setText(Translator::tr(text.toUtf8().constData()));
 }
 
 void PaperFaceTrackerWindow::setWifiStatusLabel(const QString& text) const
 {
-    WifiConnectLabel->setText(QApplication::translate("PaperTrackerMainWindow", text.toUtf8().constData()));
+    WifiConnectLabel->setText(Translator::tr(text.toUtf8().constData()));
 }
 
 void PaperFaceTrackerWindow::setIPText(const QString& text) const
@@ -941,13 +941,13 @@ void PaperFaceTrackerWindow::onSendButtonClicked()
     auto ssid = getSSID();
     auto password = getPassword();
     // 输入验证
-    if (ssid == QApplication::translate("PaperTrackerMainWindow", "请输入WIFI名字（仅支持2.4ghz）").toStdString() || ssid.empty()) {
-        QMessageBox::warning(this, QApplication::translate("PaperTrackerMainWindow", "输入错误"), QApplication::translate("PaperTrackerMainWindow", "请输入有效的WIFI名字"));
+    if (ssid == Translator::tr("请输入WIFI名字（仅支持2.4ghz）").toStdString() || ssid.empty()) {
+        QMessageBox::warning(this, Translator::tr("输入错误"), Translator::tr("请输入有效的WIFI名字"));
         return;
     }
 
-    if (password == QApplication::translate("PaperTrackerMainWindow", "请输入WIFI密码").toStdString() || password.empty()) {
-        QMessageBox::warning(this, QApplication::translate("PaperTrackerMainWindow", "输入错误"), QApplication::translate("PaperTrackerMainWindow", "请输入有效的密码"));
+    if (password == Translator::tr("请输入WIFI密码").toStdString() || password.empty()) {
+        QMessageBox::warning(this, Translator::tr("输入错误"), Translator::tr("请输入有效的密码"));
         return;
     }
 
@@ -1487,12 +1487,12 @@ void PaperFaceTrackerWindow::updateBatteryStatus() const
     if (image_downloader && image_downloader->isStreaming())
     {
         float battery = image_downloader->getBatteryPercentage();
-        QString batteryText = QString(QApplication::translate("PaperTrackerMainWindow", "电池电量: %1%").arg(battery, 0, 'f', 1));
+        QString batteryText = QString(Translator::tr("电池电量: %1%").arg(battery, 0, 'f', 1));
         BatteryStatusLabel->setText(batteryText);
     }
     else
     {
-        BatteryStatusLabel->setText(QApplication::translate("PaperTrackerMainWindow", "电池电量: 未知"));
+        BatteryStatusLabel->setText(Translator::tr("电池电量: 未知"));
     }
 }
 void PaperFaceTrackerWindow::create_sub_threads()
@@ -1725,10 +1725,10 @@ void PaperFaceTrackerWindow::onShowSerialDataButtonClicked()
     showSerialData = !showSerialData;
     if (showSerialData) {
         LOG_INFO("已开启串口原始数据显示");
-        ShowSerialDataButton->setText(QApplication::translate("PaperTrackerMainWindow", "停止显示串口数据"));
+        ShowSerialDataButton->setText(Translator::tr("停止显示串口数据"));
     } else {
         LOG_INFO("已关闭串口原始数据显示");
-        ShowSerialDataButton->setText(QApplication::translate("PaperTrackerMainWindow", "显示串口数据"));
+        ShowSerialDataButton->setText(Translator::tr("显示串口数据"));
     }
 }
 
@@ -1760,9 +1760,9 @@ void PaperFaceTrackerWindow::setupKalmanFilterControls() {
 
     // 说明标签
     helpLabel = new QLabel(page_2);
-    auto str1 = QApplication::translate("PaperTrackerMainWindow", "调整建议:");
-    auto str2 = QApplication::translate("PaperTrackerMainWindow", "增大q值, 减小r值: 更灵敏, 抖动更明显");
-    auto str3 = QApplication::translate("PaperTrackerMainWindow", "减小q值, 增大r值: 更平滑, 反应更滞后");
+    auto str1 = Translator::tr("调整建议:");
+    auto str2 = Translator::tr("增大q值, 减小r值: 更灵敏, 抖动更明显");
+    auto str3 = Translator::tr("减小q值, 增大r值: 更平滑, 反应更滞后");
     helpLabel->setText(str1 + "\n" + str2 + "\n" + str3);
     helpLabel->setWordWrap(true);
 
@@ -1853,74 +1853,74 @@ void PaperFaceTrackerWindow::retranslateUI()
         updateBatteryStatus();
     }
     // 更新主页面按钮文本
-    MainPageButton->setText(QApplication::translate("PaperTrackerMainWindow", "主页"));
+    MainPageButton->setText(Translator::tr("主页"));
     // 更新校准页面按钮文本
-    CalibrationPageButton->setText(QApplication::translate("PaperTrackerMainWindow", "标定页面"));
+    CalibrationPageButton->setText(Translator::tr("标定页面"));
 
     if (!ImageLabel->text().isEmpty()) {
-        ImageLabel->setText(QApplication::translate("PaperTrackerMainWindow", "没有图像输入"));
+        ImageLabel->setText(Translator::tr("没有图像输入"));
     }
 
-    restart_Button->setText(QApplication::translate("PaperTrackerMainWindow", "重启"));
-    FlashFirmwareButton->setText(QApplication::translate("PaperTrackerMainWindow", "刷写固件"));
-    label->setText(QApplication::translate("PaperTrackerMainWindow", "亮度调整"));
-    label_2->setText(QApplication::translate("PaperTrackerMainWindow", "日志窗口："));
-    label_16->setText(QApplication::translate("PaperTrackerMainWindow", "IP地址："));
-    label_17->setText(QApplication::translate("PaperTrackerMainWindow", "旋转角度调整"));
-    label_18->setText(QApplication::translate("PaperTrackerMainWindow", "性能模式选择"));
-    ShowSerialDataButton->setText(QApplication::translate("PaperTrackerMainWindow", "串口日志"));
-    SSIDText->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "请输入WIFI名字（仅支持2.4ghz）"));
-    PasswordText->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "请输入WIFI密码"));
-    wifi_send_Button->setText(QApplication::translate("PaperTrackerMainWindow", "发送"));
-    UseFilterBox->setText(QApplication::translate("PaperTrackerMainWindow", "启用滤波（减少抖动）"));
-    EnergyModeBox->setItemText(0, QApplication::translate("PaperTrackerMainWindow", "普通模式"));
-    EnergyModeBox->setItemText(1, QApplication::translate("PaperTrackerMainWindow", "节能模式"));
-    EnergyModeBox->setItemText(2, QApplication::translate("PaperTrackerMainWindow", "性能模式"));
+    restart_Button->setText(Translator::tr("重启"));
+    FlashFirmwareButton->setText(Translator::tr("刷写固件"));
+    label->setText(Translator::tr("亮度调整"));
+    label_2->setText(Translator::tr("日志窗口："));
+    label_16->setText(Translator::tr("IP地址："));
+    label_17->setText(Translator::tr("旋转角度调整"));
+    label_18->setText(Translator::tr("性能模式选择"));
+    ShowSerialDataButton->setText(Translator::tr("串口日志"));
+    SSIDText->setPlaceholderText(Translator::tr("请输入WIFI名字（仅支持2.4ghz）"));
+    PasswordText->setPlaceholderText(Translator::tr("请输入WIFI密码"));
+    wifi_send_Button->setText(Translator::tr("发送"));
+    UseFilterBox->setText(Translator::tr("启用滤波（减少抖动）"));
+    EnergyModeBox->setItemText(0, Translator::tr("普通模式"));
+    EnergyModeBox->setItemText(1, Translator::tr("节能模式"));
+    EnergyModeBox->setItemText(2, Translator::tr("性能模式"));
 
-    label_11->setText(QApplication::translate("PaperTrackerMainWindow", "嘴右移"));
-    label_10->setText(QApplication::translate("PaperTrackerMainWindow", "嘴左移"));
-    label_9->setText(QApplication::translate("PaperTrackerMainWindow", "下巴右移"));
-    label_8->setText(QApplication::translate("PaperTrackerMainWindow", "下巴左移"));
-    label_7 ->setText(QApplication::translate("PaperTrackerMainWindow", "下巴下移"));
-    label_6->setText(QApplication::translate("PaperTrackerMainWindow", "右脸颊"));
-    label_5->setText(QApplication::translate("PaperTrackerMainWindow", "左脸颊"));
-    label_14->setText(QApplication::translate("PaperTrackerMainWindow", "舌头向下"));
-    label_15->setText(QApplication::translate("PaperTrackerMainWindow", "舌头向左"));
-    label_12->setText(QApplication::translate("PaperTrackerMainWindow", "舌头伸出"));
-    label_13->setText(QApplication::translate("PaperTrackerMainWindow", "舌头向上"));
-    label_31->setText(QApplication::translate("PaperTrackerMainWindow", "舌头向右"));
+    label_11->setText(Translator::tr("嘴右移"));
+    label_10->setText(Translator::tr("嘴左移"));
+    label_9->setText(Translator::tr("下巴右移"));
+    label_8->setText(Translator::tr("下巴左移"));
+    label_7 ->setText(Translator::tr("下巴下移"));
+    label_6->setText(Translator::tr("右脸颊"));
+    label_5->setText(Translator::tr("左脸颊"));
+    label_14->setText(Translator::tr("舌头向下"));
+    label_15->setText(Translator::tr("舌头向左"));
+    label_12->setText(Translator::tr("舌头伸出"));
+    label_13->setText(Translator::tr("舌头向上"));
+    label_31->setText(Translator::tr("舌头向右"));
 
-    label_mouthClose->setText(QApplication::translate("PaperTrackerMainWindow", "嘴闭合"));
-    label_mouthFunnel->setText(QApplication::translate("PaperTrackerMainWindow", "嘴漏斗形"));
-    label_mouthPucker->setText(QApplication::translate("PaperTrackerMainWindow", "嘴撅起"));
-    label_mouthRollUpper->setText(QApplication::translate("PaperTrackerMainWindow", "上唇内卷"));
-    label_mouthRollLower->setText(QApplication::translate("PaperTrackerMainWindow", "下唇内卷"));
-    label_mouthShrugUpper->setText(QApplication::translate("PaperTrackerMainWindow", "上唇耸起"));
-    label_mouthShrugLower->setText(QApplication::translate("PaperTrackerMainWindow", "下唇耸起"));
+    label_mouthClose->setText(Translator::tr("嘴闭合"));
+    label_mouthFunnel->setText(Translator::tr("嘴漏斗形"));
+    label_mouthPucker->setText(Translator::tr("嘴撅起"));
+    label_mouthRollUpper->setText(Translator::tr("上唇内卷"));
+    label_mouthRollLower->setText(Translator::tr("下唇内卷"));
+    label_mouthShrugUpper->setText(Translator::tr("上唇耸起"));
+    label_mouthShrugLower->setText(Translator::tr("下唇耸起"));
 
-    dtLabel->setText(QApplication::translate("PaperTrackerMainWindow", "时间步长(dt):"));
-    qFactorLabel->setText(QApplication::translate("PaperTrackerMainWindow", "过程噪声系数(q):"));
-    rFactorLabel->setText(QApplication::translate("PaperTrackerMainWindow", "测量噪声系数(r):"));
+    dtLabel->setText(Translator::tr("时间步长(dt):"));
+    qFactorLabel->setText(Translator::tr("过程噪声系数(q):"));
+    rFactorLabel->setText(Translator::tr("测量噪声系数(r):"));
 
-    label_3->setText(QApplication::translate("PaperTrackerMainWindow", "放大倍率"));
-    label_20->setText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
-    CheekPuffLeftOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
-    CheekPuffRightOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
-    JawOpenOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
-    TongueOutOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
-    MouthCloseOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
-    MouthFunnelOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
-    MouthPuckerOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
-    MouthRollUpperOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
-    MouthRollLowerOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
-    MouthShrugUpperOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
-    MouthShrugLowerOffset->setPlaceholderText(QApplication::translate("PaperTrackerMainWindow", "偏置值"));
+    label_3->setText(Translator::tr("放大倍率"));
+    label_20->setText(Translator::tr("偏置值"));
+    CheekPuffLeftOffset->setPlaceholderText(Translator::tr("偏置值"));
+    CheekPuffRightOffset->setPlaceholderText(Translator::tr("偏置值"));
+    JawOpenOffset->setPlaceholderText(Translator::tr("偏置值"));
+    TongueOutOffset->setPlaceholderText(Translator::tr("偏置值"));
+    MouthCloseOffset->setPlaceholderText(Translator::tr("偏置值"));
+    MouthFunnelOffset->setPlaceholderText(Translator::tr("偏置值"));
+    MouthPuckerOffset->setPlaceholderText(Translator::tr("偏置值"));
+    MouthRollUpperOffset->setPlaceholderText(Translator::tr("偏置值"));
+    MouthRollLowerOffset->setPlaceholderText(Translator::tr("偏置值"));
+    MouthShrugUpperOffset->setPlaceholderText(Translator::tr("偏置值"));
+    MouthShrugLowerOffset->setPlaceholderText(Translator::tr("偏置值"));
 
     tutorialLink->setText(QString("<a href='https://fcnk6r4c64fa.feishu.cn/wiki/VSlnw4Zr0i4VzXFkvT8TcbQFMn7c' style='color: #0066cc; font-size: 14pt; font-weight: bold;'>%1</a>")
-                          .arg(QApplication::translate("PaperTrackerMainWindow", "面捕调整教程")));
+                          .arg(Translator::tr("面捕调整教程")));
 
-    auto str1 = QApplication::translate("PaperTrackerMainWindow", "调整建议:");
-    auto str2 = QApplication::translate("PaperTrackerMainWindow", "增大q值, 减小r值: 更灵敏, 抖动更明显");
-    auto str3 = QApplication::translate("PaperTrackerMainWindow", "减小q值, 增大r值: 更平滑, 反应更滞后");
+    auto str1 = Translator::tr("调整建议:");
+    auto str2 = Translator::tr("增大q值, 减小r值: 更灵敏, 抖动更明显");
+    auto str3 = Translator::tr("减小q值, 增大r值: 更平滑, 反应更滞后");
     helpLabel->setText(str1 + "\n" + str2 + "\n" + str3);
 }

@@ -19,7 +19,7 @@ PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
     if (instance == nullptr)
         instance = this;
     else
-        throw std::exception(QApplication::translate("PaperTrackerMainWindow", "当前已经打开了眼追窗口，请不要重复打开").toUtf8().constData());
+        throw std::exception(Translator::tr("当前已经打开了眼追窗口，请不要重复打开").toUtf8().constData());
     initUI();
     initLayout();
     setWindowFlags(windowFlags() | Qt::WindowMinimizeButtonHint);
@@ -138,31 +138,6 @@ PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
     }
     else {
         LOG_ERROR("OSC初始化失败，请检查网络连接");
-    }
-    for (int i = 0; i < EYE_NUM; i++) {
-        // 设置默认校准值
-        eye_calib_data[i].calib_XOFF = 261 / 2.0;  // 假设ROI宽度为261
-        eye_calib_data[i].calib_YOFF = 261 / 2.0;  // 假设ROI高度为261
-        eye_calib_data[i].calib_XMIN = 0;
-        eye_calib_data[i].calib_XMAX = 261;
-        eye_calib_data[i].calib_YMIN = 0;
-        eye_calib_data[i].calib_YMAX = 261;
-
-        // 如果已有校准数据（例如从配置文件加载），可以在这里设置has_calibration = true
-        eye_calib_data[i].has_calibration = false;
-    }
-
-    // 设置轴翻转配置，可根据需要调整
-    flip_x_axis[LEFT_TAG] = false;
-    flip_x_axis[RIGHT_TAG] = true;  // 右眼可能需要翻转X轴
-    flip_y_axis = false;  // 根据您的坐标系决定是否需要翻转Y轴
-    // 在构造函数中初始化校准数据
-    for (int i = 0; i < EYE_NUM; i++) {
-        eye_calib_data[i].calib_XMIN = 9999999;
-        eye_calib_data[i].calib_XMAX = -9999999;
-        eye_calib_data[i].calib_YMIN = 9999999;
-        eye_calib_data[i].calib_YMAX = -9999999;
-        eye_calib_data[i].has_calibration = false;
     }
 
     // 初始化串口和wifi
@@ -297,11 +272,11 @@ void PaperEyeTrackerWindow::setVideoImage(int version, const cv::Mat& image) {
     if (image.empty()) {
         QMetaObject::invokeMethod(this, [this, image_label, setting_image_label]() {
             image_label->clear(); // 清除图片
-            image_label->setText(QApplication::translate("PaperTrackerMainWindow", "没有图像输入"));
+            image_label->setText(Translator::tr("没有图像输入"));
 
             if (setting_image_label) {
                 setting_image_label->clear();
-                setting_image_label->setText(QApplication::translate("PaperTrackerMainWindow", "没有图像输入"));
+                setting_image_label->setText(Translator::tr("没有图像输入"));
             }
             }, Qt::QueuedConnection);
         return;
@@ -1341,10 +1316,10 @@ void PaperEyeTrackerWindow::initUI() {
 
     // 添加标签
     leftAdjustLabel = new QLabel(page_2);
-    leftAdjustLabel->setText(QApplication::translate("PaperTrackerMainWindow", "调整:"));
+    leftAdjustLabel->setText(Translator::tr("调整:"));
 
     rightAdjustLabel = new QLabel(page_2);
-    rightAdjustLabel->setText(QApplication::translate("PaperTrackerMainWindow", "调整:"));
+    rightAdjustLabel->setText(Translator::tr("调整:"));
 
     // 连接信号和槽
     connect(leftIncButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onLeftEyeValueIncrease);
@@ -1586,56 +1561,56 @@ void PaperEyeTrackerWindow::retranslateUI() {
     }
     updateSerialLabel(current_esp32_version);
 
-    LeftEyeTrackingLabel->setText(QApplication::translate("PaperTrackerMainWindow", "左眼跟踪"));
-    RightEyeTrackingLabel->setText(QApplication::translate("PaperTrackerMainWindow", "右眼跟踪"));
-    MainPageButton->setText(QApplication::translate("PaperTrackerMainWindow", "主页面"));
-    SettingButton->setText(QApplication::translate("PaperTrackerMainWindow", "设置"));
+    LeftEyeTrackingLabel->setText(Translator::tr("左眼跟踪"));
+    RightEyeTrackingLabel->setText(Translator::tr("右眼跟踪"));
+    MainPageButton->setText(Translator::tr("主页面"));
+    SettingButton->setText(Translator::tr("设置"));
 
-    settingsCalibrateButton->setText(QApplication::translate("PaperTrackerMainWindow", "开始眼球位置校准"));
-    settingsCenterButton->setText(QApplication::translate("PaperTrackerMainWindow", "标定眼球中心"));
-    settingsEyeOpenButton->setText(QApplication::translate("PaperTrackerMainWindow", "标定眼睛完全张开"));
-    settingsEyeCloseButton->setText(QApplication::translate("PaperTrackerMainWindow", "标定眼睛完全闭合"));
+    settingsCalibrateButton->setText(Translator::tr("开始眼球位置校准"));
+    settingsCenterButton->setText(Translator::tr("标定眼球中心"));
+    settingsEyeOpenButton->setText(Translator::tr("标定眼睛完全张开"));
+    settingsEyeCloseButton->setText(Translator::tr("标定眼睛完全闭合"));
     QStringList ButtonStr;
-    ButtonStr << QApplication::translate("PaperTrackerMainWindow", "开始眼球位置校准")
-           << QApplication::translate("PaperTrackerMainWindow", "标定眼球中心")
-           << QApplication::translate("PaperTrackerMainWindow", "标定眼睛完全张开")
-           << QApplication::translate("PaperTrackerMainWindow", "标定眼睛完全闭合");
+    ButtonStr << Translator::tr("开始眼球位置校准")
+           << Translator::tr("标定眼球中心")
+           << Translator::tr("标定眼睛完全张开")
+           << Translator::tr("标定眼睛完全闭合");
     setFixedWidthBasedONLongestText(settingsCalibrateButton, ButtonStr);
     setFixedWidthBasedONLongestText(settingsCenterButton, ButtonStr);
     setFixedWidthBasedONLongestText(settingsEyeOpenButton, ButtonStr);
     setFixedWidthBasedONLongestText(settingsEyeCloseButton, ButtonStr);
 
 
-    LeftEyeOpennessLabel->setText(QApplication::translate("PaperTrackerMainWindow", "左眼开合度"));
-    RightEyeOpennessLabel->setText(QApplication::translate("PaperTrackerMainWindow", "右眼开合度"));
-    LeftEyeImage->setText(QApplication::translate("PaperTrackerMainWindow", "没有图像输入"));
-    RightEyeImage->setText(QApplication::translate("PaperTrackerMainWindow", "没有图像输入"));
-    label_4->setText(QApplication::translate("PaperTrackerMainWindow", "左眼补光"));
-    label_5->setText(QApplication::translate("PaperTrackerMainWindow", "右眼补光"));
-    LeftRotateLabel->setText(QApplication::translate("PaperTrackerMainWindow", "左眼旋转角度"));
-    RightRotateLabel->setText(QApplication::translate("PaperTrackerMainWindow", "右眼旋转角度"));
-    SendButton->setText(QApplication::translate("PaperTrackerMainWindow", "发送"));
-    RestartButton->setText(QApplication::translate("PaperTrackerMainWindow", "重启"));
-    FlashButton->setText(QApplication::translate("PaperTrackerMainWindow", "刷写固件"));
-    label_3->setText(QApplication::translate("PaperTrackerMainWindow", "模式选择"));
-    label->setText(QApplication::translate("PaperTrackerMainWindow", "左眼IP"));
-    label_2->setText(QApplication::translate("PaperTrackerMainWindow", "右眼IP"));
-    EnergyModelBox->setItemText(0, QApplication::translate("PaperTrackerMainWindow", "普通模式"));
-    EnergyModelBox->setItemText(1, QApplication::translate("PaperTrackerMainWindow", "节能模式"));
-    EnergyModelBox->setItemText(2, QApplication::translate("PaperTrackerMainWindow", "性能模式"));
+    LeftEyeOpennessLabel->setText(Translator::tr("左眼开合度"));
+    RightEyeOpennessLabel->setText(Translator::tr("右眼开合度"));
+    LeftEyeImage->setText(Translator::tr("没有图像输入"));
+    RightEyeImage->setText(Translator::tr("没有图像输入"));
+    label_4->setText(Translator::tr("左眼补光"));
+    label_5->setText(Translator::tr("右眼补光"));
+    LeftRotateLabel->setText(Translator::tr("左眼旋转角度"));
+    RightRotateLabel->setText(Translator::tr("右眼旋转角度"));
+    SendButton->setText(Translator::tr("发送"));
+    RestartButton->setText(Translator::tr("重启"));
+    FlashButton->setText(Translator::tr("刷写固件"));
+    label_3->setText(Translator::tr("模式选择"));
+    label->setText(Translator::tr("左眼IP"));
+    label_2->setText(Translator::tr("右眼IP"));
+    EnergyModelBox->setItemText(0, Translator::tr("普通模式"));
+    EnergyModelBox->setItemText(1, Translator::tr("节能模式"));
+    EnergyModelBox->setItemText(2, Translator::tr("性能模式"));
     QStringList items;
-    items << QApplication::translate("PaperTrackerMainWindow", "普通模式")
-           << QApplication::translate("PaperTrackerMainWindow", "节能模式")
-           << QApplication::translate("PaperTrackerMainWindow", "性能模式");
+    items << Translator::tr("普通模式")
+           << Translator::tr("节能模式")
+           << Translator::tr("性能模式");
 
     setFixedWidthBasedONLongestText(EnergyModelBox, items);
-    eyeSyncComboBox->setItemText(0, QApplication::translate("PaperTrackerMainWindow", "双眼眼皮独立控制"));
-    eyeSyncComboBox->setItemText(1, QApplication::translate("PaperTrackerMainWindow", "左眼眼皮控制双眼眼皮"));
-    eyeSyncComboBox->setItemText(2, QApplication::translate("PaperTrackerMainWindow", "右眼眼皮控制双眼眼皮"));
+    eyeSyncComboBox->setItemText(0, Translator::tr("双眼眼皮独立控制"));
+    eyeSyncComboBox->setItemText(1, Translator::tr("左眼眼皮控制双眼眼皮"));
+    eyeSyncComboBox->setItemText(2, Translator::tr("右眼眼皮控制双眼眼皮"));
     QStringList items2;
-    items2 << QApplication::translate("PaperTrackerMainWindow", "双眼眼皮独立控制")
-           << QApplication::translate("PaperTrackerMainWindow", "左眼眼皮控制双眼眼皮")
-           << QApplication::translate("PaperTrackerMainWindow", "右眼眼皮控制双眼眼皮");
+    items2 << Translator::tr("双眼眼皮独立控制")
+           << Translator::tr("左眼眼皮控制双眼眼皮")
+           << Translator::tr("右眼眼皮控制双眼眼皮");
     setFixedWidthBasedONLongestText(eyeSyncComboBox, items2);
     this->adjustSize();
     updatePageWidth();
@@ -1755,6 +1730,20 @@ void PaperEyeTrackerWindow::set_config() {
     flip_x_axis[LEFT_TAG] = config.left_flip_x;
     flip_x_axis[RIGHT_TAG] = config.right_flip_x;
     flip_y_axis = config.flip_y;
+
+    // 检查并设置默认校准值（仅在校准数据无效时）
+    for (int i = 0; i < EYE_NUM; i++) {
+        if (!eye_calib_data[i].has_calibration) {
+            // 设置默认校准值
+            eye_calib_data[i].calib_XOFF = 261 / 2.0;  // 假设ROI宽度为261
+            eye_calib_data[i].calib_YOFF = 261 / 2.0;  // 假设ROI高度为261
+            eye_calib_data[i].calib_XMIN = 0;
+            eye_calib_data[i].calib_XMAX = 261;
+            eye_calib_data[i].calib_YMIN = 0;
+            eye_calib_data[i].calib_YMAX = 261;
+            flip_x_axis[i] = i==RIGHT_TAG;
+        }
+    }
 
     // 加载旋转角度
     LeftRotateBar->setValue(config.left_rotate_angle);
