@@ -44,6 +44,10 @@ PaperFaceTrackerWindow::PaperFaceTrackerWindow(QWidget *parent)
     initUi();
     initializeParameters();
     initLayout();
+    // 初始化校准超时计时器
+    calibrationTimer = new QTimer(this);
+    connect(calibrationTimer, &QTimer::timeout, this, &PaperFaceTrackerWindow::onCalibrationTimeout);
+
     setWindowFlags(windowFlags() | Qt::WindowMinimizeButtonHint);
     LogText->setMaximumBlockCount(200);
     append_log_window(LogText);
@@ -809,7 +813,19 @@ void PaperFaceTrackerWindow::onCalibrationStartClicked()
     calibrationStopButton->setEnabled(true);
     calibrationResetButton->setEnabled(false);
 
+    // 启动60秒超时计时器
+    calibrationTimer->start(60000); // 60秒 = 60000毫秒
+
     LOG_INFO("校准开始，参数设置区域已禁用");
+}
+
+// 添加校准超时处理函数
+void PaperFaceTrackerWindow::onCalibrationTimeout()
+{
+    // 停止校准
+    onCalibrationStopClicked();
+
+    LOG_INFO("校准超时(60秒)，自动停止校准");
 }
 
 void PaperFaceTrackerWindow::onCalibrationStopClicked() {
@@ -2270,6 +2286,10 @@ void PaperFaceTrackerWindow::retranslateUI()
     calibrationModeLabel->setText(Translator::tr("校准模式") + ":");
     calibrationModeComboBox->setItemText(0, Translator::tr("自然模式"));
     calibrationModeComboBox->setItemText(1, Translator::tr("完整模式"));
+    // 添加tooltip
+    calibrationModeComboBox->setItemData(0, Translator::tr("放松面部，保持无表情的静默状态，以获取最准确的参数"), Qt::ToolTipRole);
+    calibrationModeComboBox->setItemData(1, Translator::tr("做出尽可能多的面部表情，保持动作自然，不要特别夸张的表情"), Qt::ToolTipRole);
+
     calibrationStartButton->setText(Translator::tr("开始校准"));
     calibrationStopButton->setText(Translator::tr("停止校准"));
     calibrationResetButton->setText(Translator::tr("重置"));
@@ -2335,11 +2355,6 @@ void PaperFaceTrackerWindow::updatePageWidth()
 
 void PaperFaceTrackerWindow::collectData(const std::vector<float> &output,
     const std::unordered_map<std::string, size_t> &blendShapeIndexMap) {
-    // 限制最大样本数
-    if (calibration_sample_count >= MAX_CALIBRATION_SAMPLES) {
-        return;
-    }
-
 
     // 收集每个启用的参数的数据
     for (const auto& paramName : parameterOrder) {

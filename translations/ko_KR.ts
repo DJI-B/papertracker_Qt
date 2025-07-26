@@ -1099,4 +1099,18 @@
             <translation>교정 모드</translation>
         </message>
     </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>放松面部，保持无表情的静默状态，以获取最准确的参数</source>
+            <translation>가장 정확한 매개 변수를 얻기 위해 얼굴을 편안하게 하고 무표정한 침묵 상태를 유지하십시오</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>做出尽可能多的面部表情，保持动作自然，不要特别夸张的表情</source>
+            <translation>가능한 한 많은 얼굴 표정을 짓고, 동작을 자연스럽게 유지하며, 특별히 과장된 표정은 하지 마라</translation>
+        </message>
+    </context>
 </TS>

@@ -231,6 +231,9 @@ private slots:
     // 设置卡尔曼滤波参数控制UI
     void setupKalmanFilterControls();
     void onCalibrationStartClicked();
+
+    void onCalibrationTimeout();
+
     void onCalibrationStopClicked();
 
 private:
@@ -503,7 +506,8 @@ protected:
     std::unordered_map<std::string, std::vector<float>> calibration_data; // 校准数据存储
     std::unordered_map<std::string, float> calibration_offsets;           // 计算出的偏置值
     int calibration_sample_count = 0;                // 校准样本计数
-    const int MAX_CALIBRATION_SAMPLES = 1000;         // 最大校准样本数
+    QTimer* calibrationTimer;  // 校准超时计时器
+
     std::unordered_map<std::string, float> calibration_amp_ratios;
     std::unordered_map<QString, ParameterInfo> parameterMap;
     std::vector<QString> parameterOrder;

@@ -1099,4 +1099,18 @@
             <translation>キャリブレーションモード</translation>
         </message>
     </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>放松面部，保持无表情的静默状态，以获取最准确的参数</source>
+            <translation>顔をリラックスさせ、最も正確なパラメータを得るために無表情なサイレント状態を維持します</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>做出尽可能多的面部表情，保持动作自然，不要特别夸张的表情</source>
+            <translation>できるだけ多くの顔の表情を作って、動作を自然にして、特に誇張した表情をしないでください</translation>
+        </message>
+    </context>
 </TS>

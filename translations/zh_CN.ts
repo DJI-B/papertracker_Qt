@@ -1099,4 +1099,18 @@
             <translation>校准模式</translation>
         </message>
     </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>放松面部，保持无表情的静默状态，以获取最准确的参数</source>
+            <translation>放松面部，保持无表情的静默状态，以获取最准确的参数</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>做出尽可能多的面部表情，保持动作自然，不要特别夸张的表情</source>
+            <translation>做出尽可能多的面部表情，保持动作自然，不要特别夸张的表情</translation>
+        </message>
+    </context>
 </TS>
