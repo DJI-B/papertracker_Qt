@@ -1043,4 +1043,60 @@
             <translation>Select language</translation>
         </message>
     </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>调整:</source>
+            <translation>Adjust:</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>自然模式</source>
+            <translation>Natural Mode</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>完整模式</source>
+            <translation>Full Mode</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>开始校准</source>
+            <translation>Start Calibration</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>停止校准</source>
+            <translation>Stop Calibration</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>重置</source>
+            <translation>Reset</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>锁定</source>
+            <translation>Lock</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>校准模式</source>
+            <translation>Calibration Mode</translation>
+        </message>
+    </context>
 </TS>

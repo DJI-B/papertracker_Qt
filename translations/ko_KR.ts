@@ -1043,4 +1043,60 @@
             <translation>언어 선택</translation>
         </message>
     </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>调整:</source>
+            <translation>조정:</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>自然模式</source>
+            <translation>자연 모드</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>完整模式</source>
+            <translation>전체 모드</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>开始校准</source>
+            <translation>교정 시작</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>停止校准</source>
+            <translation>교정 중지</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>重置</source>
+            <translation>재설정</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>锁定</source>
+            <translation>잠금</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>校准模式</source>
+            <translation>교정 모드</translation>
+        </message>
+    </context>
 </TS>

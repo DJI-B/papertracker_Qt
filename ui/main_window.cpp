@@ -11,6 +11,8 @@
 #include <QFile>
 #include <QTimer>
 #include <QWidgetAction>
+
+#include "BubbleTipWidget.h"
 #include "translator_manager.h"
 PaperTrackerMainWindow::PaperTrackerMainWindow(QWidget *parent) :
     QWidget(parent) {
@@ -120,8 +122,27 @@ void PaperTrackerMainWindow::onFaceTrackerButtonClicked()
         window->setAttribute(Qt::WA_DeleteOnClose);  // 关闭时自动释放内存
         window->setWindowModality(Qt::NonModal);     // 设置为非模态
         window->setWindowIcon(this->windowIcon());
-       // window->setParent(this, Qt::Window);
         window->show();
+
+        /*// 创建气泡提示并居中显示在面捕窗口上
+        BubbleTipWidget *bubble = new BubbleTipWidget(window); // 设置父窗口为面捕窗口
+
+        // 设置标题和内容
+        bubble->setTitle("提示信息");
+        bubble->setText("这是一个悬浮提示气泡，可以显示重要信息。"
+                       "支持多种关闭方式：\n"
+                       "1. 点击右上角关闭按钮\n"
+                       "2. 设置自动消失时间\n"
+                       "3. 启用hover时隐藏");
+
+        // 在面捕窗口中央显示气泡
+        QRect windowGeometry = window->geometry();
+        int x = windowGeometry.x() + (windowGeometry.width() - bubble->width()) / 2;
+        int y = windowGeometry.y() + (windowGeometry.height() - bubble->height()) / 2;
+        bubble->setPosition(x, y);
+
+        bubble->showBubble();*/
+
     } catch (std::exception& e)
     {
         QMessageBox::critical(this, tr("错误"), e.what());

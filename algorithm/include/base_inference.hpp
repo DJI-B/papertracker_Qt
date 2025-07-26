@@ -32,7 +32,7 @@ public:
 
     virtual std::vector<float> get_output() = 0;
 
-    void set_amp_map(const std::unordered_map<std::string, int>& amp_map);
+    void set_amp_map(const std::unordered_map<std::string, float>& amp_map);
 
     const std::unordered_map<std::string, size_t>& getBlendShapeIndexMap();
 
@@ -86,7 +86,7 @@ protected:
 
     // 保存ARKit模型输出的映射表
     std::unordered_map<std::string, size_t> blendShapeIndexMap;
-    std::unordered_map<std::string, int> blendShapeAmpMap;
+    std::unordered_map<std::string, float> blendShapeAmpMap;
     std::vector<std::string> blendShapes;
 
     // 输入形状

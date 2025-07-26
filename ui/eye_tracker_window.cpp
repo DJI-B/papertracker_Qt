@@ -76,11 +76,11 @@ PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
             }
 
             // 确保 ROI 不超出图像边界
-            if (x + width > 261) {
-                width = 261 - x;
+            if (x + width > 260) {
+                width = 260 - x;
             }
-            if (y + height > 261) {
-                height = 261 - y;
+            if (y + height > 260) {
+                height = 260 - y;
             }
             // 确保最终的宽度和高度为正值
             width = max(0, width);
@@ -986,9 +986,14 @@ void PaperEyeTrackerWindow::create_sub_thread() {
 
         debug_counter++;
 
-        // 更新眼睛位置显示
-        updateEyePosition(LEFT_TAG);
-        updateEyePosition(RIGHT_TAG);
+        //
+        if (image_stream[0]->isStreaming()) {
+            updateEyePosition(LEFT_TAG);
+        }
+        else {
+            updateEyePosition(RIGHT_TAG);
+        }
+
 
         // 更新插帧计数器
         current_interp_frame = (current_interp_frame + 1) % (interpolation_frames + 1);
@@ -1158,12 +1163,28 @@ void PaperEyeTrackerWindow::initUI() {
     EnergyModelBox->addItem(QString());
     EnergyModelBox->setObjectName("EnergyModelBox");
     EnergyModelBox->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    EnergyModelBox->setFixedHeight(24);
     LogText = new QPlainTextEdit(page);
     LogText->setObjectName("LogText");
     LogText->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    LogText->setVisible(false);
+
     LeftEyeImage = new QLabel(page);
     LeftEyeImage->setObjectName("LeftEyeImage");
     LeftEyeImage->setFixedSize(260, 260);
+    LeftEyeImage->setAlignment(Qt::AlignCenter);
+    LeftEyeImage->setStyleSheet("border: 1px solid white;");
+    QFont Imagefont = LeftEyeImage->font();
+    Imagefont.setPointSize(14); // 设置字体大小为14
+    Imagefont.setBold(true);    // 设置粗体
+    LeftEyeImage->setFont(Imagefont);
+    RightEyeImage = new QLabel(page);
+    RightEyeImage->setObjectName("RightEyeImage");
+    RightEyeImage->setFixedSize(260, 260);
+    RightEyeImage->setAlignment(Qt::AlignCenter);
+    RightEyeImage->setFont(Imagefont);
+    RightEyeImage->setStyleSheet("border: 1px solid white;");
+
     RestartButton = new QPushButton(page);
     RestartButton->setObjectName("RestartButton");
     label = new QLabel(page);
@@ -1172,9 +1193,7 @@ void PaperEyeTrackerWindow::initUI() {
     PassWordInput->setObjectName("PassWordInput");
     SSIDInput = new QPlainTextEdit(page);
     SSIDInput->setObjectName("SSIDInput");
-    RightEyeImage = new QLabel(page);
-    RightEyeImage->setObjectName("RightEyeImage");
-    RightEyeImage->setFixedSize(260, 260);
+
     label_3 = new QLabel(page);
     label_3->setObjectName("label_3");
     FlashButton = new QPushButton(page);
@@ -1321,11 +1340,16 @@ void PaperEyeTrackerWindow::initUI() {
     rightAdjustLabel = new QLabel(page_2);
     rightAdjustLabel->setText(Translator::tr("调整:"));
 
+    ShowSerialDataButton = new QPushButton(page);
+    ShowSerialDataButton->setObjectName("ShowSerialDataButton");
+    ShowSerialDataButton->setFixedHeight(24);
+
     // 连接信号和槽
     connect(leftIncButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onLeftEyeValueIncrease);
     connect(leftDecButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onLeftEyeValueDecrease);
     connect(rightIncButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onRightEyeValueIncrease);
     connect(rightDecButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onRightEyeValueDecrease);
+    connect(ShowSerialDataButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onShowSerialDataButtonClicked);
 }
 
 void PaperEyeTrackerWindow::initLayout() {
@@ -1356,7 +1380,7 @@ void PaperEyeTrackerWindow::initLayout() {
     auto topControlLayout = new QHBoxLayout();
     // 添加图像显示label行
     auto* imageLayout = new QHBoxLayout();
-    imageLayout->setSpacing(4);
+    imageLayout->setSpacing(12);
     imageLayout->addWidget(LeftEyeImage);
     imageLayout->addWidget(RightEyeImage);
 
@@ -1396,8 +1420,9 @@ void PaperEyeTrackerWindow::initLayout() {
     controlLayout->addStretch();
     controlLayout->addLayout(BatteryStatusLayout);
 
-    topControlLayout->setSpacing(8);
+    topControlLayout->setSpacing(0);
     topControlLayout->addItem(imageLayout);
+    topControlLayout->addSpacing(12);
     topControlLayout->addItem(controlLayout);
 
     auto column1Layout = new QVBoxLayout();
@@ -1442,6 +1467,8 @@ void PaperEyeTrackerWindow::initLayout() {
     mainContentLayout->addWidget(label_3,1,Qt::AlignCenter);
     mainContentLayout->addSpacing(4);
     mainContentLayout->addWidget(EnergyModelBox,1,Qt::AlignCenter);
+    mainContentLayout->addSpacing(4);
+    mainContentLayout->addWidget(ShowSerialDataButton,1,Qt::AlignCenter);
     mainContentLayout->addStretch(2);
 
     pageLayout->addItem(topControlLayout);
@@ -1580,7 +1607,7 @@ void PaperEyeTrackerWindow::retranslateUI() {
     setFixedWidthBasedONLongestText(settingsEyeOpenButton, ButtonStr);
     setFixedWidthBasedONLongestText(settingsEyeCloseButton, ButtonStr);
 
-
+    ShowSerialDataButton->setText(Translator::tr("串口日志"));
     LeftEyeOpennessLabel->setText(Translator::tr("左眼开合度"));
     RightEyeOpennessLabel->setText(Translator::tr("右眼开合度"));
     LeftEyeImage->setText(Translator::tr("没有图像输入"));
@@ -1735,12 +1762,12 @@ void PaperEyeTrackerWindow::set_config() {
     for (int i = 0; i < EYE_NUM; i++) {
         if (!eye_calib_data[i].has_calibration) {
             // 设置默认校准值
-            eye_calib_data[i].calib_XOFF = 261 / 2.0;  // 假设ROI宽度为261
-            eye_calib_data[i].calib_YOFF = 261 / 2.0;  // 假设ROI高度为261
+            eye_calib_data[i].calib_XOFF = 260 / 2.0;  // 假设ROI宽度为260
+            eye_calib_data[i].calib_YOFF = 260 / 2.0;  // 假设ROI高度为260
             eye_calib_data[i].calib_XMIN = 0;
-            eye_calib_data[i].calib_XMAX = 261;
+            eye_calib_data[i].calib_XMAX = 260;
             eye_calib_data[i].calib_YMIN = 0;
-            eye_calib_data[i].calib_YMAX = 261;
+            eye_calib_data[i].calib_YMAX = 260;
             flip_x_axis[i] = i==RIGHT_TAG;
         }
     }
@@ -1910,12 +1937,18 @@ void PaperEyeTrackerWindow::onEnergyModeChanged(int index) {
 void PaperEyeTrackerWindow::bound_pages() {
     // 页面导航逻辑
     connect(MainPageButton, &QPushButton::clicked, [this] {
+        auto oldIndex = stackedWidget->currentIndex();
         stackedWidget->setCurrentIndex(0);
-        updatePageWidth();
+        if (oldIndex == 1) {
+            updatePageWidth();
+        }
         });
     connect(SettingButton, &QPushButton::clicked, [this] {
+        auto oldIndex = stackedWidget->currentIndex();
         stackedWidget->setCurrentIndex(1);
-        updatePageWidth();
+        if (oldIndex == 0) {
+            updatePageWidth();
+        }
         });
 }
 
@@ -2385,6 +2418,21 @@ void PaperEyeTrackerWindow::onRightEyeValueDecrease() {
     LOG_INFO("右眼闭合值减少到: {:.3f}", eye_fully_closed[RIGHT_TAG]);
 }
 
+void PaperEyeTrackerWindow::onShowSerialDataButtonClicked()
+{
+    showSerialData = !showSerialData;
+    if (showSerialData) {
+        LogText->setVisible(true);
+        LOG_INFO("已开启串口原始数据显示");
+        ShowSerialDataButton->setText(Translator::tr("停止显示串口数据"));
+    } else {
+        LogText->setVisible(false);
+        LOG_INFO("已关闭串口原始数据显示");
+        ShowSerialDataButton->setText(Translator::tr("显示串口数据"));
+    }
+    updatePageWidth();
+}
+
 void PaperEyeTrackerWindow::setFixedWidthBasedONLongestText(QWidget* widget, const QStringList& texts) {
     QFontMetrics fm(widget->font());
     int max_width = 0;
@@ -2398,6 +2446,7 @@ void PaperEyeTrackerWindow::setFixedWidthBasedONLongestText(QWidget* widget, con
 void PaperEyeTrackerWindow::updatePageWidth()
 {
     if (stackedWidget && stackedWidget->currentIndex() == 1) {
+        setFixedHeight(600);
         // 增加延迟确保UI更新完成
         QTimer::singleShot(200, this, [this]() {
             // 安全检查
@@ -2428,6 +2477,8 @@ void PaperEyeTrackerWindow::updatePageWidth()
     }
     else {
         // 增加延迟确保UI更新完成
+        setFixedWidth(854);
+        setFixedHeight(showSerialData? 600 : 440);
         QTimer::singleShot(100, this, [this]() {
             // 安全检查
             if (!label || !label_3 || !EnergyModelBox) {
@@ -2438,21 +2489,24 @@ void PaperEyeTrackerWindow::updatePageWidth()
             label->ensurePolished();
             label_3->ensurePolished();
             EnergyModelBox->ensurePolished();
+            ShowSerialDataButton->ensurePolished();
 
             // 使用sizeHint获取更准确的建议尺寸
             int labelWidth = label->width();
             int labelWidth2 = label_3->width();
             int comboWidth = EnergyModelBox->width();
+            int logButtonWidth = ShowSerialDataButton->width();
 
             // 更全面的宽度计算（包含所有关键元素）
-            int totalWidth = comboWidth + labelWidth + labelWidth2 + SendButton->width() +
+            int totalWidth1 = logButtonWidth + comboWidth + labelWidth + labelWidth2 + SendButton->width() +
                             RestartButton->width() + SSIDInput->width() +
                             LeftEyeIPAddress->width() + 80;
 
-            // 设置最小宽度防止UI错乱
-            setMinimumWidth(totalWidth);
-            setFixedWidth(totalWidth);
 
+            int totalWidth2 = LeftEyeImage->width()+ RightEyeImage->width() + 4 + 8 + 30 + label_4->width() + LeftBrightnessBar->width();
+            // 设置最小宽度防止UI错乱
+            setMinimumWidth(max(totalWidth1, totalWidth2));
+            setFixedWidth(max(totalWidth1, totalWidth2));
             // 强制立即更新布局
             updateGeometry();
         });
