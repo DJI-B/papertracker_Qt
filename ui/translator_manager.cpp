@@ -19,7 +19,7 @@ TranslatorManager::TranslatorManager(QObject* parent) : QObject(parent)
 
     // 读取配置
     QSettings settings(configFilePath, QSettings::IniFormat);
-    QString savedLang = settings.value("Language/Current", "en_US").toString();
+    QString savedLang = settings.value("Language/Current", "zh_CN").toString();
     setLanguage(savedLang);
 }
 
@@ -84,9 +84,29 @@ QStringList TranslatorManager::getAvailableLanguages() const {
         }
     }
 
-    // 5. 去重并排序（按本地化名称排序）
+    // 5. 去重（按本地化名称排序）
     availableLangNames.removeDuplicates();
-    std::sort(availableLangNames.begin(), availableLangNames.end());
+
+    // 6. 自定义排序：中文优先，其余按字母顺序排序
+    std::sort(availableLangNames.begin(), availableLangNames.end(), [](const QString& a, const QString& b) {
+        // 使用 TranslatorManager 的方法判断是否为中文
+        QString codeA = TranslatorManager::codeFromName(a);
+        QString codeB = TranslatorManager::codeFromName(b);
+
+        TranslatorManager::LanguageCode langCodeA = TranslatorManager::fromString(codeA);
+        TranslatorManager::LanguageCode langCodeB = TranslatorManager::fromString(codeB);
+
+        bool aIsChinese = (langCodeA == TranslatorManager::LanguageCode::ZH_CN);
+        bool bIsChinese = (langCodeB == TranslatorManager::LanguageCode::ZH_CN);
+
+        if (aIsChinese && !bIsChinese) {
+            return true;  // a是中文，排在前面
+        } else if (!aIsChinese && bIsChinese) {
+            return false; // b是中文，排在前面
+        } else {
+            return a < b; // 都是中文或都不是中文，按字母顺序排序
+        }
+    });
 
     return availableLangNames;
 }

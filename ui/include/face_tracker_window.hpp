@@ -261,7 +261,7 @@ private:
     std::shared_ptr<QTimer> brightness_timer;
     std::shared_ptr<HttpServer> http_server;
     int current_brightness;
-    int current_rotate_angle = 540;
+    int current_rotate_angle = 50;
 
     std::string current_ip_;
 

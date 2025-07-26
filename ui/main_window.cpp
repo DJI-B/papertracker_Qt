@@ -208,8 +208,8 @@ void PaperTrackerMainWindow::initUI()
     );
 
 
-    settingsMenu = menuBar->addMenu(Translator::tr("设置"));
-    settingsMenu->addAction(Translator::tr("基本设置"), this, &PaperTrackerMainWindow::onSettingsButtonClicked);
+    settingsMenu = menuBar->addMenu(Translator::tr("Language"));
+    settingsMenu->addAction(Translator::tr("选择语言"), this, &PaperTrackerMainWindow::onSettingsButtonClicked);
 
     helpMenu = menuBar->addMenu(Translator::tr("帮助"));
     helpMenu->addAction(Translator::tr("关于"), this, &PaperTrackerMainWindow::onAboutClicked);
@@ -367,9 +367,9 @@ void PaperTrackerMainWindow::retranslateUi()
     RestartVRCFTButton->setText(Translator::tr("重启VRCFT"));
 
     // 新增菜单栏翻译
-    settingsMenu->setTitle(Translator::tr("设置"));
+    settingsMenu->setTitle(Translator::tr("Language"));
     helpMenu->setTitle(Translator::tr("帮助"));
-    settingsMenu->actions()[0]->setText(Translator::tr("基本设置"));
+    settingsMenu->actions()[0]->setText(Translator::tr("选择语言"));
     helpMenu->actions()[0]->setText(Translator::tr("关于"));
 
 

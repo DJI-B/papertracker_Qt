@@ -1429,9 +1429,9 @@ void PaperFaceTrackerWindow::set_config() {
 
     // 基础配置设置
     current_brightness = config.brightness;
-    current_rotate_angle = config.rotate_angle == 0 ? 500 : config.rotate_angle;
+    current_rotate_angle = config.rotate_angle == 0 ? 50 : config.rotate_angle;
     BrightnessBar->setValue(config.brightness);
-    RotateImageBar->setValue(config.rotate_angle);
+    RotateImageBar->setValue(current_rotate_angle);
     EnergyModeBox->setCurrentIndex(config.energy_mode);
     UseFilterBox->setChecked(config.use_filter);
     textEdit->setPlainText(QString::fromStdString(config.wifi_ip));
