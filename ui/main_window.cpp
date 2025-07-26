@@ -12,6 +12,8 @@
 #include <QTimer>
 #include <QWidgetAction>
 
+#include "BubbleTipWidget.h"
+#include "translator_manager.h"
 PaperTrackerMainWindow::PaperTrackerMainWindow(QWidget *parent) :
     QWidget(parent) {
     initUI();
@@ -64,8 +66,8 @@ PaperTrackerMainWindow::PaperTrackerMainWindow(QWidget *parent) :
             if (curr_version.version.tag != remote_version.version.tag)
             {
                 clientStatus = ClientStatus::UpdateAvailable;
-                updateStatusLabel();
                 latestVersionTag = remote_version.version.tag;
+                updateStatusLabel();
 
                 // 可选：自动弹出更新提示
                 QTimer::singleShot(2000, this, [this, remote_version]() {
@@ -120,8 +122,27 @@ void PaperTrackerMainWindow::onFaceTrackerButtonClicked()
         window->setAttribute(Qt::WA_DeleteOnClose);  // 关闭时自动释放内存
         window->setWindowModality(Qt::NonModal);     // 设置为非模态
         window->setWindowIcon(this->windowIcon());
-       // window->setParent(this, Qt::Window);
         window->show();
+
+        /*// 创建气泡提示并居中显示在面捕窗口上
+        BubbleTipWidget *bubble = new BubbleTipWidget(window); // 设置父窗口为面捕窗口
+
+        // 设置标题和内容
+        bubble->setTitle("提示信息");
+        bubble->setText("这是一个悬浮提示气泡，可以显示重要信息。"
+                       "支持多种关闭方式：\n"
+                       "1. 点击右上角关闭按钮\n"
+                       "2. 设置自动消失时间\n"
+                       "3. 启用hover时隐藏");
+
+        // 在面捕窗口中央显示气泡
+        QRect windowGeometry = window->geometry();
+        int x = windowGeometry.x() + (windowGeometry.width() - bubble->width()) / 2;
+        int y = windowGeometry.y() + (windowGeometry.height() - bubble->height()) / 2;
+        bubble->setPosition(x, y);
+
+        bubble->showBubble();*/
+
     } catch (std::exception& e)
     {
         QMessageBox::critical(this, tr("错误"), e.what());
@@ -154,7 +175,7 @@ void PaperTrackerMainWindow::onUpdateButtonClicked()
     // 2. 获取本地版本信息
     auto currentVersionOpt = updater->getCurrentVersion();
     if (!currentVersionOpt.has_value()) {
-        QMessageBox::critical(this, QApplication::translate("PaperTrackerMainWindow", "错误"), QApplication::translate("PaperTrackerMainWindow", "无法获取当前客户端版本信息"));
+        QMessageBox::critical(this, Translator::tr("错误"), Translator::tr("无法获取当前客户端版本信息"));
         return;
     }
     // 3. 如果版本不同，则执行更新
@@ -187,21 +208,21 @@ void PaperTrackerMainWindow::initUI()
     );
 
 
-    settingsMenu = menuBar->addMenu(QApplication::translate("PaperTrackerMainWindow", "设置"));
-    settingsMenu->addAction(QApplication::translate("PaperTrackerMainWindow", "基本设置"), this, &PaperTrackerMainWindow::onSettingsButtonClicked);
+    settingsMenu = menuBar->addMenu(Translator::tr("Language"));
+    settingsMenu->addAction(Translator::tr("选择语言"), this, &PaperTrackerMainWindow::onSettingsButtonClicked);
 
-    helpMenu = menuBar->addMenu(QApplication::translate("PaperTrackerMainWindow", "帮助"));
-    helpMenu->addAction(QApplication::translate("PaperTrackerMainWindow", "关于"), this, &PaperTrackerMainWindow::onAboutClicked);
+    helpMenu = menuBar->addMenu(Translator::tr("帮助"));
+    helpMenu->addAction(Translator::tr("关于"), this, &PaperTrackerMainWindow::onAboutClicked);
 
     // 创建更新按钮
-    ClientUpdateButton = new QPushButton(QApplication::translate("PaperTrackerMainWindow", "检查更新"));
+    ClientUpdateButton = new QPushButton(Translator::tr("检查更新"));
 
     // 创建重启按钮
-    RestartVRCFTButton = new QPushButton(QApplication::translate("PaperTrackerMainWindow", "重启VRCFT"));
+    RestartVRCFTButton = new QPushButton(Translator::tr("重启VRCFT"));
 
 
-    FaceTrackerButton = new QPushButton(QApplication::translate("PaperTrackerMainWindow", "面捕界面"), this);
-    EyeTrackerButton = new QPushButton(QApplication::translate("PaperTrackerMainWindow", "眼追界面"), this);
+    FaceTrackerButton = new QPushButton(Translator::tr("面捕界面"), this);
+    EyeTrackerButton = new QPushButton(Translator::tr("眼追界面"), this);
 
     // 创建标签
     QFile Logo = QFile(":/resources/resources/logo.png");
@@ -216,8 +237,8 @@ void PaperTrackerMainWindow::initUI()
     LOGOLabel->setPixmap(final_map);
     LOGOLabel->update();
 
-    ClientStatusLabel = new QLabel(QApplication::translate("PaperTrackerMainWindow", "无法连接到服务器，请检查网络"), this);
-    ClientStatusLabel_2 = new QLabel(QApplication::translate("PaperTrackerMainWindow", "Based on Project Babble: https://babble.diy/"), this);
+    ClientStatusLabel = new QLabel(Translator::tr("无法连接到服务器，请检查网络"), this);
+    ClientStatusLabel_2 = new QLabel(Translator::tr("Based on Project Babble: https://babble.diy/"), this);
 
     // 说明书
     FaceTrackerInstructionLabel = new QLabel(this);
@@ -242,11 +263,11 @@ void PaperTrackerMainWindow::initUI()
 
     FaceTrackerInstructionLabel->setText(QString(R"(<a href="%1" style="color: #FFFFFF; text-decoration: underline;">%2</a>)")
     .arg("https://fcnk6r4c64fa.feishu.cn/wiki/LZdrwWWozi7zffkLt5pc81WanAd")
-    .arg(QApplication::translate("PaperTrackerMainWindow", "点击查看面捕说明书")));
+    .arg(Translator::tr("点击查看面捕说明书")));
 
     EyeTrackerInstructionLabel->setText(QString(R"(<a href="%1" style="color: #FFFFFF; text-decoration: underline;">%2</a>)")
     .arg("https://fcnk6r4c64fa.feishu.cn/wiki/Dg4qwI3mDiJ3fHk5iZtc2z6Rn47")
-    .arg(QApplication::translate("PaperTrackerMainWindow", "点击查看眼追说明书")));
+    .arg(Translator::tr("点击查看眼追说明书")));
 }
 
 void PaperTrackerMainWindow::initLayout()
@@ -340,25 +361,25 @@ void PaperTrackerMainWindow::retranslateUi()
 {
     updateStatusLabel();
 
-    FaceTrackerButton->setText(QApplication::translate("PaperTrackerMainWindow", "面捕界面"));
-    EyeTrackerButton->setText(QApplication::translate("PaperTrackerMainWindow", "眼追界面"));
-    ClientUpdateButton->setText(QApplication::translate("PaperTrackerMainWindow", "客户端更新检查"));
-    RestartVRCFTButton->setText(QApplication::translate("PaperTrackerMainWindow", "重启VRCFT"));
+    FaceTrackerButton->setText(Translator::tr("面捕界面"));
+    EyeTrackerButton->setText(Translator::tr("眼追界面"));
+    ClientUpdateButton->setText(Translator::tr("客户端更新检查"));
+    RestartVRCFTButton->setText(Translator::tr("重启VRCFT"));
 
     // 新增菜单栏翻译
-    settingsMenu->setTitle(QApplication::translate("PaperTrackerMainWindow", "设置"));
-    helpMenu->setTitle(QApplication::translate("PaperTrackerMainWindow", "帮助"));
-    settingsMenu->actions()[0]->setText(QApplication::translate("PaperTrackerMainWindow", "基本设置"));
-    helpMenu->actions()[0]->setText(QApplication::translate("PaperTrackerMainWindow", "关于"));
+    settingsMenu->setTitle(Translator::tr("Language"));
+    helpMenu->setTitle(Translator::tr("帮助"));
+    settingsMenu->actions()[0]->setText(Translator::tr("选择语言"));
+    helpMenu->actions()[0]->setText(Translator::tr("关于"));
 
 
     FaceTrackerInstructionLabel->setText(QString(R"(<a href="%1" style="color: #FFFFFF; text-decoration: underline;">%2</a>)")
     .arg("https://fcnk6r4c64fa.feishu.cn/wiki/LZdrwWWozi7zffkLt5pc81WanAd")
-    .arg(QApplication::translate("PaperTrackerMainWindow", "点击查看面捕说明书")));
+    .arg(Translator::tr("点击查看面捕说明书")));
 
     EyeTrackerInstructionLabel->setText(QString(R"(<a href="%1" style="color: #FFFFFF; text-decoration: underline;">%2</a>)")
     .arg("https://fcnk6r4c64fa.feishu.cn/wiki/Dg4qwI3mDiJ3fHk5iZtc2z6Rn47")
-    .arg(QApplication::translate("PaperTrackerMainWindow", "点击查看眼追说明书")));
+    .arg(Translator::tr("点击查看眼追说明书")));
 
     adjustSize();
 }
@@ -367,33 +388,23 @@ void PaperTrackerMainWindow::updateStatusLabel()
 {
     switch (clientStatus) {
         case ClientStatus::UpdateAvailable:
-            ClientStatusLabel->setText(QApplication::translate(
-                "PaperTrackerMainWindow",
-                "有新版本可用: ") + latestVersionTag);
+            ClientStatusLabel->setText(Translator::tr("有新版本可用: ") + latestVersionTag);
             break;
 
         case ClientStatus::UpToDate:
-            ClientStatusLabel->setText(QApplication::translate(
-                "PaperTrackerMainWindow",
-                "当前客户端版本为最新版本"));
+            ClientStatusLabel->setText(Translator::tr("当前客户端版本为最新版本"));
             break;
 
         case ClientStatus::ServerUnreachable:
-            ClientStatusLabel->setText(QApplication::translate(
-                "PaperTrackerMainWindow",
-                "无法连接到服务器，请检查网络"));
+            ClientStatusLabel->setText(Translator::tr("无法连接到服务器，请检查网络"));
             break;
 
         case ClientStatus::VersionUnknown:
-            ClientStatusLabel->setText(QApplication::translate(
-                "PaperTrackerMainWindow",
-                "无法获取到当前客户端版本"));
+            ClientStatusLabel->setText(Translator::tr("无法获取到当前客户端版本"));
             break;
 
         default:
-            ClientStatusLabel->setText(QApplication::translate(
-                "PaperTrackerMainWindow",
-                "未知状态"));
+            ClientStatusLabel->setText(Translator::tr("未知状态"));
     }
 }
 
@@ -424,14 +435,14 @@ void PaperTrackerMainWindow::onRestartVRCFTButtonClicked()
             // 检查是否成功启动
             if (!vrcftProcess->waitForStarted(3000)) {
                 LOG_ERROR("无法重启VRCFT，错误: {}", vrcftProcess->errorString().toStdString());
-                QMessageBox::critical(this, tr("错误"), tr("无法重启VRCFT: ") + vrcftProcess->errorString());
+                QMessageBox::critical(this, Translator::tr("错误"), Translator::tr("无法重启VRCFT: ") + vrcftProcess->errorString());
             } else {
                 LOG_INFO("VRCFT重启成功");
-                QMessageBox::information(this, tr("成功"), tr("VRCFT已成功重启"));
+                QMessageBox::information(this, Translator::tr("成功"), Translator::tr("VRCFT已成功重启"));
             }
         } else {
             LOG_ERROR("未找到VRCFT可执行文件，路径: {}", vrcftPath.toStdString());
-            QMessageBox::critical(this, tr("错误"), tr("未找到VRCFT可执行文件，路径: ") + vrcftPath);
+            QMessageBox::critical(this, Translator::tr("错误"), Translator::tr("未找到VRCFT可执行文件，路径: ") + vrcftPath);
         }
     } else {
         // VRCFT没有运行，直接启动
@@ -447,14 +458,14 @@ void PaperTrackerMainWindow::onRestartVRCFTButtonClicked()
             // 检查是否成功启动
             if (!vrcftProcess->waitForStarted(3000)) {
                 LOG_ERROR("无法启动VRCFT，错误: {}", vrcftProcess->errorString().toStdString());
-                QMessageBox::critical(this, tr("错误"), tr("无法启动VRCFT: ") + vrcftProcess->errorString());
+                QMessageBox::critical(this, Translator::tr("错误"), Translator::tr("无法启动VRCFT: ") + vrcftProcess->errorString());
             } else {
                 LOG_INFO("VRCFT启动成功");
-                QMessageBox::information(this, tr("成功"), tr("VRCFT已成功启动"));
+                QMessageBox::information(this, Translator::tr("成功"), Translator::tr("VRCFT已成功启动"));
             }
         } else {
             LOG_ERROR("未找到VRCFT可执行文件，路径: {}", vrcftPath.toStdString());
-            QMessageBox::critical(this, tr("错误"), tr("未找到VRCFT可执行文件，路径: ") + vrcftPath);
+            QMessageBox::critical(this, Translator::tr("错误"), Translator::tr("未找到VRCFT可执行文件，路径: ") + vrcftPath);
         }
     }
 }
@@ -471,11 +482,11 @@ void PaperTrackerMainWindow::onSettingsButtonClicked()
 
 void PaperTrackerMainWindow::onAboutClicked()
 {
-    auto versionStr = QApplication::translate("PaperTrackerMainWindow", "未知版本");
+    auto versionStr = Translator::tr("未知版本");
     auto currentVersionOpt = updater->getCurrentVersion();
     if (currentVersionOpt.has_value()) {
         versionStr =  QString::fromStdString(updater->getCurrentVersion().value().version.tag.toStdString());
     }
 
-    QMessageBox::about(this, tr("关于"), tr("PaperTracker %1").arg(versionStr));
+    QMessageBox::about(this, Translator::tr("关于"), Translator::tr("PaperTracker %1").arg(versionStr));
 }

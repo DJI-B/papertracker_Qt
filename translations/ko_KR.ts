@@ -1043,4 +1043,74 @@
             <translation>언어 선택</translation>
         </message>
     </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>调整:</source>
+            <translation>조정:</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>自然模式</source>
+            <translation>자연 모드</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>完整模式</source>
+            <translation>전체 모드</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>开始校准</source>
+            <translation>교정 시작</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>停止校准</source>
+            <translation>교정 중지</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>重置</source>
+            <translation>재설정</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>锁定</source>
+            <translation>잠금</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>校准模式</source>
+            <translation>교정 모드</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>放松面部，保持无表情的静默状态，以获取最准确的参数</source>
+            <translation>가장 정확한 매개 변수를 얻기 위해 얼굴을 편안하게 하고 무표정한 침묵 상태를 유지하십시오</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>做出尽可能多的面部表情，保持动作自然，不要特别夸张的表情</source>
+            <translation>가능한 한 많은 얼굴 표정을 짓고, 동작을 자연스럽게 유지하며, 특별히 과장된 표정은 하지 마라</translation>
+        </message>
+    </context>
 </TS>

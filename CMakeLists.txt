@@ -331,6 +331,8 @@ add_library(
         ui/eye_tracker_window.cpp
         ui/translator_manager.cpp
         ui/include/translator_manager.h
+        ui/BubbleTipWidget.cpp
+        ui/include/BubbleTipWidget.h
 )
 
 target_include_directories(

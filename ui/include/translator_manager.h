@@ -1,11 +1,18 @@
 #ifndef TRANSLATOR_MANAGER_H
 #define TRANSLATOR_MANAGER_H
 
+#include <QApplication>
 #include <QTranslator>
 #include <QObject>
 #include <QDialog>
 #include <QComboBox>
 #include <QPushButton>
+
+struct Translator {
+    static QString tr(const QString& key) {
+        return QApplication::translate("PaperTrackerMainWindow", key.toUtf8().constData());
+    }
+};
 
 class TranslatorManager : public QObject {
     Q_OBJECT

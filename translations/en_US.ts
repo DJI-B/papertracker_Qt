@@ -1043,4 +1043,74 @@
             <translation>Select language</translation>
         </message>
     </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>调整:</source>
+            <translation>Adjust:</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>自然模式</source>
+            <translation>Natural Mode</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>完整模式</source>
+            <translation>Full Mode</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>开始校准</source>
+            <translation>Start Calibration</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>停止校准</source>
+            <translation>Stop Calibration</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>重置</source>
+            <translation>Reset</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>锁定</source>
+            <translation>Lock</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>校准模式</source>
+            <translation>Calibration Mode</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>放松面部，保持无表情的静默状态，以获取最准确的参数</source>
+            <translation>Relax your face and maintain an expressionless silence to obtain the most accurate parameters</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>做出尽可能多的面部表情，保持动作自然，不要特别夸张的表情</source>
+            <translation>Make as many facial expressions as possible, maintain natural movements, and avoid overly exaggerated expressions</translation>
+        </message>
+    </context>
 </TS>
