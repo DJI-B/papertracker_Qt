@@ -2,7 +2,12 @@ cmake_minimum_required(VERSION 3.30)
 project(PaperTracker LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
-
+if(MSVC)
+    add_compile_options(/utf-8)
+endif()
+if(WIN32)
+    execute_process(COMMAND chcp 65001 OUTPUT_QUIET ERROR_QUIET)
+endif()
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -19,8 +24,7 @@ if (MSVC)
         set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
     endif()
     
-    # 确保包含标准库路径
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8")
+
 endif()
 
 # 调试资源文件路径
@@ -41,7 +45,7 @@ endif()
 # set 3rd party lib path
 
 # Qt installation path - configurable option
-set(QT_INSTALL_PATH "C:/Qt/6.9.1/msvc2022_64" CACHE PATH "Path to Qt installation directory")
+set(QT_INSTALL_PATH "F:/qt/6.8.3/msvc2022_64" CACHE PATH "Path to Qt installation directory")
 
 if(EXISTS "${QT_INSTALL_PATH}")
     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${QT_INSTALL_PATH}")
@@ -224,15 +228,11 @@ endif()
 find_package(Qt6 COMPONENTS Core Gui Widgets Network WebSockets SerialPort REQUIRED)
 
 if(MSVC)
-    # Force to always compile with W4
-    if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
-        string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-    else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
-    endif()
-elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-    # Update if necessary
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-long-long -pedantic")
+    # 使用较低的警告级别减少输出
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /nologo")
+    # 禁用一些常见的噪音警告
+    #add_compile_options(/wd4100)  # 未引用的形参
+    #add_compile_options(/wd4996)  # 弃用函数警告
 endif()
 
 ############### utilities ################
