@@ -78,23 +78,51 @@ struct PaperFaceTrackerConfig {
     float mouth_roll_lower_offset = 0.0f;
     float mouth_shrug_upper_offset = 0.0f;
     float mouth_shrug_lower_offset = 0.0f;
+    float jaw_left_offset = 0.0f;
+    float jaw_right_offset = 0.0f;
+    float mouth_left_offset = 0.0f;
+    float mouth_right_offset = 0.0f;
+    float tongue_left_offset = 0.0f;
+    float tongue_right_offset = 0.0f;
+    float tongue_up_offset = 0.0f;
+    float tongue_down_offset = 0.0f;
+
     // 卡尔曼滤波参数
     float dt = 0.02f;
     float q_factor = 1.5f;
     float r_factor = 0.0003f;
-    std::unordered_map<std::string, int> amp_map;
+    std::unordered_map<std::string, float> amp_map;
     Rect rect;
 
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(PaperFaceTrackerConfig, brightness, rotate_angle, energy_mode, wifi_ip, use_filter, amp_map, rect, cheek_puff_left_offset, cheek_puff_right_offset,
         jaw_open_offset, tongue_out_offset, mouth_close_offset, mouth_funnel_offset, mouth_pucker_offset,
-        mouth_roll_upper_offset, mouth_roll_lower_offset, mouth_shrug_upper_offset, mouth_shrug_lower_offset, dt, q_factor, r_factor);
-
+        mouth_roll_upper_offset, mouth_roll_lower_offset, mouth_shrug_upper_offset, mouth_shrug_lower_offset, jaw_left_offset, jaw_right_offset, mouth_left_offset, mouth_right_offset, tongue_left_offset, tongue_right_offset, tongue_up_offset, tongue_down_offset, dt, q_factor, r_factor);
 };
 
 class PaperFaceTrackerWindow final : public QWidget {
-private:
 public:
+
+    struct ParameterInfo {
+        float* offsetValue;              // 偏置值变量指针
+        float* ampValue;                 // 放大倍数值变量指针
+        QLineEdit* offsetEdit;           // 偏置值输入框
+        QLineEdit* ampEdit;              // 放大倍数输入框
+        QProgressBar* progressBar;       // 进度条
+        QLabel* label;                   // 标签
+        QCheckBox* enablCheckBox;        // 启用/禁用控制 CheckBox（新增）
+
+
+        // 更新构造函数
+        ParameterInfo(float* offsetValue = nullptr, float* ampValue = nullptr,
+                      QLineEdit* offsetEdit = nullptr, QLineEdit* ampEdit = nullptr,
+                      QProgressBar* progressBar = nullptr, QLabel* label = nullptr,
+                      QCheckBox* enablCheckBox = nullptr)
+            : offsetValue(offsetValue), ampValue(ampValue),
+              offsetEdit(offsetEdit), ampEdit(ampEdit),
+              progressBar(progressBar), label(label),
+              enablCheckBox(enablCheckBox) {}
+    };
     explicit PaperFaceTrackerWindow(QWidget *parent = nullptr);
     ~PaperFaceTrackerWindow() override;
 
@@ -130,7 +158,9 @@ public:
 
     void set_config();
 
-    std::unordered_map<std::string, int> getAmpMap() const;
+    void setAmplitudeValuesFromConfig();
+
+    std::unordered_map<std::string, float> getAmpMap() const;
 
     void updateWifiLabel() const;
     void updateBatteryStatus() const;
@@ -154,26 +184,28 @@ private slots:
     void onFlashButtonClicked();
     void onEnergyModeChanged(int value);
     void onShowSerialDataButtonClicked();
-    void onCheekPuffLeftChanged(int value) const;
-    void onCheekPuffRightChanged(int value) const;
-    void onJawOpenChanged(int value) const;
-    void onJawLeftChanged(int value) const;
-    void onJawRightChanged(int value) const;
-    void onMouthLeftChanged(int value) const;
-    void onMouthRightChanged(int value);
-    void onTongueOutChanged(int value);
-    void onTongueLeftChanged(int value);
-    void onTongueRightChanged(int value);
-    void onTongueUpChanged(int value) const;
-    void onTongueDownChanged(int value) const;
+    void onCheekPuffLeftChanged() const;
+    void onCheekPuffRightChanged() const;
+    void onJawOpenChanged() const;
+    void onJawLeftChanged() const;
+    void onJawRightChanged() const;
+    void onMouthLeftChanged() const;
+    void onMouthRightChanged();
+    void onTongueOutChanged();
+    void onTongueLeftChanged();
+    void onTongueRightChanged();
+    void onTongueUpChanged() const;
+    void onTongueDownChanged() const;
     // 在既有的private slots:部分后面添加以下内容
-    void onMouthCloseChanged(int value) const;
-    void onMouthFunnelChanged(int value) const;
-    void onMouthPuckerChanged(int value) const;
-    void onMouthRollUpperChanged(int value) const;
-    void onMouthRollLowerChanged(int value) const;
-    void onMouthShrugUpperChanged(int value) const;
-    void onMouthShrugLowerChanged(int value) const;
+    void onMouthCloseChanged() const;
+    void onMouthFunnelChanged() const;
+    void onMouthPuckerChanged() const;
+    void onMouthRollUpperChanged() const;
+    void onMouthRollLowerChanged() const;
+    void onMouthShrugUpperChanged() const;
+    void onMouthShrugLowerChanged() const;
+
+    void clearCalibrationParameters(bool clearOffset = true, bool clearAmp = true);
 
     void onMouthCloseOffsetChanged();
     void onMouthFunnelOffsetChanged();
@@ -182,6 +214,15 @@ private slots:
     void onMouthRollLowerOffsetChanged();
     void onMouthShrugUpperOffsetChanged();
     void onMouthShrugLowerOffsetChanged();
+    void onJawLeftOffsetChanged();
+    void onJawRightOffsetChanged();
+    void onMouthLeftOffsetChanged();
+    void onMouthRightOffsetChanged();
+    void onTongueUpOffsetChanged();
+    void onTongueDownOffsetChanged();
+    void onTongueLeftOffsetChanged();
+    void onTongueRightOffsetChanged();
+
     // 卡尔曼滤波参数调整函数
     void onDtEditingFinished();
     void onQFactorEditingFinished();
@@ -189,13 +230,28 @@ private slots:
 
     // 设置卡尔曼滤波参数控制UI
     void setupKalmanFilterControls();
+    void onCalibrationStartClicked();
 
+    void onCalibrationTimeout();
+
+    void onCalibrationStopClicked();
+
+private:
+    void initUi();
+    void initializeParameters();
+    void initLayout();
     //翻译槽函数
     void retranslateUI();
-private:
-    void InitUi();
-    void InitLayout();
-    void addCalibrationParam(QGridLayout* layout, QLabel* label = nullptr, QLineEdit* offsetEdit =nullptr, QScrollBar* bar = nullptr, QProgressBar* value = nullptr, int row = 0);
+    void updatePageWidth();
+    void collectData(const std::vector<float>& output, const std::unordered_map<std::string, size_t>& blendShapeIndexMap);
+    void calculateCalibrationOffsets();
+    void applyCalibrationOffsets();
+    void calculateCalibrationAMP();
+    void applyCalibrationAMP();
+
+    void updateAmplitudeValue(const QString &paramName, float value);
+
+    void addCalibrationParam(QGridLayout* layout, const QString& name, const ParameterInfo& param, int row = 0);
 
     void start_image_download() const;
     std::vector<std::string> serialRawDataLog;
@@ -208,10 +264,14 @@ private:
     std::shared_ptr<QTimer> brightness_timer;
     std::shared_ptr<HttpServer> http_server;
     int current_brightness;
-    int current_rotate_angle = 540;
+    int current_rotate_angle = 50;
 
     std::string current_ip_;
+
     void bound_pages();
+
+    void connectOffsetChangeEvent();
+    void disconnectOffsetChangeEvent();
 
     void connect_callbacks();
 
@@ -264,6 +324,42 @@ private:
     float cheek_puff_right_offset = 0.0f;
     float jaw_open_offset = 0.0f;
     float tongue_out_offset = 0.0f;
+    float mouth_close_offset = 0.0f;
+    float mouth_funnel_offset = 0.0f;
+    float mouth_pucker_offset = 0.0f;
+    float mouth_roll_upper_offset = 0.0f;
+    float mouth_roll_lower_offset = 0.0f;
+    float mouth_shrug_upper_offset = 0.0f;
+    float mouth_shrug_lower_offset = 0.0f;
+    float jaw_left_offset = 0.0f;
+    float jaw_right_offset = 0.0f;
+    float mouth_left_offset = 0.0f;
+    float mouth_right_offset = 0.0f;
+    float tongue_left_offset = 0.0f;
+    float tongue_right_offset = 0.0f;
+    float tongue_up_offset = 0.0f;
+    float tongue_down_offset = 0.0f;
+
+    float cheek_puff_left_amp = 1.0f;
+    float cheek_puff_right_amp = 1.0f;
+    float jaw_open_amp = 1.0f;
+    float tongue_out_amp = 1.0f;
+    float mouth_close_amp = 1.0f;
+    float mouth_funnel_amp = 1.0f;
+    float mouth_pucker_amp = 1.0f;
+    float mouth_roll_upper_amp = 1.0f;
+    float mouth_roll_lower_amp = 1.0f;
+    float mouth_shrug_upper_amp = 1.0f;
+    float mouth_shrug_lower_amp = 1.0f;
+    float jaw_left_amp = 1.0f;
+    float jaw_right_amp = 1.0f;
+    float mouth_left_amp = 1.0f;
+    float mouth_right_amp = 1.0f;
+    float tongue_left_amp = 1.0f;
+    float tongue_right_amp = 1.0f;
+    float tongue_up_amp = 1.0f;
+    float tongue_down_amp = 1.0f;
+
     // 卡尔曼滤波参数控制
     QLabel* dtLabel = nullptr;
     QLineEdit* dtLineEdit = nullptr;
@@ -274,14 +370,6 @@ private:
     QLabel* rFactorLabel = nullptr;
     QLineEdit* rFactorLineEdit = nullptr;
     QLabel* helpLabel = nullptr;
-    // 在private:部分的其他偏置值变量声明后添加
-    float mouth_close_offset = 0.0f;
-    float mouth_funnel_offset = 0.0f;
-    float mouth_pucker_offset = 0.0f;
-    float mouth_roll_upper_offset = 0.0f;
-    float mouth_roll_lower_offset = 0.0f;
-    float mouth_shrug_upper_offset = 0.0f;
-    float mouth_shrug_lower_offset = 0.0f;
     float current_dt = 0.02f;
     float current_q_factor = 1.5f;
     float current_r_factor = 0.0003f;
@@ -334,31 +422,31 @@ protected:
     QLabel *label_31;
     QLabel *label_mouthClose;
     QLineEdit *MouthCloseOffset;
-    QScrollBar *MouthCloseBar;
+    QLineEdit *MouthCloseBar;
     QProgressBar *MouthCloseValue;
     QLabel *label_mouthFunnel;
     QLineEdit *MouthFunnelOffset;
-    QScrollBar *MouthFunnelBar;
+    QLineEdit *MouthFunnelBar;
     QProgressBar *MouthFunnelValue;
     QLabel *label_mouthPucker;
     QLineEdit *MouthPuckerOffset;
-    QScrollBar *MouthPuckerBar;
+    QLineEdit *MouthPuckerBar;
     QProgressBar *MouthPuckerValue;
     QLabel *label_mouthRollUpper;
     QLineEdit *MouthRollUpperOffset;
-    QScrollBar *MouthRollUpperBar;
+    QLineEdit *MouthRollUpperBar;
     QProgressBar *MouthRollUpperValue;
     QLabel *label_mouthRollLower;
     QLineEdit *MouthRollLowerOffset;
-    QScrollBar *MouthRollLowerBar;
+    QLineEdit *MouthRollLowerBar;
     QProgressBar *MouthRollLowerValue;
     QLabel *label_mouthShrugUpper;
     QLineEdit *MouthShrugUpperOffset;
-    QScrollBar *MouthShrugUpperBar;
+    QLineEdit *MouthShrugUpperBar;
     QProgressBar *MouthShrugUpperValue;
     QLabel *label_mouthShrugLower;
     QLineEdit *MouthShrugLowerOffset;
-    QScrollBar *MouthShrugLowerBar;
+    QLineEdit *MouthShrugLowerBar;
     QProgressBar *MouthShrugLowerValue;
     QProgressBar *CheekPullLeftValue;
     QProgressBar *CheekPullRightValue;
@@ -372,33 +460,78 @@ protected:
     QProgressBar *TongueUpValue;
     QProgressBar *TongueRightValue;
     QProgressBar *TongueLeftValue;
-    QScrollBar *CheekPuffLeftBar;
-    QScrollBar *CheekPuffRightBar;
-    QScrollBar *JawOpenBar;
-    QScrollBar *JawLeftBar;
-    QScrollBar *MouthLeftBar;
-    QScrollBar *JawRightBar;
-    QScrollBar *TongueOutBar;
-    QScrollBar *MouthRightBar;
-    QScrollBar *TongueDownBar;
-    QScrollBar *TongueUpBar;
-    QScrollBar *TongueRightBar;
-    QScrollBar *TongueLeftBar;
+    QLineEdit *CheekPuffLeftBar;
+    QLineEdit *CheekPuffRightBar;
+    QLineEdit *JawOpenBar;
+    QLineEdit *JawLeftBar;
+    QLineEdit *MouthLeftBar;
+    QLineEdit *JawRightBar;
+    QLineEdit *TongueOutBar;
+    QLineEdit *MouthRightBar;
+    QLineEdit *TongueDownBar;
+    QLineEdit *TongueUpBar;
+    QLineEdit *TongueRightBar;
+    QLineEdit *TongueLeftBar;
     QLabel *ImageLabelCal;
+    QLabel* lockLabel;
     QLabel *label_3;
-    QLabel *label_4;
-    QLabel *label_19;
     QLabel *label_20;
     QPushButton *MainPageButton;
     QPushButton *CalibrationPageButton;
     QLabel *WifiConnectLabel;
     QLabel *SerialConnectLabel;
     QLabel *BatteryStatusLabel;
+    QLabel *calibrationModeLabel;
+    QComboBox *calibrationModeComboBox;
+    QPushButton *calibrationStartButton;
+    QPushButton *calibrationStopButton;
+    QPushButton *calibrationResetButton;
+    QLineEdit *JawLeftOffset;
+    QLineEdit *JawRightOffset;
+    QLineEdit *MouthLeftOffset;
+    QLineEdit *MouthRightOffset;
+    QLineEdit *TongueUpOffset;
+    QLineEdit *TongueDownOffset;
+    QLineEdit *TongueLeftOffset;
+    QLineEdit *TongueRightOffset;
+
 
     QLabel *tutorialLink;
     QHBoxLayout *calibrationPageLayout;
     QVBoxLayout *page2RightLayout;
     QWidget *topTitleWidget;
+
+    int currentSettingPageWidth = 0;
+    bool is_calibrating = false;                     // 校准状态标志
+    std::unordered_map<std::string, std::vector<float>> calibration_data; // 校准数据存储
+    std::unordered_map<std::string, float> calibration_offsets;           // 计算出的偏置值
+    int calibration_sample_count = 0;                // 校准样本计数
+    QTimer* calibrationTimer;  // 校准超时计时器
+
+    std::unordered_map<std::string, float> calibration_amp_ratios;
+    std::unordered_map<QString, ParameterInfo> parameterMap;
+    std::vector<QString> parameterOrder;
+
+    QCheckBox* CheekPuffLeftEnable;
+    QCheckBox* CheekPuffRightEnable;
+    QCheckBox* JawOpenEnable;
+    QCheckBox* JawLeftEnable;
+    QCheckBox* JawRightEnable;
+    QCheckBox* MouthCloseEnable;
+    QCheckBox* MouthFunnelEnable;
+    QCheckBox* MouthLeftEnable;
+    QCheckBox* MouthPuckerEnable;
+    QCheckBox* MouthRightEnable;
+    QCheckBox* MouthRollLowerEnable;
+    QCheckBox* MouthRollUpperEnable;
+    QCheckBox* MouthShrugLowerEnable;
+    QCheckBox* MouthShrugUpperEnable;
+    QCheckBox* TongueOutEnable;
+    QCheckBox* TongueDownEnable;
+    QCheckBox* TongueLeftEnable;
+    QCheckBox* TongueRightEnable;
+    QCheckBox* TongueUpEnable;
+
 };
 
 #endif //PAPER_FACE_TRACKER_WINDOW_HPP
