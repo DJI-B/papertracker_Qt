@@ -133,6 +133,9 @@ private slots:
     void onLeftEyeValueDecrease();
     void onRightEyeValueIncrease();
     void onRightEyeValueDecrease();
+
+    void onShowSerialDataButtonClicked();
+
 private:
     void initUI();
     void initLayout();
@@ -308,6 +311,7 @@ private:
     QPlainTextEdit *LeftEyeIPAddress;
     QComboBox *EnergyModelBox;
     QPlainTextEdit *LogText;
+    bool showSerialData = false;
     QLabel *LeftEyeImage;
     QPushButton *RestartButton;
     QLabel *label;
@@ -353,6 +357,7 @@ private:
     QPushButton *leftDecButton;
     QPushButton *rightIncButton;
     QPushButton *rightDecButton;
+    QPushButton *ShowSerialDataButton;
 };
 
 

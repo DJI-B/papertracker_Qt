@@ -31,7 +31,7 @@ bool BaseInference::use_filter_status() const
     return use_filter;
 }
 
-void BaseInference::set_amp_map(const std::unordered_map<std::string, int>& amp_map)
+void BaseInference::set_amp_map(const std::unordered_map<std::string, float>& amp_map)
 {
     blendShapeAmpMap = amp_map;
 }
@@ -102,7 +102,7 @@ void BaseInference::AmpMapToOutput(std::vector<float>& output)
         {
             if (blendShapeAmpMap[blendShapes[i]] != 0)
             {
-                output[i] = output[i] * (blendShapeAmpMap[blendShapes[i]] * 0.02 + 1);
+                output[i] = output[i] * blendShapeAmpMap[blendShapes[i]];
                 output[i] = std::min(1.0f, output[i]);
             }
         }
