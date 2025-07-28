@@ -291,6 +291,7 @@ void PaperFaceTrackerWindow::initUi() {
     RotateImageBar->setObjectName("RotateImageBar");
     RotateImageBar->setOrientation(Qt::Horizontal);
     RotateImageBar->setFixedHeight(20);
+    RotateImageBar->setRange(0, 100);
     UseFilterBox = new QCheckBox(page);
     UseFilterBox->setObjectName("UseFilterBox");
     UseFilterBox->setFixedHeight(20);
@@ -661,7 +662,7 @@ void PaperFaceTrackerWindow::initLayout() {
     auto* rotateLayout = new QHBoxLayout();
     rotateLayout->addWidget(label_17);
     rotateLayout->addWidget(RotateImageBar);
-    RotateImageBar->setMinimumWidth(240);
+    RotateImageBar->setMinimumWidth(340);
     rotateLayout->addStretch();
     controlLayout->addLayout(rotateLayout);
 
@@ -1163,6 +1164,8 @@ void PaperFaceTrackerWindow::disconnectOffsetChangeEvent() {
 float PaperFaceTrackerWindow::getRotateAngle() const
 {
     auto rotate_angle = static_cast<float>(current_rotate_angle);
+    auto test = RotateImageBar->value();
+    auto max =RotateImageBar->maximum();
     rotate_angle = rotate_angle / (static_cast<float>(RotateImageBar->maximum()) -
         static_cast<float>(RotateImageBar->minimum())) * 360.0f;
     return rotate_angle;
@@ -2284,6 +2287,7 @@ void PaperFaceTrackerWindow::retranslateUI()
     rFactorLabel->setText(Translator::tr("测量噪声系数(r):"));
 
     calibrationModeLabel->setText(Translator::tr("校准模式") + ":");
+    calibrationModeLabel->setToolTip(Translator::tr("校准模式") + ":");
     calibrationModeComboBox->setItemText(0, Translator::tr("自然模式"));
     calibrationModeComboBox->setItemText(1, Translator::tr("完整模式"));
     // 添加tooltip
@@ -2291,8 +2295,11 @@ void PaperFaceTrackerWindow::retranslateUI()
     calibrationModeComboBox->setItemData(1, Translator::tr("做出尽可能多的面部表情，保持动作自然，不要特别夸张的表情"), Qt::ToolTipRole);
 
     calibrationStartButton->setText(Translator::tr("开始校准"));
+    calibrationStartButton->setToolTip(Translator::tr("开始校准"));
+    calibrationStopButton->setToolTip(Translator::tr("停止校准"));
     calibrationStopButton->setText(Translator::tr("停止校准"));
     calibrationResetButton->setText(Translator::tr("重置"));
+    calibrationResetButton->setToolTip(Translator::tr("重置"));
 
     label_3->setText(Translator::tr("放大倍率"));
     label_20->setText(Translator::tr("偏置值"));
