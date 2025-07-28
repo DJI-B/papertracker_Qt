@@ -990,7 +990,7 @@ void PaperEyeTrackerWindow::create_sub_thread() {
         if (image_stream[0]->isStreaming()) {
             updateEyePosition(LEFT_TAG);
         }
-        else {
+        if (image_stream[1]->isStreaming()){
             updateEyePosition(RIGHT_TAG);
         }
 
