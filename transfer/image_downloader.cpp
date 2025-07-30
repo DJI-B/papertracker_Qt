@@ -412,6 +412,14 @@ void ESP32VideoStream::onTextMessageReceived(const QString &message) {
                 brightness_value = obj["brightness"].toInt();
                 LOG_DEBUG("收到亮度值: {}", brightness_value);
             }
+            if (obj.contains("hardware_version")) {
+                hardware_version = obj["hardware_version"].toInt();
+                LOG_DEBUG("当前固件版本: {}", hardware_version);
+            }
+            else
+            {
+                hardware_version = -1;
+            }
         }
     } catch (const std::exception& e) {
         LOG_ERROR("处理文本消息出错: {}", e.what());
@@ -423,8 +431,7 @@ void ESP32VideoStream::onBinaryMessageReceived(const QByteArray &message)
     image_not_receive_count = 0;
     try {
         // 打印接收到的数据长度以进行调试
-        //LOG_DEBUG("接收到WebSocket数据: " + std::to_string(message.size()) + " 字节");
-
+        LOG_DEBUG("接收到WebSocket数据: {} 字节", message.size());
         // 帧率计算
         static std::deque<std::chrono::steady_clock::time_point> frame_timestamps;
         static auto last_fps_log_time = std::chrono::steady_clock::now();
@@ -461,7 +468,7 @@ void ESP32VideoStream::onBinaryMessageReceived(const QByteArray &message)
         cv::Mat rawFrame = cv::imdecode(buffer, cv::IMREAD_COLOR);
 
         if (!rawFrame.empty()) {
-            // LOG_DEBUG("成功解码图像，尺寸: " + std::to_string(rawFrame.cols) + "x" + std::to_string(rawFrame.rows));
+            LOG_DEBUG("成功解码图像，尺寸: {}x{}", rawFrame.cols, rawFrame.rows);
 
             QMutexLocker locker(&mutex);
             if (image_buffer_queue.empty()) {

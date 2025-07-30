@@ -142,6 +142,7 @@ public:
         const std::vector<float>& output,
         const std::unordered_map<std::string, size_t>& blendShapeIndexMap
     );
+    void checkHardwareVersion();
 
     using FuncWithoutArgs = std::function<void()>;
     using FuncWithVal = std::function<void(int)>;

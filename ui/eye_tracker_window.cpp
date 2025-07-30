@@ -14,12 +14,19 @@
 #include <algorithm>
 #include <QFontMetrics>
 
+#include "opencv2/imgcodecs.hpp"
+
+static bool is_show_tip[EYE_NUM] = {false, false};
+
 PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
     QWidget(parent) {
     if (instance == nullptr)
         instance = this;
     else
         throw std::exception(Translator::tr("当前已经打开了眼追窗口，请不要重复打开").toUtf8().constData());
+    is_show_tip[0] = false;
+    is_show_tip[1] = false;
+
     initUI();
     initLayout();
     setWindowFlags(windowFlags() | Qt::WindowMinimizeButtonHint);
@@ -76,11 +83,11 @@ PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
             }
 
             // 确保 ROI 不超出图像边界
-            if (x + width > 260) {
-                width = 260 - x;
+            if (x + width > 350) {
+                width = 350 - x;
             }
-            if (y + height > 260) {
-                height = 260 - y;
+            if (y + height > 259) {
+                height = 259 - y;
             }
             // 确保最终的宽度和高度为正值
             width = max(0, width);
@@ -88,6 +95,7 @@ PaperEyeTrackerWindow::PaperEyeTrackerWindow(QWidget* parent) :
 
             // 更新 roi_rect
             roi_rect[tag].is_roi_end = isEnd;
+
             roi_rect[tag] = Rect(x, y, width, height);
             }, images_labels[i], i);
         images_labels[i]->installEventFilter(roiFilter);
@@ -310,6 +318,7 @@ void PaperEyeTrackerWindow::create_sub_thread() {
             while (is_running()) {
                 updateWifiLabel(version);
                 updateBatteryStatus(version);
+                checkHardwareVersion(version);
                 updateSerialLabel(current_esp32_version);
                 auto start_time = std::chrono::high_resolution_clock::now();
                 try {
@@ -412,7 +421,7 @@ void PaperEyeTrackerWindow::create_sub_thread() {
                 // 推理处理
                 if (!frame.empty()) {
                     auto rotate_angle = getRotateAngle(version);
-                    cv::resize(frame, frame, cv::Size(280, 280), cv::INTER_NEAREST);
+                    cv::resize(frame, frame, cv::Size(350, 259), cv::INTER_NEAREST);
                     int y = frame.rows / 2;
                     int x = frame.cols / 2;
                     auto rotate_matrix = cv::getRotationMatrix2D(cv::Point(x, y), rotate_angle, 1);
@@ -422,6 +431,10 @@ void PaperEyeTrackerWindow::create_sub_thread() {
                     auto roi_rect = getRoiRect(version);
                     if (!roi_rect.rect.empty() && roi_rect.is_roi_end) {
                         infer_frame = infer_frame(roi_rect.rect);
+                        if (version == LEFT_TAG)
+                        {
+                            cv::imwrite("roi_cropped_image_LEFT.jpg", infer_frame);
+                        }
                     }
                     if (version == LEFT_TAG) {
                     // 水平翻转图像（沿y轴对称）
@@ -1171,7 +1184,7 @@ void PaperEyeTrackerWindow::initUI() {
 
     LeftEyeImage = new QLabel(page);
     LeftEyeImage->setObjectName("LeftEyeImage");
-    LeftEyeImage->setFixedSize(260, 260);
+    LeftEyeImage->setFixedSize(350, 259);
     LeftEyeImage->setAlignment(Qt::AlignCenter);
     LeftEyeImage->setStyleSheet("border: 1px solid white;");
     QFont Imagefont = LeftEyeImage->font();
@@ -1180,7 +1193,7 @@ void PaperEyeTrackerWindow::initUI() {
     LeftEyeImage->setFont(Imagefont);
     RightEyeImage = new QLabel(page);
     RightEyeImage->setObjectName("RightEyeImage");
-    RightEyeImage->setFixedSize(260, 260);
+    RightEyeImage->setFixedSize(350, 259);
     RightEyeImage->setAlignment(Qt::AlignCenter);
     RightEyeImage->setFont(Imagefont);
     RightEyeImage->setStyleSheet("border: 1px solid white;");
@@ -1344,12 +1357,27 @@ void PaperEyeTrackerWindow::initUI() {
     ShowSerialDataButton->setObjectName("ShowSerialDataButton");
     ShowSerialDataButton->setFixedHeight(24);
 
+    openTrackerRecorderButton = new QPushButton(page);
+    openTrackerRecorderButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    openTrackerRecorderButton->setObjectName("ShowSerialDataButton");
+    openTrackerRecorderButton->setFixedHeight(40);
+    openTrackerRecorderButton->setFont(font1);
+
+    tutorialLink = new QLabel(page);
+    tutorialLink->setAlignment(Qt::AlignHCenter);
+    tutorialLink->setText(QString("<a href='https://fcnk6r4c64fa.feishu.cn/wiki/I1NxwR9sDifVeVkVlapciBTJnge' style='color: #0066cc; font-size: 14pt; font-weight: bold;'>%1</a>")
+                          .arg(Translator::tr("眼追录制工具教程")));
+    tutorialLink->setOpenExternalLinks(true);
+    tutorialLink->setTextFormat(Qt::RichText);
+    tutorialLink->setStyleSheet("background-color: #f0f0f0; padding: 5px; border-radius: 5px;");
+
     // 连接信号和槽
     connect(leftIncButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onLeftEyeValueIncrease);
     connect(leftDecButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onLeftEyeValueDecrease);
     connect(rightIncButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onRightEyeValueIncrease);
     connect(rightDecButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onRightEyeValueDecrease);
     connect(ShowSerialDataButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onShowSerialDataButtonClicked);
+    connect(openTrackerRecorderButton, &QPushButton::clicked, this, &PaperEyeTrackerWindow::onTrackerRecorderButtonClicked);
 }
 
 void PaperEyeTrackerWindow::initLayout() {
@@ -1417,6 +1445,8 @@ void PaperEyeTrackerWindow::initLayout() {
     controlLayout->addLayout(RightBrightnessLayout);
     controlLayout->addLayout(LeftRotateLaytout);
     controlLayout->addLayout(RightRotateLaytout);
+    controlLayout->addWidget(openTrackerRecorderButton);
+    controlLayout->addWidget(tutorialLink);
     controlLayout->addStretch();
     controlLayout->addLayout(BatteryStatusLayout);
 
@@ -1607,6 +1637,9 @@ void PaperEyeTrackerWindow::retranslateUI() {
     setFixedWidthBasedONLongestText(settingsEyeOpenButton, ButtonStr);
     setFixedWidthBasedONLongestText(settingsEyeCloseButton, ButtonStr);
 
+    openTrackerRecorderButton->setText(Translator::tr("打开录制工具"));
+    tutorialLink->setText(QString("<a href='https://fcnk6r4c64fa.feishu.cn/wiki/I1NxwR9sDifVeVkVlapciBTJnge' style='color: #0066cc; font-size: 14pt; font-weight: bold;'>%1</a>")
+                          .arg(Translator::tr("眼追录制工具教程")));
     ShowSerialDataButton->setText(Translator::tr("串口日志"));
     LeftEyeOpennessLabel->setText(Translator::tr("左眼开合度"));
     RightEyeOpennessLabel->setText(Translator::tr("右眼开合度"));
@@ -2354,7 +2387,7 @@ void PaperEyeTrackerWindow::updateBatteryStatus(int version)
     if (image_stream[version] && image_stream[version]->isStreaming())
     {
         float battery = image_stream[version]->getBatteryPercentage();
-        QString batteryText = QString("电池电量: %1%").arg(battery, 0, 'f', 1);
+        QString batteryText = QString(Translator::tr("电池电量: %1%")).arg(battery, 0, 'f', 1);
 
         if (version == LEFT_TAG) {
             LeftEyeBatteryLabel->setText(batteryText);
@@ -2365,13 +2398,49 @@ void PaperEyeTrackerWindow::updateBatteryStatus(int version)
     else
     {
         if (version == LEFT_TAG) {
-            LeftEyeBatteryLabel->setText("左眼电池: 未知");
+            LeftEyeBatteryLabel->setText(Translator::tr("左眼电池: 未知"));
         } else if (version == RIGHT_TAG) {
-            RightEyeBatteryLabel->setText("右眼电池: 未知");
+            RightEyeBatteryLabel->setText(Translator::tr("右眼电池: 未知"));
         }
     }
     }, Qt::QueuedConnection);
 }
+void PaperEyeTrackerWindow::checkHardwareVersion(int version)
+{
+    if (image_stream[version] && image_stream[version]->isStreaming())
+    {
+        auto deviceVersion = image_stream[version]->getHardwareVersion();
+        if (deviceVersion!= 0 && deviceVersion != LATEST_HARDWARE_VERSION && !is_show_tip[version])
+        {
+            is_show_tip[version] = true;
+            QTimer::singleShot(200, this, [this] {
+                // 弹出提示框提示用户重新烧录固件
+                QMessageBox msgBox;
+                msgBox.setWindowIcon(this->windowIcon());
+                msgBox.setWindowTitle(Translator::tr("固件版本不匹配"));
+                msgBox.setText(Translator::tr("检测到设备固件版本与软件要求不匹配，需要重新烧录固件。"));
+                msgBox.setInformativeText(Translator::tr("请使用数据线进行有线连接，连接完成后点击“烧录固件”按钮进行固件烧录，烧录过程中请不要断开连接。"));
+                msgBox.setIcon(QMessageBox::Critical);
+
+                QPushButton *flashButton = msgBox.addButton(Translator::tr("烧录固件"), QMessageBox::AcceptRole);
+                QPushButton *exitButton = msgBox.addButton(Translator::tr("取消"), QMessageBox::RejectRole);
+
+                msgBox.setModal(true);
+                msgBox.exec();
+
+                if (msgBox.clickedButton() == flashButton) {
+                   // 用户选择烧录固件，调用烧录函数
+                   onFlashButtonClicked();
+               } else if (msgBox.clickedButton() == exitButton) {
+                   // 用户选择关闭窗口，只关闭当前窗口而不是退出整个程序
+                   this->close();
+               } else {
+                   // 如果用户以其他方式关闭对话框，则也只关闭当前窗口
+                   this->close();
+               }
+            });
+        }
+    }}
 void PaperEyeTrackerWindow::updateCalibrationButtonStates()
 {
     // 设置按钮样式
@@ -2432,6 +2501,32 @@ void PaperEyeTrackerWindow::onShowSerialDataButtonClicked()
     }
     updatePageWidth();
 }
+
+void PaperEyeTrackerWindow::onTrackerRecorderButtonClicked()
+{
+    // 获取应用程序所在目录
+    QString appDir = QCoreApplication::applicationDirPath();
+
+    // 构建可执行文件路径
+    QString recorderPath = appDir + "/PaperTracker图像录制工具.exe";
+
+    // 检查文件是否存在
+    QFileInfo fileInfo(recorderPath);
+    if (fileInfo.exists() && fileInfo.isFile()) {
+        // 启动外部程序
+        bool result = QProcess::startDetached(recorderPath);
+        if (!result) {
+            QMessageBox::critical(this,
+                Translator::tr("错误"),
+                Translator::tr("无法启动图像录制工具，请检查文件权限或路径"));
+        }
+    } else {
+        QMessageBox::critical(this,
+            Translator::tr("错误"),
+            Translator::tr("未找到图像录制工具，请确保 PaperTracker图像录制工具.exe 文件存在于程序目录中"));
+    }
+}
+
 
 void PaperEyeTrackerWindow::setFixedWidthBasedONLongestText(QWidget* widget, const QStringList& texts) {
     QFontMetrics fm(widget->font());

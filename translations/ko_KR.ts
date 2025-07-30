@@ -1113,4 +1113,123 @@
             <translation>가능한 한 많은 얼굴 표정을 짓고, 동작을 자연스럽게 유지하며, 특별히 과장된 표정은 하지 마라</translation>
         </message>
     </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>当前客户端版本不是最新版本是否更新？</source>
+            <translation>현재 클라이언트 버전이 최신이 아닙니다. 업데이트하시겠습니까?</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>版本更新信息如下：</source>
+            <translation>버전 업데이트 정보는 다음과 같습니다:</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>版本检查</source>
+            <translation>버전 확인</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>当前客户端版本已是最新版本</source>
+            <translation>현재 클라이언트 버전이 이미 최신입니다</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>无法获取当前客户端版本信息</source>
+            <translation>현재 클라이언트 버전 정보를 가져올 수 없습니다</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>错误</source>
+            <translation>오류</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>检测到新版本</source>
+            <translation>새 버전이 감지됨</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>是否现在更新？</source>
+            <translation>지금 업데이트하시겠습니까?</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>更新说明：</source>
+            <translation>업데이트 노트:</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>电池电量: %1%</source>
+            <translation>배터리 수준: %1%%</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>左眼电池: 未知</source>
+            <translation>왼쪽 눈 배터리: 알 수 없음</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>右眼电池: 未知</source>
+            <translation>오른쪽 눈 배터리: 알 수 없음</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>固件版本不匹配</source>
+            <translation>펌웨어 버전 불일치</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>检测到设备固件版本与软件要求不匹配，需要重新烧录固件。\n请使用数据线进行有线连接，连接完成后点击&quot;烧录固件&quot;按钮进行固件烧录，烧录过程中请不要断开连接。</source>
+            <translation>장치 펌웨어 버전이 소프트웨어 요구사항과 일치하지 않아 재플래싱이 필요합니다.\n데이터 케이블을 사용하여 유선 연결을 하세요. 연결이 완료되면 &quot;펌웨어 플래싱&quot; 버튼을 클릭하여 펌웨어를 플래시합니다. 플래싱 중에는 연결을 해제하지 마세요.</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>烧录固件</source>
+            <translation>펌웨어 플래싱</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>眼追录制工具教程</source>
+            <translation>아이트래킹 녹화 도구 튜토리얼</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>打开录制工具</source>
+            <translation>녹화 도구 열기</translation>
+        </message>
+    </context>
 </TS>

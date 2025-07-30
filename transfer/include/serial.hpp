@@ -18,7 +18,7 @@
 #include <QTimer>
 
 #include "logger.hpp"
-
+constexpr int LATEST_HARDWARE_VERSION = 1;
 enum SerialStatus
 {
     CLOSED = 0,

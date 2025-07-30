@@ -116,6 +116,8 @@ public:
     void startCalibration();
     void centerCalibration();
     PaperEyeTrackerConfig generate_config() const;
+    void checkHardwareVersion(int version);
+
 private slots:
     void onSendButtonClicked();
     void onRestartButtonClicked();
@@ -135,6 +137,7 @@ private slots:
     void onRightEyeValueDecrease();
 
     void onShowSerialDataButtonClicked();
+    void onTrackerRecorderButtonClicked();
 
 private:
     void initUI();
@@ -358,6 +361,8 @@ private:
     QPushButton *rightIncButton;
     QPushButton *rightDecButton;
     QPushButton *ShowSerialDataButton;
+    QPushButton *openTrackerRecorderButton;
+    QLabel *tutorialLink;
 };
 
 

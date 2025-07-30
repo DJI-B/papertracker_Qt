@@ -31,6 +31,7 @@ public:
     bool start();
     float getBatteryPercentage() const { return battery_percentage; }
     int getBrightnessValue() const { return brightness_value; }
+    int getHardwareVersion() const {return hardware_version;}
     // 停止视频流
     void stop();
 
@@ -106,6 +107,7 @@ private:
     // 已有的成员...
     float battery_percentage = 0.0f;
     int brightness_value = 0;
+    int hardware_version = 0;
     int image_not_receive_count = 0;
     QTimer* heartbeatTimer;
 };

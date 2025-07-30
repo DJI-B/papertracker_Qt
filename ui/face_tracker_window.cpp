@@ -32,6 +32,11 @@
 #include <QBoxLayout>
 #include <QFormLayout>
 #include <QGroupBox>
+
+#include "opencv2/imgcodecs.hpp"
+
+static bool is_show_tip = false;
+
 PaperFaceTrackerWindow::PaperFaceTrackerWindow(QWidget *parent)
     : QWidget(parent)
 {
@@ -39,8 +44,9 @@ PaperFaceTrackerWindow::PaperFaceTrackerWindow(QWidget *parent)
         instance = this;
     else
         throw std::exception(Translator::tr("当前已经打开了面捕窗口，请不要重复打开").toUtf8().constData());
+    is_show_tip = false;
     // 基本UI设置
-    setFixedSize(848, 388);
+    setFixedSize(900, 388);
     initUi();
     initializeParameters();
     initLayout();
@@ -101,11 +107,11 @@ PaperFaceTrackerWindow::PaperFaceTrackerWindow(QWidget *parent)
         }
 
         // 确保 ROI 不超出图像边界
-        if (x + width > 280) {
-            width = 280 - x;
+        if (x + width > 350) {
+            width = 350 - x;
         }
-        if (y + height > 280) {
-            height = 280 - y;
+        if (y + height > 259) {
+            height = 259 - y;
         }
         // 确保最终的宽度和高度为正值
         width = max(0, width);
@@ -615,7 +621,7 @@ void PaperFaceTrackerWindow::initLayout() {
 
     // 左侧图像区域
     auto imageLayout = new QVBoxLayout();
-    ImageLabel->setFixedSize(280, 280);
+    ImageLabel->setFixedSize(350, 259);
     ImageLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     ImageLabel->setStyleSheet("border: 1px solid white;");
     ImageLabel->setAlignment(Qt::AlignCenter);
@@ -700,6 +706,7 @@ void PaperFaceTrackerWindow::initLayout() {
     logTextLayout->addWidget(ShowSerialDataButton);
 
     imageAndParamsLayout->addLayout(imageLayout);
+    imageAndParamsLayout->addSpacing(8);
     imageAndParamsLayout->addLayout(rightPanelLayout);
     imageAndParamsLayout->setStretch(0, 1);  // 左侧图像区域固定
     imageAndParamsLayout->setStretch(1, 2);  // 右侧参数区域更大
@@ -714,7 +721,7 @@ void PaperFaceTrackerWindow::initLayout() {
     // 修正校准页面布局
     calibrationPageLayout = new QHBoxLayout(page_2);
     calibrationPageLayout->setContentsMargins(10, 10, 10, 10);
-    calibrationPageLayout->setSpacing(10);
+    calibrationPageLayout->setSpacing(0);
 
     auto* leftPageLayout = new QVBoxLayout(page_2);
     leftPageLayout->setContentsMargins(10, 0, 10, 10);
@@ -922,6 +929,44 @@ void PaperFaceTrackerWindow::addCalibrationParam(QGridLayout* layout,
     }
 }
 
+void PaperFaceTrackerWindow::checkHardwareVersion()
+{
+    if (image_downloader && image_downloader->isStreaming())
+    {
+        auto deviceVersion = image_downloader->getHardwareVersion();
+        if (deviceVersion!= 0 && deviceVersion != LATEST_HARDWARE_VERSION && !is_show_tip)
+        {
+            is_show_tip = true;
+            QTimer::singleShot(200, this, [this, deviceVersion] {
+                // 弹出提示框提示用户重新烧录固件
+                QMessageBox msgBox;
+                msgBox.setWindowIcon(this->windowIcon());
+                msgBox.setWindowTitle(Translator::tr("固件版本不匹配"));
+                msgBox.setText(Translator::tr("检测到设备固件版本与软件要求不匹配，需要重新烧录固件。"));
+                msgBox.setInformativeText(Translator::tr("请使用数据线进行有线连接并在途中不要断开连接，然后点击“烧录固件”按钮进行固件烧录。"));
+                msgBox.setIcon(QMessageBox::Critical);
+
+                QPushButton *flashButton = msgBox.addButton(Translator::tr("烧录固件"), QMessageBox::AcceptRole);
+                QPushButton *exitButton = msgBox.addButton(Translator::tr("退出程序"), QMessageBox::RejectRole);
+
+                msgBox.setModal(true);
+                msgBox.exec();
+
+                if (msgBox.clickedButton() == flashButton) {
+                   // 用户选择烧录固件，调用烧录函数
+                   onFlashButtonClicked();
+               } else if (msgBox.clickedButton() == exitButton) {
+                   // 用户选择关闭窗口，只关闭当前窗口而不是退出整个程序
+                   this->close();
+               } else {
+                   // 如果用户以其他方式关闭对话框，则也只关闭当前窗口
+                   this->close();
+               }
+            });
+        }
+    }
+
+}
 
 void PaperFaceTrackerWindow::setVideoImage(const cv::Mat& image)
 {
@@ -1783,6 +1828,7 @@ void PaperFaceTrackerWindow::create_sub_threads()
             updateWifiLabel();
             updateSerialLabel();
             updateBatteryStatus();
+            checkHardwareVersion();
             auto start_time = std::chrono::high_resolution_clock::now();
             try {
                 if (fps_total > 1000)
@@ -1802,7 +1848,7 @@ void PaperFaceTrackerWindow::create_sub_threads()
                 if (!frame.empty())
                 {
                     auto rotate_angle = getRotateAngle();
-                    cv::resize(frame, frame, cv::Size(280, 280), cv::INTER_NEAREST);
+                    cv::resize(frame, frame, cv::Size(350, 259), cv::INTER_NEAREST);
                     int y = frame.rows / 2;
                     int x = frame.cols / 2;
                     auto rotate_matrix = cv::getRotationMatrix2D(cv::Point(x, y), rotate_angle, 1);
@@ -1866,7 +1912,7 @@ void PaperFaceTrackerWindow::create_sub_threads()
             if (!frame.empty())
             {
                 auto rotate_angle = getRotateAngle();
-                cv::resize(frame, frame, cv::Size(280, 280), cv::INTER_NEAREST);
+                cv::resize(frame, frame, cv::Size(350, 259), cv::INTER_NEAREST);
                 int y = frame.rows / 2;
                 int x = frame.cols / 2;
                 auto rotate_matrix = cv::getRotationMatrix2D(cv::Point(x, y), rotate_angle, 1);
@@ -1877,6 +1923,8 @@ void PaperFaceTrackerWindow::create_sub_threads()
                 if (!roi_rect.rect.empty() && roi_rect.is_roi_end)
                 {
                     infer_frame = infer_frame(roi_rect.rect);
+                    // 保存为PNG格式
+                    cv::imwrite("roi_cropped_image.png", infer_frame);
                 }
                 inference->inference(infer_frame);
                 {
@@ -2092,12 +2140,12 @@ void PaperFaceTrackerWindow::onShowSerialDataButtonClicked()
     showSerialData = !showSerialData;
     if (showSerialData) {
         LogText->setVisible(true);
-        setFixedSize(848, 538); //
+        setFixedSize(900, 538); //
         LOG_INFO("已开启串口原始数据显示");
         ShowSerialDataButton->setText(Translator::tr("停止显示串口数据"));
     } else {
         LogText->setVisible(false);
-        setFixedSize(848, 388); //
+        setFixedSize(900, 388); //
         LOG_INFO("已关闭串口原始数据显示");
         ShowSerialDataButton->setText(Translator::tr("显示串口数据"));
     }
@@ -2165,7 +2213,7 @@ void PaperFaceTrackerWindow::setupKalmanFilterControls() {
         page2RightLayout->addLayout(gridLayout);
         page2RightLayout->addWidget(helpLabel,0,Qt::AlignBottom);
         page2RightLayout->addWidget(ImageLabelCal,1);
-        ImageLabelCal->setFixedSize(280, 280);
+        ImageLabelCal->setFixedSize(350, 259);
         ImageLabelCal->setStyleSheet("border: 1px solid white;");
         ImageLabelCal->setAlignment(Qt::AlignCenter);
         QFont font = ImageLabelCal->font();
@@ -2354,7 +2402,7 @@ void PaperFaceTrackerWindow::updatePageWidth()
         });
     }
     else {
-        setFixedSize(848, showSerialData? 538 : 538 - 150);
+        setFixedSize(900, showSerialData? 538 : 538 - 150);
         scrollArea->setMinimumWidth(500);
         updateGeometry();
     }
