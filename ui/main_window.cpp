@@ -71,16 +71,33 @@ PaperTrackerMainWindow::PaperTrackerMainWindow(QWidget *parent) :
 
                 // 可选：自动弹出更新提示
                 QTimer::singleShot(2000, this, [this, remote_version]() {
-                    QMessageBox::StandardButton reply = QMessageBox::question(
-                        this, "发现新版本",
-                        "检测到新版本 " + remote_version.version.tag +
-                        "\n\n是否现在更新？\n\n更新说明：\n" + remote_version.version.description,
-                        QMessageBox::Yes | QMessageBox::No);
+                    QString message;
+                    if (remote_version.version.description.isEmpty()) {
+                        // 如果描述为空，则不显示更新说明部分
+                        message = QString("%1 %2\n\n%3")
+                                    .arg(Translator::tr("检测到新版本"))
+                                    .arg(remote_version.version.tag)
+                                    .arg(Translator::tr("是否现在更新？"));
+                    } else {
+                        // 如果描述不为空，则显示完整信息
+                        message = QString("%1 %2\n\n%3\n\n%4\n%5")
+                                    .arg(Translator::tr("检测到新版本"))
+                                    .arg(remote_version.version.tag)
+                                    .arg(Translator::tr("是否现在更新？"))
+                                    .arg(Translator::tr("更新说明："))
+                                    .arg(remote_version.version.description);
+                        }
 
-                    if (reply == QMessageBox::Yes) {
-                        onUpdateButtonClicked();
-                    }
-                });
+QMessageBox::StandardButton reply = QMessageBox::question(
+    this,
+    Translator::tr("检测到新版本"),
+    message,
+    QMessageBox::Yes | QMessageBox::No);
+
+if (reply == QMessageBox::Yes) {
+    onUpdateButtonClicked();
+}
+});
             }
             else
             {
@@ -180,10 +197,23 @@ void PaperTrackerMainWindow::onUpdateButtonClicked()
     }
     // 3. 如果版本不同，则执行更新
     if (remoteVersionOpt.value().version.tag != currentVersionOpt.value().version.tag) {
-        auto reply = QMessageBox::question(this, tr("版本检查"),
-            tr(("当前客户端版本不是最新版本是否更新？\n版本更新信息如下：\n" +
-            remoteVersionOpt.value().version.description).toUtf8().constData()),
-            QMessageBox::Yes | QMessageBox::No);
+        QString message;
+        if (remoteVersionOpt.value().version.description.isEmpty()) {
+            // 如果描述为空，则只显示基本更新信息
+            message = QString("%1")
+                        .arg(Translator::tr("当前客户端版本不是最新版本是否更新？"));
+        } else {
+            // 如果描述不为空，则显示完整信息
+            message = QString("%1\n%2\n%3")
+                        .arg(Translator::tr("当前客户端版本不是最新版本是否更新？"))
+                        .arg(Translator::tr("版本更新信息如下："))
+                        .arg(remoteVersionOpt.value().version.description);
+        }
+
+        auto reply = QMessageBox::question(this,
+                    Translator::tr("版本检查"),
+                    message,
+                    QMessageBox::Yes | QMessageBox::No);
         if (reply == QMessageBox::Yes) {
             if (!updater->updateApplicationSync(this, remoteVersionOpt.value())) {
                 // 更新过程中有错误，提示信息已在内部处理
@@ -192,7 +222,7 @@ void PaperTrackerMainWindow::onUpdateButtonClicked()
             // 若更新成功，updateApplicationSync 内部会重启程序并退出当前程序
         }
     } else {
-        QMessageBox::information(this, tr("版本检查"), tr("当前客户端版本已是最新版本"));
+        QMessageBox::information(this, Translator::tr("版本检查"), Translator::tr("当前客户端版本已是最新版本"));
     }
 }
 

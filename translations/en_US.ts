@@ -1113,4 +1113,123 @@
             <translation>Make as many facial expressions as possible, maintain natural movements, and avoid overly exaggerated expressions</translation>
         </message>
     </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>当前客户端版本不是最新版本是否更新？</source>
+            <translation>Current client version is not the latest, update?</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>版本更新信息如下：</source>
+            <translation>Version update information as follows:</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>版本检查</source>
+            <translation>Version Check</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>当前客户端版本已是最新版本</source>
+            <translation>Current client version is already up-to-date</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>无法获取当前客户端版本信息</source>
+            <translation>Unable to get current client version info</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>错误</source>
+            <translation>Error</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>检测到新版本</source>
+            <translation>New version detected</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>是否现在更新？</source>
+            <translation>Update now?</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>更新说明：</source>
+            <translation>Update notes:</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>电池电量: %1%</source>
+            <translation>Battery Level: %1%%</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>左眼电池: 未知</source>
+            <translation>Left Eye Battery: Unknown</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>右眼电池: 未知</source>
+            <translation>Right Eye Battery: Unknown</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>固件版本不匹配</source>
+            <translation>Firmware version mismatch</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>检测到设备固件版本与软件要求不匹配，需要重新烧录固件。\n请使用数据线进行有线连接，连接完成后点击&quot;烧录固件&quot;按钮进行固件烧录，烧录过程中请不要断开连接。</source>
+            <translation>Detected that the device firmware version does not match the software requirements and needs to be reflashed.\nPlease use a data cable for wired connection. After connection is complete, click the &quot;Flash Firmware&quot; button to flash the firmware. Do not disconnect during the flashing process.</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>烧录固件</source>
+            <translation>Flash Firmware</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>眼追录制工具教程</source>
+            <translation>Eye Tracking Recording Tool Tutorial</translation>
+        </message>
+    </context>
+    <context>
+        <name>PaperTrackerMainWindow</name>
+        <message>
+            <source>打开录制工具</source>
+            <translation>Open Recording Tool</translation>
+        </message>
+    </context>
 </TS>

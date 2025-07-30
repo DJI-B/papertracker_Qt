@@ -158,3 +158,20 @@ Wifi已连接	Wifi已连接	Wifi connected	Wifi接続済み	Wifi 연결
 校准模式	校准模式	Calibration Mode	キャリブレーションモード	교정 모드
 放松面部，保持无表情的静默状态，以获取最准确的参数	放松面部，保持无表情的静默状态，以获取最准确的参数	Relax your face and maintain an expressionless silence to obtain the most accurate parameters	顔をリラックスさせ、最も正確なパラメータを得るために無表情なサイレント状態を維持します	가장 정확한 매개 변수를 얻기 위해 얼굴을 편안하게 하고 무표정한 침묵 상태를 유지하십시오
 做出尽可能多的面部表情，保持动作自然，不要特别夸张的表情	做出尽可能多的面部表情，保持动作自然，不要特别夸张的表情	Make as many facial expressions as possible, maintain natural movements, and avoid overly exaggerated expressions	できるだけ多くの顔の表情を作って、動作を自然にして、特に誇張した表情をしないでください	가능한 한 많은 얼굴 표정을 짓고, 동작을 자연스럽게 유지하며, 특별히 과장된 표정은 하지 마라
+当前客户端版本不是最新版本是否更新？	当前客户端版本不是最新版本是否更新？	Current client version is not the latest, update?	現在のクライアントバージョンが最新ではありません。更新しますか？	현재 클라이언트 버전이 최신이 아닙니다. 업데이트하시겠습니까?
+版本更新信息如下：	版本更新信息如下：	Version update information as follows:	バージョン更新情報は以下の通りです:	버전 업데이트 정보는 다음과 같습니다:
+版本检查	版本检查	Version Check	バージョン確認	버전 확인
+当前客户端版本已是最新版本	当前客户端版本已是最新版本	Current client version is already up-to-date	現在のクライアントバージョンは既に最新です	현재 클라이언트 버전이 이미 최신입니다
+无法获取当前客户端版本信息	无法获取当前客户端版本信息	Unable to get current client version info	現在のクライアントバージョン情報を取得できません	현재 클라이언트 버전 정보를 가져올 수 없습니다
+错误	错误	Error	エラー	오류
+检测到新版本	检测到新版本	New version detected	新しいバージョンを検出しました	새 버전이 감지됨
+是否现在更新？	是否现在更新？	Update now?	今すぐ更新しますか？	지금 업데이트하시겠습니까?
+更新说明：	更新说明：	Update notes:	更新ノート:	업데이트 노트:
+电池电量: %1%	电池电量: %1%	Battery Level: %1%%	バッテリー残量: %1%%	배터리 수준: %1%%
+左眼电池: 未知	左眼电池: 未知	Left Eye Battery: Unknown	左目のバッテリー: 不明	왼쪽 눈 배터리: 알 수 없음
+右眼电池: 未知	右眼电池: 未知	Right Eye Battery: Unknown	右目のバッテリー: 不明	오른쪽 눈 배터리: 알 수 없음
+固件版本不匹配	固件版本不匹配	Firmware version mismatch	ファームウェアバージョン不一致	펌웨어 버전 불일치
+检测到设备固件版本与软件要求不匹配，需要重新烧录固件。\n请使用数据线进行有线连接，连接完成后点击"烧录固件"按钮进行固件烧录，烧录过程中请不要断开连接。	检测到设备固件版本与软件要求不匹配，需要重新烧录固件。\n请使用数据线进行有线连接，连接完成后点击"烧录固件"按钮进行固件烧录，烧录过程中请不要断开连接。	Detected that the device firmware version does not match the software requirements and needs to be reflashed.\nPlease use a data cable for wired connection. After connection is complete, click the "Flash Firmware" button to flash the firmware. Do not disconnect during the flashing process.	デバイスのファームウェアバージョンがソフトウェア要件と一致しないため、再フラッシュが必要です。\nデータケーブルを使用して有線接続を行ってください。接続が完了したら「ファームウェア書き込み」ボタンをクリックしてファームウェアを書き込みます。書き込み中は接続を解除しないでください。	장치 펌웨어 버전이 소프트웨어 요구사항과 일치하지 않아 재플래싱이 필요합니다.\n데이터 케이블을 사용하여 유선 연결을 하세요. 연결이 완료되면 "펌웨어 플래싱" 버튼을 클릭하여 펌웨어를 플래시합니다. 플래싱 중에는 연결을 해제하지 마세요.
+烧录固件	烧录固件	Flash Firmware	ファームウェア書き込み	펌웨어 플래싱
+眼追录制工具教程	眼追录制工具教程	Eye Tracking Recording Tool Tutorial	アイトラッキング録画ツールチュートリアル	아이트래킹 녹화 도구 튜토리얼
+打开录制工具	打开录制工具	Open Recording Tool	録画ツールを開く	녹화 도구 열기

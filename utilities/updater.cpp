@@ -7,6 +7,10 @@
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkReply>
 #include "logger.hpp"
+#include "translator_manager.h"
+#include <QJsonArray>
+
+/*
 std::optional<Version> Updater::getClientVersionSync(QWidget* window) {
     LOG_INFO("正在获取远程版本信息...");
     QNetworkAccessManager manager;
@@ -54,6 +58,100 @@ std::optional<Version> Updater::getClientVersionSync(QWidget* window) {
     LOG_INFO("成功获取远程版本: {}", cv.tag.toStdString());
     return Version{cv};
 }
+*/
+
+std::optional<Version> Updater::getClientVersionSync(QWidget* window) {
+    LOG_INFO("正在获取远程版本信息...");
+
+    // 根据当前语言选择不同的版本信息URL
+    auto currentLang = TranslatorManager::instance().getCurrentLanguage();
+    QString versionUrl = "";
+    if (currentLang == "zh-CN")
+    {
+        versionUrl = "http://47.116.163.1:8443/packages/PaperTracker_Setup/versions";
+    }
+    else
+    {
+        versionUrl = "http://en.download.papertracker.top/packages/PaperTracker_Setup/versions";
+    }
+
+    QNetworkAccessManager manager;
+    QUrl URL = QUrl(versionUrl);
+    QNetworkRequest request(URL);
+    QNetworkReply* reply = manager.get(request);
+
+    QEventLoop loop;
+    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+
+    if (reply->error() != QNetworkReply::NoError) {
+        LOG_ERROR("获取版本信息失败: {}", reply->errorString().toStdString());
+        if (window) {
+            QMessageBox::critical(window, Translator::tr("错误"), Translator::tr("获取版本信息失败: ") + reply->errorString());
+        }
+        reply->deleteLater();
+        return std::nullopt;
+    }
+
+    QByteArray responseData = reply->readAll();
+    reply->deleteLater();
+    LOG_INFO("收到服务器响应: {}", QString(responseData).toStdString());
+
+    QJsonDocument doc = QJsonDocument::fromJson(responseData);
+
+    // 解析数组格式的版本信息
+    if (!doc.isArray()) {
+        LOG_ERROR("版本信息格式错误: 不是有效的JSON数组");
+        if (window) {
+            QMessageBox::critical(window, Translator::tr("错误"), Translator::tr("版本信息格式错误"));
+        }
+        return std::nullopt;
+    }
+
+    QJsonArray versionsArray = doc.array();
+
+    // 查找最新的版本（is_latest为true的版本）
+    QJsonObject latestVersionObj;
+    bool foundLatest = false;
+
+    for (const auto& value : versionsArray) {
+        if (value.isObject()) {
+            QJsonObject versionObj = value.toObject();
+            if (versionObj.contains("is_latest") && versionObj["is_latest"].toBool()) {
+                latestVersionObj = versionObj;
+                foundLatest = true;
+                break;
+            }
+        }
+    }
+
+    // 如果没有找到标记为最新的版本，则使用第一个版本
+    if (!foundLatest && !versionsArray.isEmpty()) {
+        QJsonValue firstValue = versionsArray.first();
+        if (firstValue.isObject()) {
+            latestVersionObj = firstValue.toObject();
+            foundLatest = true;
+        }
+    }
+
+    if (!foundLatest) {
+        LOG_ERROR("版本信息格式错误: 未找到有效的版本信息");
+        if (window) {
+            QMessageBox::critical(window, Translator::tr("错误"), Translator::tr("版本信息格式错误: 未找到有效的版本信息"));
+        }
+        return std::nullopt;
+    }
+
+    // 提取版本信息
+    ClientVersion cv;
+    cv.tag = latestVersionObj["version"].toString();
+    cv.description = latestVersionObj["description"].toString();
+    cv.firmware = ""; // 新的API格式中没有firmware字段
+
+    LOG_INFO("成功获取远程版本: {}", cv.tag.toStdString());
+    return Version{cv};
+}
+
 
 // 同步读取本地版本信息
 std::optional<Version> Updater::getCurrentVersion() {
@@ -160,8 +258,16 @@ bool Updater::runInstaller(const QString &installerPath, QWidget* parent) {
 // 修改更新函数实现
 bool Updater::updateApplicationSync(QWidget* window, const Version &remoteVersion) {
     // 假设服务器提供的安装包 URL 为：<下载地址>/<版本tag>.exe
-    QString downloadUrl = "http://47.116.163.1:80/downloads/" + remoteVersion.version.tag;
-
+    auto currentLang = TranslatorManager::instance().getCurrentLanguage();
+    QString downloadUrl = "";
+    if (currentLang == "zh-CN")
+    {
+        downloadUrl = "http://47.116.163.1:8443/downloads/PaperTracker_Setup/lastest";
+    }
+    else
+    {
+        downloadUrl = "http://en.download.papertracker.top/downloads/PaperTracker_Setup/lastest";
+    }
     // 保存安装程序到临时目录，避免权限问题
     QString tempDir = QDir::tempPath();
     QString installerPath = QDir(tempDir).filePath("PaperTracker_" + remoteVersion.version.tag + "_Setup.exe");

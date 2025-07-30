@@ -240,6 +240,9 @@ add_library(
         utilities
         utilities/logger.cpp
         utilities/updater.cpp
+        utilities/translator_manager.cpp
+        utilities/include/translator_manager.h
+
 )
 
 target_link_libraries(
@@ -329,8 +332,6 @@ add_library(
         ui/face_tracker_window.cpp
         ui/main_window.cpp
         ui/eye_tracker_window.cpp
-        ui/translator_manager.cpp
-        ui/include/translator_manager.h
         ui/BubbleTipWidget.cpp
         ui/include/BubbleTipWidget.h
 )
