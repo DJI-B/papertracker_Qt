@@ -107,11 +107,11 @@ void BaseInference::AmpMapToOutput(std::vector<float>& output)
             }
         }
         // 对tongueRight进行额外的2.5倍放大处理
-        if (blendShapes[i] == "tongueRight") {
-            output[i] = output[i] * 2.5f;
-            // 确保值不超过1.0（如果需要限制在[0,1]范围内）
-            output[i] = std::min(1.0f, output[i]);
-        }
+        // if (blendShapes[i] == "tongueRight") {
+        //     output[i] = output[i] * 2.5f;
+        //     // 确保值不超过1.0（如果需要限制在[0,1]范围内）
+        //     output[i] = std::min(1.0f, output[i]);
+        // }
         // // 应用偏置值
         // if (blendShapeOffsetMap.contains(blendShapes[i]))
         // {
@@ -146,8 +146,8 @@ void BaseInference::init_io_names() {
             if (shape[j] < 0) {
                 if (j == 0) shape[j] = 1;        // 批次大小
                 else if (j == 1) shape[j] = 1;   // 通道数(灰度)
-                else if (j == 2) shape[j] = 256; // 高度
-                else if (j == 3) shape[j] = 256; // 宽度
+                else if (j == 2) shape[j] = 224; // 高度
+                else if (j == 3) shape[j] = 224; // 宽度
             }
         }
 

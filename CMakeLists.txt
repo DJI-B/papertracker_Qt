@@ -41,7 +41,7 @@ endif()
 # set 3rd party lib path
 
 # Qt installation path - configurable option
-set(QT_INSTALL_PATH "C:/Qt/6.9.1/msvc2022_64" CACHE PATH "Path to Qt installation directory")
+set(QT_INSTALL_PATH "F:/qt/6.8.3/msvc2022_64" CACHE PATH "Path to Qt installation directory")
 
 if(EXISTS "${QT_INSTALL_PATH}")
     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${QT_INSTALL_PATH}")
