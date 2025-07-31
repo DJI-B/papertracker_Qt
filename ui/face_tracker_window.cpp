@@ -1923,8 +1923,6 @@ void PaperFaceTrackerWindow::create_sub_threads()
                 if (!roi_rect.rect.empty() && roi_rect.is_roi_end)
                 {
                     infer_frame = infer_frame(roi_rect.rect);
-                    // 保存为PNG格式
-                    cv::imwrite("roi_cropped_image.png", infer_frame);
                 }
                 inference->inference(infer_frame);
                 {
