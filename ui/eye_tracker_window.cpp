@@ -431,10 +431,6 @@ void PaperEyeTrackerWindow::create_sub_thread() {
                     auto roi_rect = getRoiRect(version);
                     if (!roi_rect.rect.empty() && roi_rect.is_roi_end) {
                         infer_frame = infer_frame(roi_rect.rect);
-                        if (version == LEFT_TAG)
-                        {
-                            cv::imwrite("roi_cropped_image_LEFT.jpg", infer_frame);
-                        }
                     }
                     if (version == LEFT_TAG) {
                     // 水平翻转图像（沿y轴对称）
