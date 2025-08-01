@@ -10,17 +10,18 @@
 #include <QDir>
 #include <QDebug>
 #include "translator_manager.h"
+#include "main_window_new.h"
 
 int main(int argc, char *argv[]) {
     system("chcp 65001");
     // Create ui application
     QApplication app(argc, argv);
 
-    QFile qssFile(":/resources/resources/material.qss");
+    QFile qssFile(":/resources/resources/styles/light.qss");
     QIcon icon(":/resources/resources/window_icon.png");
 
     // 检查文件是否存在
-    if (!QFile::exists(":/resources/resources/material.qss")) {
+    if (!QFile::exists(":/resources/resources/styles/light.qss")) {
         QMessageBox::critical(nullptr, "Error", "Resource file not found!");
     }
 
@@ -37,7 +38,7 @@ int main(int argc, char *argv[]) {
 
     TranslatorManager::instance();  // 触发单例初始化
 
-    PaperTrackerMainWindow window;
+    MainWindow window;
     window.setWindowIcon(icon);  // 设置窗口图标
     window.show();
 

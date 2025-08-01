@@ -331,6 +331,8 @@ add_library(
         ui/eye_tracker_window.cpp
         ui/translator_manager.cpp
         ui/include/translator_manager.h
+        ui/include/main_window_new.h
+        ui/main_window_new.cpp
 )
 
 target_include_directories(
