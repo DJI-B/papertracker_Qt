@@ -18,7 +18,20 @@
 #include <QTimer>
 
 #include "logger.hpp"
-constexpr int LATEST_HARDWARE_VERSION = 1;
+const std::unordered_map<std::string, int> LATEST_FIRMWARE_VERSIONS = {
+    {"face_tracker", 2},
+    {"eye_tracker", 1}
+};
+
+// 获取固件最新版本的辅助函数
+inline int getLatestFirmwareVersion(const std::string& firmwareType) {
+    auto it = LATEST_FIRMWARE_VERSIONS.find(firmwareType);
+    if (it != LATEST_FIRMWARE_VERSIONS.end()) {
+        return it->second;
+    }
+    return 0; // 默认版本或错误值
+}
+
 enum SerialStatus
 {
     CLOSED = 0,
