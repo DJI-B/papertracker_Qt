@@ -10,63 +10,13 @@
 #include "translator_manager.h"
 #include <QJsonArray>
 
-/*
-std::optional<Version> Updater::getClientVersionSync(QWidget* window) {
-    LOG_INFO("正在获取远程版本信息...");
-    QNetworkAccessManager manager;
-    QNetworkRequest request(QUrl("http://47.116.163.1/version.json"));
-    QNetworkReply* reply = manager.get(request);
-
-    QEventLoop loop;
-    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
-
-    if (reply->error() != QNetworkReply::NoError) {
-        LOG_ERROR("获取版本信息失败: {}", reply->errorString().toStdString());
-        if (window) {
-            QMessageBox::critical(window, "错误", "获取版本信息失败: " + reply->errorString());
-        }
-        reply->deleteLater();
-        return std::nullopt;
-    }
-
-    QByteArray responseData = reply->readAll();
-    reply->deleteLater();
-    //LOG_INFO("收到服务器响应: {}", QString(responseData).toStdString());
-
-    QJsonDocument doc = QJsonDocument::fromJson(responseData);
-    if (!doc.isObject()) {
-        LOG_ERROR("版本信息格式错误: 不是有效的JSON对象");
-        if (window) {
-            QMessageBox::critical(window, "错误", "版本信息格式错误");
-        }
-        return std::nullopt;
-    }
-
-    QJsonObject obj = doc.object();
-    if (!obj.contains("version") || !obj["version"].isObject()) {
-        LOG_ERROR("版本信息格式错误: 缺少版本字段或格式不正确");
-        return std::nullopt;
-    }
-
-    QJsonObject versionObj = obj["version"].toObject();
-    ClientVersion cv;
-    cv.tag = versionObj["tag"].toString();
-    cv.description = versionObj["description"].toString();
-    cv.firmware = versionObj["firmware"].toString();
-
-    LOG_INFO("成功获取远程版本: {}", cv.tag.toStdString());
-    return Version{cv};
-}
-*/
-
 std::optional<Version> Updater::getClientVersionSync(QWidget* window) {
     LOG_INFO("正在获取远程版本信息...");
 
     // 根据当前语言选择不同的版本信息URL
     auto currentLang = TranslatorManager::instance().getCurrentLanguage();
     QString versionUrl = "";
-    if (currentLang == "zh-CN")
+    if (currentLang == "zh_CN")
     {
         versionUrl = "http://47.116.163.1:8443/packages/PaperTracker_Setup/versions";
     }
@@ -260,13 +210,13 @@ bool Updater::updateApplicationSync(QWidget* window, const Version &remoteVersio
     // 假设服务器提供的安装包 URL 为：<下载地址>/<版本tag>.exe
     auto currentLang = TranslatorManager::instance().getCurrentLanguage();
     QString downloadUrl = "";
-    if (currentLang == "zh-CN")
+    if (currentLang == "zh_CN")
     {
-        downloadUrl = "http://47.116.163.1:8443/downloads/PaperTracker_Setup/lastest";
+        downloadUrl = "http://47.116.163.1:8443/downloads/PaperTracker_Setup/latest";
     }
     else
     {
-        downloadUrl = "http://en.download.papertracker.top/downloads/PaperTracker_Setup/lastest";
+        downloadUrl = "http://en.download.papertracker.top/downloads/PaperTracker_Setup/latest";
     }
     // 保存安装程序到临时目录，避免权限问题
     QString tempDir = QDir::tempPath();

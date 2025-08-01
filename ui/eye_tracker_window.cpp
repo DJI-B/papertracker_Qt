@@ -2406,7 +2406,7 @@ void PaperEyeTrackerWindow::checkHardwareVersion(int version)
     if (image_stream[version] && image_stream[version]->isStreaming())
     {
         auto deviceVersion = image_stream[version]->getHardwareVersion();
-        if (deviceVersion!= 0 && deviceVersion != LATEST_HARDWARE_VERSION && !is_show_tip[version])
+        if (deviceVersion!= 0 && deviceVersion != getLatestFirmwareVersion("eye_tracker") && !is_show_tip[version])
         {
             is_show_tip[version] = true;
             QTimer::singleShot(200, this, [this] {

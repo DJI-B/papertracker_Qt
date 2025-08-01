@@ -934,7 +934,7 @@ void PaperFaceTrackerWindow::checkHardwareVersion()
     if (image_downloader && image_downloader->isStreaming())
     {
         auto deviceVersion = image_downloader->getHardwareVersion();
-        if (deviceVersion!= 0 && deviceVersion != LATEST_HARDWARE_VERSION && !is_show_tip)
+        if (deviceVersion!= 0 && deviceVersion != getLatestFirmwareVersion("face_tracker") && !is_show_tip)
         {
             is_show_tip = true;
             QTimer::singleShot(200, this, [this, deviceVersion] {
