@@ -41,7 +41,7 @@ endif()
 # set 3rd party lib path
 
 # Qt installation path - configurable option
-set(QT_INSTALL_PATH "F:/qt/6.8.3/msvc2022_64" CACHE PATH "Path to Qt installation directory")
+set(QT_INSTALL_PATH "F:/Qt/6.9.1/msvc2022_64" CACHE PATH "Path to Qt installation directory")
 
 if(EXISTS "${QT_INSTALL_PATH}")
     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${QT_INSTALL_PATH}")
@@ -334,6 +334,8 @@ add_library(
         ui/eye_tracker_window.cpp
         ui/BubbleTipWidget.cpp
         ui/include/BubbleTipWidget.h
+        ui/include/main_window_new.h
+        ui/main_window_new.cpp
 )
 
 target_include_directories(

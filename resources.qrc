@@ -14,8 +14,27 @@
         <file>translations/zh_CN.ts</file>
 		
         <file>resources/logo.png</file>
-        <file>resources/material.qss</file>
         <file>resources/window_icon.ico</file>
         <file>resources/window_icon.png</file>
+        <file>resources/styles/material.qss</file>
+		<file>resources/styles/light.qss</file>
+		<file>resources/styles/dark.qss</file>
+		
+		<file>resources/images/bars-solid-full.png</file>
+		<file>resources/images/bell-regular-full.png</file>
+		<file>resources/images/bell-solid-full.png</file>
+		<file>resources/images/chevron-down-solid-full.png</file>
+		<file>resources/images/chevron-left-solid-full.png</file>
+		<file>resources/images/chevron-right-solid-full.png</file>
+		<file>resources/images/chevron-up-solid-full.png</file>
+		<file>resources/images/circle-chevron-down-solid-full.png</file>
+		<file>resources/images/circle-chevron-left-solid-full.png</file>
+		<file>resources/images/circle-chevron-right-solid-full.png</file>
+		<file>resources/images/circle-chevron-up-solid-full.png</file>
+		<file>resources/images/face-smile-regular-full.png</file>
+		<file>resources/images/face-smile-solid-full.png</file>
+		<file>resources/images/vr-cardboard-solid-full.png</file>
+		
+		
     </qresource>
 </RCC>

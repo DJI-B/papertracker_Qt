@@ -1,0 +1,189 @@
+QWidget {
+    background-color: #ffffff;
+}
+
+QMainWindow {
+    background-color: #ffffff;
+}
+
+QMainWindow#MainPage {
+    border-radius: 12px;
+}
+
+/* 中央窗口部件 */
+QMainWindow#MainPage QWidget#centralWidget {
+    background-color: #ffffff;
+    border-radius: 12px;
+}
+
+/* 中央窗口部件 */
+QMainWindow#MainPage QFrame#centralWidget {
+    background-color: #ffffff;
+    border-radius: 12px;
+}
+
+/* 侧边栏 */
+QMainWindow#MainPage QWidget#sidebarWidget {
+    background-color: #f0f3f8;
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+/* 标题栏 */
+QMainWindow#MainPage QWidget#titleBarWidget {
+    background-color: #f0f3f8;
+    border: none;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+/* 标题栏左侧区域 */
+QMainWindow#MainPage QWidget#titleLeftArea {
+    background-color: #f0f3f8;
+    border-top-left-radius: 12px;
+}
+
+/* 标题栏右侧区域 */
+QMainWindow#MainPage QWidget#titleRightArea {
+    background-color: white;
+    border-top-right-radius: 12px;
+}
+
+/* 标题标签 */
+QMainWindow#MainPage QLabel#titleLabel {
+    background-color: #f0f3f8;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333333;
+}
+
+/* 侧边栏项 - 默认状态 */
+QMainWindow#MainPage QWidget#SiderBarItem {
+    background-color: #f0f3f8;
+}
+
+QMainWindow#MainPage QLabel#sidebarIconLabel {
+    background-color: #f0f3f8;
+}
+
+/* 侧边栏项文本标签 - 默认状态 */
+QMainWindow#MainPage QLabel#sidebarTextLabel {
+    font-size: 14px;
+    color: #666666;
+    background-color: #f0f3f8;
+}
+
+/* 按钮通用样式 */
+QMainWindow#MainPage QPushButton {
+    border: none;
+    background-color: transparent;
+}
+
+QMainWindow#MainPage QPushButton:hover {
+    background-color: #e0e0e0;
+}
+
+/* 关闭按钮特殊样式 */
+QMainWindow#MainPage QPushButton#closeButton:hover {
+    background-color: #ff5555;
+}
+
+/* 内容堆栈 */
+QMainWindow#MainPage QStackedWidget#contentStack {
+    background-color: white;
+    border-bottom-right-radius: 12px;
+}
+
+/* 下拉菜单 */
+QWidget#DropdownMenu {
+    background-color: white;
+    border-radius: 8px;
+}
+
+/* 菜单项 */
+QWidget#MenuItem {
+    background-color: transparent;
+    padding: 10px 20px;
+}
+
+QWidget#MenuItem:hover {
+    background-color: #f0f0f0;
+}
+
+/* 菜单项文字 */
+QLabel#MenuItemText {
+    color: #333333;
+    font-size: 14px;
+}
+QMainWindow#MainPage QWidget#USBStatusWidget {
+    background-color: #f0f0f0;
+}
+
+QMainWindow#MainPage QLabel#USBSectionTitle {
+    background-color: #f0f0f0;
+    font-size: 13px;
+    font-weight: bold;
+    color: #555;
+}
+
+QMainWindow#MainPage QLabel#USBStatusLabel {
+    background-color: #f0f0f0;
+    font-size: 12px;
+    color: #777;
+}
+
+/* 设备列表区域 */
+QMainWindow#MainPage QWidget#DeviceListWidget {
+    background-color: #f0f0f0;
+}
+
+QMainWindow#MainPage QLabel#DeviceSectionTitle {
+    background-color: #f0f0f0;
+    font-size: 13px;
+    font-weight: bold;
+    color: #555;
+}
+
+QMainWindow#MainPage QLabel#DeviceCount {
+    background-color: #f0f0f0;
+    font-size: 12px;
+    color: #888;
+}
+
+/* 已连接设备列表 */
+QMainWindow#MainPage QListWidget#ConnectedDevicesList {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background-color: white;
+    font-size: 11px;
+    selection-background-color: #e7ebf0;
+    outline: none;
+}
+
+QMainWindow#MainPage QListWidget#ConnectedDevicesList::item {
+    padding: 8px 10px;
+    border-bottom: 1px solid #f5f5f5;
+    min-height: 16px;
+    background-color: white;
+}
+
+QMainWindow#MainPage QListWidget#ConnectedDevicesList::item:hover {
+    background-color: #f8f9ff;
+}
+
+QMainWindow#MainPage QListWidget#ConnectedDevicesList::item:selected {
+    background-color: #e7ebf0;
+    color: #0070f9;
+}
+
+/* 设备项内容 */
+QMainWindow#MainPage QWidget#DeviceItem {
+    background-color: white;
+}
+
+/* 分隔线样式 */
+QMainWindow#MainPage QFrame#SidebarSeparator {
+    color: #e0e0e0;
+    background-color: #e0e0e0;
+    margin: 12px 20px;
+}
