@@ -86,6 +86,23 @@ private:
     QListWidget *connectedDevicesList = nullptr;
     QLabel *usbStatusLabel = nullptr;
     QLabel *usbStatusIcon = nullptr;
+
+    QWidget *wifiContentWidget = nullptr;
+    QScrollArea *wifiScrollArea = nullptr;
+    QWidget *wifiContentContainer = nullptr;
+    QLabel *wifiTitleLabel = nullptr;
+    QLabel *wifiDescLabel = nullptr;
+    QGroupBox *wifiGroupBox = nullptr;
+    QGroupBox *historyGroupBox = nullptr;
+    QLineEdit *wifiNameEdit = nullptr;
+    QLineEdit *wifiPasswordEdit = nullptr;
+    QCheckBox *showPasswordCheckBox = nullptr;
+    QLabel *wifiStatusLabel = nullptr;
+    QPushButton *clearButton = nullptr;
+    QPushButton *sendConfigButton = nullptr;
+    QListWidget *historyListWidget = nullptr;
+    QPushButton *clearHistoryButton = nullptr;
+    QLabel *deviceStatusLabel = nullptr;
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
@@ -113,6 +130,9 @@ private:
     void createDefaultContent();
      // 创建 WiFi 设置步骤的方法
     QWidget* createWifiSetupStep(const QString &deviceType);
+    QWidget* createFaceStep2Content();
+    void updateFacePreviewImage(const QPixmap &pixmap);
+    QWidget* createFaceConfigStep(const QString &deviceType);
 
     void createSidebarSeparator();
     void createDeviceStatusSection();
@@ -187,6 +207,97 @@ signals:
 
 private:
     QVBoxLayout *menuLayout;
+};
+
+// 在头文件中添加新的WiFi设置组件类
+class WiFiSetupWidget : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit WiFiSetupWidget(const QString &deviceType, QWidget *parent = nullptr);
+    void retranslateUI();
+
+signals:
+    void configurationSuccess(const QString &deviceType, const QString &wifiName);
+
+private slots:
+    void onSendConfigClicked();
+    void onClearClicked();
+    void onShowPasswordToggled(bool checked);
+    void onHistoryItemClicked(QListWidgetItem *item);
+    void onClearHistoryClicked();
+
+private:
+    void setupUI();
+    void validateInputs();
+    void addToHistory(const QString &wifiName);
+    bool isWifiNameInHistory(const QString &wifiName);
+
+    QString m_deviceType;
+    
+    // UI组件
+    QLabel *m_titleLabel;
+    QLabel *m_descLabel;
+    QLabel *m_deviceStatusLabel;
+    QGroupBox *m_wifiGroupBox;
+    QGroupBox *m_historyGroupBox;
+    QLineEdit *m_wifiNameEdit;
+    QLineEdit *m_wifiPasswordEdit;
+    QCheckBox *m_showPasswordCheckBox;
+    QLabel *m_wifiStatusLabel;
+    QPushButton *m_clearButton;
+    QPushButton *m_sendConfigButton;
+    QListWidget *m_historyListWidget;
+    QPushButton *m_clearHistoryButton;
+    QLabel *m_networkNameLabel;
+    QLabel *m_passwordLabel;
+    QLabel *m_statusLabel;
+};
+
+class FaceConfigWidget : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit FaceConfigWidget(const QString &deviceType, QWidget *parent = nullptr);
+    void retranslateUI();
+
+signals:
+
+private slots:
+
+private:
+    void setupUI();
+    
+    QString m_deviceType;
+    
+    // UI组件
+    QLabel *m_titleLabel;
+    QLabel *m_descLabel;
+    
+    // 图像预览
+    QLabel *m_previewLabel;
+    
+    // IP显示
+    QLabel *m_ipDisplayLabel;
+    
+    // 亮度调整
+    QSlider *m_brightnessSlider;
+    QLabel *m_brightnessValueLabel;
+    
+    // 旋转角度调整
+    QSlider *m_rotationSlider;
+    QLabel *m_rotationValueLabel;
+    
+    // 性能模式选择
+    QComboBox *m_performanceModeComboBox;
+    
+    // 校准控件
+    QComboBox *m_calibrationModeComboBox;
+    QPushButton *m_startCalibrationButton;
+    QPushButton *m_stopCalibrationButton;
+    QPushButton *m_resetCalibrationButton;
 };
 
 #endif //MAIN_WINDOW_NEW_H

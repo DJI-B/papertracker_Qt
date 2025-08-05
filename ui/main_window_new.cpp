@@ -24,6 +24,8 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QScrollArea>
+#include <QMessageBox>
+#include <QListWidgetItem>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -89,16 +91,19 @@ void MainWindow::setupUI() {
     createSidebarItem(":/resources/resources/images/vr-cardboard-solid-full.png", "Face Tracker");
     createSidebarItem(":/resources/resources/images/face-smile-regular-full.png", "Eye Tracker");
     
+    // 添加弹性空间，将底部区域推到底部
+    sidebarLayout->addStretch();
+
     // 添加分隔线
     createSidebarSeparator();
-    
-    // 创建设备状态区域
+
+    // 创建设备状态区域（底部）
     createDeviceStatusSection();
     
     // 添加分隔线
     createSidebarSeparator();
     
-    // 创建已连接设备列表
+    // 创建已连接设备列表（底部）
     createConnectedDevicesSection();
 }
 
@@ -614,8 +619,12 @@ void MainWindow::createContentPages() {
     QWidget *faceWifiContent = createWifiSetupStep("Face Tracker");
     faceGuideWidget->setStepContent(1, faceWifiContent);
     
+
+    QWidget *faceStep2Content = createFaceConfigStep("Face Tracker");
+    faceGuideWidget->setStepContent(2, faceStep2Content);
+    
     // 为 Face Tracker 设置其他步骤内容
-    for (int i = 2; i <= 4; ++i) {
+    for (int i = 3; i <= 4; ++i) {
         QWidget *stepContent = new QWidget();
         stepContent->setObjectName("StepContent");
         QVBoxLayout *stepLayout = new QVBoxLayout(stepContent);
@@ -958,40 +967,10 @@ void GuideWidget::setupUI() {
     prevButton = new QPushButton("Previous");
     prevButton->setObjectName("GuidePrevButton");
     prevButton->setFixedHeight(36);  // 固定按钮高度
-    prevButton->setStyleSheet(
-        "QPushButton {"
-        "    background-color: #f0f0f0;"
-        "    border: 1px solid #ddd;"
-        "    border-radius: 6px;"
-        "    padding: 8px 16px;"
-        "    font-size: 13px;"  // 稍微减小字体
-        "}"
-        "QPushButton:hover {"
-        "    background-color: #e0e0e0;"
-        "}"
-        "QPushButton:disabled {"
-        "    background-color: #f8f8f8;"
-        "    color: #999;"
-        "}"
-    );
     
     nextButton = new QPushButton("Next");
     nextButton->setObjectName("GuideNextButton");
     nextButton->setFixedHeight(36);  // 固定按钮高度
-    nextButton->setStyleSheet(
-        "QPushButton {"
-        "    background-color: #0070f9;"
-        "    border: none;"
-        "    border-radius: 6px;"
-        "    padding: 8px 16px;"
-        "    font-size: 13px;"  // 稍微减小字体
-        "    color: white;"
-        "    font-weight: bold;"
-        "}"
-        "QPushButton:hover {"
-        "    background-color: #005acc;"
-        "}"
-    );
     
     buttonLayout->addStretch();
     buttonLayout->addWidget(prevButton);
@@ -1056,450 +1035,19 @@ void GuideWidget::updateButtons() {
 }
 
 QWidget* MainWindow::createWifiSetupStep(const QString &deviceType) {
-    QWidget *wifiContent = new QWidget();
-    wifiContent->setObjectName("WiFiSetupContent");
+     WiFiSetupWidget *wifiWidget = new WiFiSetupWidget(deviceType, this);
     
-    // 创建滚动区域
-    QScrollArea *scrollArea = new QScrollArea();
-    scrollArea->setObjectName("WiFiScrollArea");
-    scrollArea->setWidgetResizable(true);
-    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    scrollArea->setFrameStyle(QFrame::NoFrame);
-    scrollArea->setStyleSheet(
-        "QScrollArea { "
-        "    background-color: transparent; "
-        "    border: none; "
-        "}"
-        "QScrollBar:vertical {"
-        "    border: none;"
-        "    background: rgba(0,0,0,0);"
-        "    width: 8px;"
-        "    border-radius: 4px;"
-        "}"
-        "QScrollBar::handle:vertical {"
-        "    background: rgba(128,128,128,0.3);"
-        "    border-radius: 4px;"
-        "    min-height: 20px;"
-        "}"
-        "QScrollBar::handle:vertical:hover {"
-        "    background: rgba(128,128,128,0.5);"
-        "}"
-    );
+    // 连接配置成功信号
+    connect(wifiWidget, &WiFiSetupWidget::configurationSuccess, 
+            this, &MainWindow::onWiFiConfigurationSuccess);
     
-    // 创建内容容器
-    QWidget *contentContainer = new QWidget();
-    contentContainer->setObjectName("WiFiContentContainer");
-    contentContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    
-    QVBoxLayout *mainLayout = new QVBoxLayout(contentContainer);
-    mainLayout->setAlignment(Qt::AlignTop);
-    mainLayout->setSpacing(12);  // 恢复合适的间距
-    mainLayout->setContentsMargins(20, 15, 20, 15);  // 恢复合适的边距
-    
-    // 标题 - 恢复合适大小
-    QLabel *titleLabel = new QLabel(QString("Configure %1 WiFi Settings").arg(deviceType));
-    titleLabel->setStyleSheet("QLabel { font-size: 18px; font-weight: bold; color: #333; margin: 0; }");  // 恢复合适字体
-    titleLabel->setAlignment(Qt::AlignCenter);
-    titleLabel->setFixedHeight(28);  // 恢复合适高度
-    
-    // 描述 - 恢复合适大小
-    QLabel *descLabel = new QLabel(QString("Enter your WiFi network credentials to configure the %1 device.\nThe settings will be sent to the device via USB connection.").arg(deviceType));
-    descLabel->setStyleSheet("QLabel { font-size: 13px; color: #666; line-height: 1.3; margin: 0; }");  // 恢复合适字体
-    descLabel->setAlignment(Qt::AlignCenter);
-    descLabel->setWordWrap(true);
-    descLabel->setFixedHeight(35);  // 恢复合适高度
-    
-    // 创建水平布局
-    QHBoxLayout *contentLayout = new QHBoxLayout();
-    contentLayout->setSpacing(15);  // 恢复合适间距
-    
-    // WiFi 设置表单 (左侧)
-    QGroupBox *wifiGroupBox = new QGroupBox("WiFi Configuration");
-    wifiGroupBox->setStyleSheet(
-        "QGroupBox {"
-        "    font-size: 13px;"  // 恢复合适字体
-        "    font-weight: bold;"
-        "    color: #333;"
-        "    border: 2px solid #e0e0e0;"
-        "    border-radius: 8px;"
-        "    margin-top: 8px;"  // 恢复合适边距
-        "    padding-top: 8px;"
-        "}"
-        "QGroupBox::title {"
-        "    subcontrol-origin: margin;"
-        "    left: 10px;"
-        "    padding: 0 6px 0 6px;"  // 恢复合适内边距
-        "    background-color: white;"
-        "}"
-    );
-    
-    QFormLayout *formLayout = new QFormLayout(wifiGroupBox);
-    formLayout->setSpacing(10);  // 恢复合适间距
-    formLayout->setContentsMargins(15, 15, 15, 15);  // 恢复合适边距
-    
-    // WiFi 网络名称输入
-    QLineEdit *wifiNameEdit = new QLineEdit();
-    wifiNameEdit->setObjectName("WiFiNameEdit");
-    wifiNameEdit->setPlaceholderText("Enter WiFi network name");
-    wifiNameEdit->setFixedHeight(32);  // 恢复合适高度
-    wifiNameEdit->setStyleSheet(
-        "QLineEdit {"
-        "    border: 2px solid #e0e0e0;"
-        "    border-radius: 6px;"
-        "    padding: 6px 10px;"  // 恢复合适内边距
-        "    font-size: 13px;"  // 恢复合适字体
-        "    background-color: white;"
-        "}"
-        "QLineEdit:focus {"
-        "    border-color: #0070f9;"
-        "    outline: none;"
-        "}"
-    );
-    
-    // WiFi 密码输入
-    QLineEdit *wifiPasswordEdit = new QLineEdit();
-    wifiPasswordEdit->setObjectName("WiFiPasswordEdit");
-    wifiPasswordEdit->setPlaceholderText("Enter WiFi password");
-    wifiPasswordEdit->setEchoMode(QLineEdit::Password);
-    wifiPasswordEdit->setFixedHeight(32);  // 恢复合适高度
-    wifiPasswordEdit->setStyleSheet(
-        "QLineEdit {"
-        "    border: 2px solid #e0e0e0;"
-        "    border-radius: 6px;"
-        "    padding: 6px 10px;"  // 恢复合适内边距
-        "    font-size: 13px;"  // 恢复合适字体
-        "    background-color: white;"
-        "}"
-        "QLineEdit:focus {"
-        "    border-color: #0070f9;"
-        "    outline: none;"
-        "}"
-    );
-    
-    // 显示密码复选框
-    QCheckBox *showPasswordCheckBox = new QCheckBox("Show password");
-    showPasswordCheckBox->setObjectName("ShowPasswordCheckBox");
-    showPasswordCheckBox->setStyleSheet(
-        "QCheckBox {"
-        "    font-size: 12px;"  // 恢复合适字体
-        "    color: #666;"
-        "}"
-        "QCheckBox::indicator {"
-        "    width: 14px;"  // 恢复合适尺寸
-        "    height: 14px;"
-        "    border: 2px solid #e0e0e0;"
-        "    border-radius: 3px;"
-        "    background-color: white;"
-        "}"
-        "QCheckBox::indicator:checked {"
-        "    background-color: #0070f9;"
-        "    border-color: #0070f9;"
-        "}"
-        "QCheckBox::indicator:hover {"
-        "    border-color: #0070f9;"
-        "}"
-    );
-    
-    // 连接显示密码功能
-    connect(showPasswordCheckBox, &QCheckBox::toggled, this, [wifiPasswordEdit](bool checked) {
-        wifiPasswordEdit->setEchoMode(checked ? QLineEdit::Normal : QLineEdit::Password);
-    });
-    
-    // 设备状态指示器
-    QLabel *statusLabel = new QLabel();
-    statusLabel->setObjectName("WiFiStatusLabel");
-    statusLabel->setStyleSheet("QLabel { font-size: 12px; color: #666; }");  // 恢复合适字体
-    statusLabel->setText("Ready to send WiFi configuration to device");
-    statusLabel->setWordWrap(true);
-    statusLabel->setMaximumHeight(50);  // 恢复合适高度
-    
-    // 按钮容器
-    QWidget *buttonContainer = new QWidget();
-    QHBoxLayout *buttonLayout = new QHBoxLayout(buttonContainer);
-    buttonLayout->setContentsMargins(0, 0, 0, 0);
-    buttonLayout->setSpacing(8);  // 恢复合适间距
-    
-    // 清除输入按钮
-    QPushButton *clearButton = new QPushButton("Clear");
-    clearButton->setObjectName("ClearButton");
-    clearButton->setFixedHeight(30);  // 恢复合适高度
-    clearButton->setStyleSheet(
-        "QPushButton {"
-        "    background-color: #f0f0f0;"
-        "    border: 1px solid #ddd;"
-        "    border-radius: 6px;"
-        "    padding: 6px 12px;"  // 恢复合适内边距
-        "    font-size: 13px;"  // 恢复合适字体
-        "    color: #333;"
-        "}"
-        "QPushButton:hover {"
-        "    background-color: #e0e0e0;"
-        "}"
-        "QPushButton:pressed {"
-        "    background-color: #d0d0d0;"
-        "}"
-    );
-    
-    // 发送配置按钮
-    QPushButton *sendConfigButton = new QPushButton("Send to Device");
-    sendConfigButton->setObjectName("SendConfigButton");
-    sendConfigButton->setFixedHeight(30);  // 恢复合适高度
-    sendConfigButton->setStyleSheet(
-        "QPushButton {"
-        "    background-color: #0070f9;"
-        "    border: none;"
-        "    border-radius: 6px;"
-        "    padding: 6px 12px;"  // 恢复合适内边距
-        "    font-size: 13px;"  // 恢复合适字体
-        "    color: white;"
-        "    font-weight: bold;"
-        "}"
-        "QPushButton:hover {"
-        "    background-color: #005acc;"
-        "}"
-        "QPushButton:pressed {"
-        "    background-color: #004499;"
-        "}"
-        "QPushButton:disabled {"
-        "    background-color: #cccccc;"
-        "    color: #999;"
-        "}"
-    );
-    
-    buttonLayout->addWidget(clearButton);
-    buttonLayout->addStretch();
-    buttonLayout->addWidget(sendConfigButton);
-    
-    // WiFi 历史列表 (右侧)
-    QGroupBox *historyGroupBox = new QGroupBox("Connection History");
-    historyGroupBox->setStyleSheet(
-        "QGroupBox {"
-        "    font-size: 13px;"  // 恢复合适字体
-        "    font-weight: bold;"
-        "    color: #333;"
-        "    border: 2px solid #e0e0e0;"
-        "    border-radius: 8px;"
-        "    margin-top: 8px;"  // 恢复合适边距
-        "    padding-top: 8px;"
-        "}"
-        "QGroupBox::title {"
-        "    subcontrol-origin: margin;"
-        "    left: 10px;"
-        "    padding: 0 6px 0 6px;"  // 恢复合适内边距
-        "    background-color: white;"
-        "}"
-    );
-    historyGroupBox->setMaximumWidth(220);
-    historyGroupBox->setMinimumWidth(180);
-    
-    QVBoxLayout *historyLayout = new QVBoxLayout(historyGroupBox);
-    historyLayout->setContentsMargins(12, 12, 12, 12);  // 恢复合适边距
-    historyLayout->setSpacing(8);  // 恢复合适间距
-    
-    // 创建历史列表
-    QListWidget *historyListWidget = new QListWidget();
-    historyListWidget->setObjectName("WiFiHistoryList");
-    historyListWidget->setStyleSheet(
-        "QListWidget {"
-        "    border: 1px solid #e0e0e0;"
-        "    border-radius: 6px;"
-        "    background-color: white;"
-        "    font-size: 11px;"  // 恢复合适字体
-        "    selection-background-color: #e7ebf0;"
-        "}"
-        "QListWidget::item {"
-        "    padding: 6px;"  // 恢复合适内边距
-        "    border-bottom: 1px solid #f0f0f0;"
-        "}"
-        "QListWidget::item:hover {"
-        "    background-color: #f8f9ff;"
-        "}"
-        "QListWidget::item:selected {"
-        "    background-color: #e7ebf0;"
-        "    color: #0070f9;"
-        "}"
-    );
-    historyListWidget->setFixedHeight(200);
-    
-    // 添加示例历史记录
-    QListWidgetItem *item1 = new QListWidgetItem();
-    item1->setText("📶 Home_WiFi\n🕐 2024-08-04 10:30");
-    item1->setData(Qt::UserRole, "Home_WiFi");
-    historyListWidget->addItem(item1);
-    
-    QListWidgetItem *item2 = new QListWidgetItem();
-    item2->setText("📶 Office_Network\n🕐 2024-08-03 14:15");
-    item2->setData(Qt::UserRole, "Office_Network");
-    historyListWidget->addItem(item2);
-    
-    QListWidgetItem *item3 = new QListWidgetItem();
-    item3->setText("📶 Guest_WiFi\n🕐 2024-08-02 16:45");
-    item3->setData(Qt::UserRole, "Guest_WiFi");
-    historyListWidget->addItem(item3);
-    
-    // 清除历史按钮
-    QPushButton *clearHistoryButton = new QPushButton("Clear History");
-    clearHistoryButton->setObjectName("ClearHistoryButton");
-    clearHistoryButton->setFixedHeight(26);  // 恢复合适高度
-    clearHistoryButton->setStyleSheet(
-        "QPushButton {"
-        "    background-color: #f0f0f0;"
-        "    border: 1px solid #ddd;"
-        "    border-radius: 4px;"
-        "    padding: 4px 8px;"  // 恢复合适内边距
-        "    font-size: 11px;"  // 恢复合适字体
-        "    color: #666;"
-        "}"
-        "QPushButton:hover {"
-        "    background-color: #e0e0e0;"
-        "    color: #333;"
-        "}"
-    );
-    
-    // 连接清除历史按钮
-    connect(clearHistoryButton, &QPushButton::clicked, this, [historyListWidget]() {
-        historyListWidget->clear();
-    });
-    
-    // 连接历史列表项点击事件
-    connect(historyListWidget, &QListWidget::itemClicked, this, [wifiNameEdit](QListWidgetItem *item) {
-        QString networkName = item->data(Qt::UserRole).toString();
-        wifiNameEdit->setText(networkName);
-        wifiNameEdit->setFocus();
-    });
-    
-    historyLayout->addWidget(historyListWidget);
-    historyLayout->addWidget(clearHistoryButton);
-    
-    // 添加到表单布局
-    formLayout->addRow(new QLabel("Network Name:"), wifiNameEdit);
-    formLayout->addRow(new QLabel("Password:"), wifiPasswordEdit);
-    formLayout->addRow("", showPasswordCheckBox);
-    formLayout->addRow("", buttonContainer);
-    formLayout->addRow(new QLabel("Status:"), statusLabel);
-    
-    // 设置表单标签样式
-    QList<QLabel*> formLabels = wifiGroupBox->findChildren<QLabel*>();
-    for (QLabel *label : formLabels) {
-        if (label->text().contains(":")) {
-            label->setStyleSheet("QLabel { font-size: 12px; color: #333; font-weight: bold; }");  // 恢复合适字体
-        }
-    }
-    
-    // 在发送配置按钮的成功回调中修改：
-    connect(sendConfigButton, &QPushButton::clicked, this, [this, wifiNameEdit, wifiPasswordEdit, statusLabel, deviceType, historyListWidget]() {
-        QString wifiName = wifiNameEdit->text().trimmed();
-        QString wifiPassword = wifiPasswordEdit->text();
-        
-        if (wifiName.isEmpty()) {
-            statusLabel->setText("❌ Please enter a WiFi network name");
-            statusLabel->setStyleSheet("QLabel { font-size: 12px; color: #d32f2f; }");
-            return;
-        }
-        
-        if (wifiPassword.isEmpty()) {
-            statusLabel->setText("❌ Please enter a WiFi password");
-            statusLabel->setStyleSheet("QLabel { font-size: 12px; color: #d32f2f; }");
-            return;
-        }
-        
-        // 显示发送中状态
-        statusLabel->setText("📡 Sending WiFi configuration to device...");
-        statusLabel->setStyleSheet("QLabel { font-size: 12px; color: #ff9800; }");
-        
-        // 模拟发送过程
-        QTimer::singleShot(2000, [this, statusLabel, wifiName, deviceType, historyListWidget]() {
-            statusLabel->setText(QString("✅ Configuration sent successfully!\nDevice will connect to: %1").arg(wifiName));
-            statusLabel->setStyleSheet("QLabel { font-size: 12px; color: #388e3c; }");
-            
-            // 添加到历史列表 - 检查是否已存在
-            bool exists = false;
-            for (int i = 0; i < historyListWidget->count(); ++i) {
-                QListWidgetItem *existingItem = historyListWidget->item(i);
-                if (existingItem->data(Qt::UserRole).toString() == wifiName) {
-                    exists = true;
-                    // 更新时间戳
-                    QString currentTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
-                    existingItem->setText(QString("📶 %1\n🕐 %2").arg(wifiName, currentTime));
-                    // 移动到顶部
-                    historyListWidget->takeItem(i);
-                    historyListWidget->insertItem(0, existingItem);
-                    break;
-                }
-            }
-            
-            // 如果不存在，添加新项目
-            if (!exists) {
-                QListWidgetItem *newItem = new QListWidgetItem();
-                QString currentTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
-                newItem->setText(QString("📶 %1\n🕐 %2").arg(wifiName, currentTime));
-                newItem->setData(Qt::UserRole, wifiName);
-                historyListWidget->insertItem(0, newItem);
-                
-                // 限制历史记录数量（最多保留8条）
-                while (historyListWidget->count() > 8) {
-                    QListWidgetItem *lastItem = historyListWidget->takeItem(historyListWidget->count() - 1);
-                    delete lastItem;
-                }
-            }
-            
-            // 添加设备到连接列表
-            onWiFiConfigurationSuccess(deviceType, wifiName);
-        });
-    });
-    
-    // 清除按钮功能
-    connect(clearButton, &QPushButton::clicked, this, [wifiNameEdit, wifiPasswordEdit, statusLabel, showPasswordCheckBox]() {
-        wifiNameEdit->clear();
-        wifiPasswordEdit->clear();
-        showPasswordCheckBox->setChecked(false);
-        statusLabel->setText("Ready to send WiFi configuration to device");
-        statusLabel->setStyleSheet("QLabel { font-size: 12px; color: #666; }");
-    });
-    
-    // 验证输入字段以启用/禁用发送按钮
-    auto validateInputs = [sendConfigButton, wifiNameEdit, wifiPasswordEdit]() {
-        bool isValid = !wifiNameEdit->text().trimmed().isEmpty() && 
-                      !wifiPasswordEdit->text().isEmpty();
-        sendConfigButton->setEnabled(isValid);
-    };
-    
-    connect(wifiNameEdit, &QLineEdit::textChanged, validateInputs);
-    connect(wifiPasswordEdit, &QLineEdit::textChanged, validateInputs);
-    
-    // 初始状态下禁用发送按钮
-    sendConfigButton->setEnabled(false);
-    
-    // 添加设备连接状态提示
-    QLabel *deviceStatusLabel = new QLabel("💻 Ensure your device is connected via USB");
-    deviceStatusLabel->setStyleSheet("QLabel { font-size: 11px; color: #888; font-style: italic; }");  // 恢复合适字体
-    deviceStatusLabel->setAlignment(Qt::AlignCenter);
-    deviceStatusLabel->setFixedHeight(18);  // 恢复合适高度
-    
-    // 添加配置表单和历史列表到水平布局
-    contentLayout->addWidget(wifiGroupBox, 3);      // 配置表单占 3 份空间
-    contentLayout->addWidget(historyGroupBox, 2);   // 历史列表占 2 份空间
-    
-    // 添加到主布局 - 恢复合适间距
-    mainLayout->addWidget(titleLabel);
-    mainLayout->addSpacing(5);  // 恢复合适间距
-    mainLayout->addWidget(descLabel);
-    mainLayout->addSpacing(8);  // 恢复合适间距
-    mainLayout->addLayout(contentLayout);
-    mainLayout->addSpacing(5);  // 恢复合适间距
-    mainLayout->addWidget(deviceStatusLabel);
-    // 不添加 addStretch()，保持紧凑布局
-    
-    // 设置滚动区域
-    scrollArea->setWidget(contentContainer);
-    
-    // 创建最终容器
-    QVBoxLayout *finalLayout = new QVBoxLayout(wifiContent);
-    finalLayout->setContentsMargins(0, 0, 0, 0);
-    finalLayout->addWidget(scrollArea);
-    
-    return wifiContent;
+    return wifiWidget;
+}
+
+QWidget* MainWindow::createFaceConfigStep(const QString &deviceType) {
+    FaceConfigWidget *faceWidget = new FaceConfigWidget(deviceType, this);
+
+    return faceWidget;
 }
 
 void MainWindow::createDeviceStatusSection() {
@@ -1507,11 +1055,6 @@ void MainWindow::createDeviceStatusSection() {
     usbStatusWidget = new QWidget();
     usbStatusWidget->setObjectName("USBStatusWidget");
     usbStatusWidget->setFixedHeight(75);
-    usbStatusWidget->setStyleSheet(
-        "QWidget#USBStatusWidget {"
-        "    background-color: #f0f0f0;"  // 设置背景色与侧边栏一致
-        "}"
-    );
     
     QVBoxLayout *usbLayout = new QVBoxLayout(usbStatusWidget);
     usbLayout->setContentsMargins(15, 10, 15, 10);
@@ -1520,23 +1063,10 @@ void MainWindow::createDeviceStatusSection() {
     // 标题
     QLabel *usbTitle = new QLabel("USB Connection");
     usbTitle->setObjectName("USBSectionTitle");
-    usbTitle->setStyleSheet(
-        "QLabel#USBSectionTitle {"
-        "    font-size: 13px;"
-        "    font-weight: bold;"
-        "    color: #555;"
-        "    margin: 0;"
-        "    background-color: #f0f0f0;"  // 确保标题背景色一致
-        "}"
-    );
     
     // 状态容器
     QWidget *statusContainer = new QWidget();
-    statusContainer->setStyleSheet(
-        "QWidget {"
-        "    background-color: #f0f0f0;"  // 设置状态容器背景色
-        "}"
-    );
+    statusContainer->setObjectName("USBStatusContainer");
     QHBoxLayout *statusLayout = new QHBoxLayout(statusContainer);
     statusLayout->setContentsMargins(0, 0, 0, 0);
     statusLayout->setSpacing(10);
@@ -1550,14 +1080,6 @@ void MainWindow::createDeviceStatusSection() {
     // 状态文本
     usbStatusLabel = new QLabel("No device connected");
     usbStatusLabel->setObjectName("USBStatusLabel");
-    usbStatusLabel->setStyleSheet(
-        "QLabel#USBStatusLabel {"
-        "    font-size: 12px;"
-        "    color: #777;"
-        "    margin: 0;"
-        "    background-color: #f0f0f0;"  // 确保状态文本背景色一致
-        "}"
-    );
     
     statusLayout->addWidget(usbStatusIcon);
     statusLayout->addWidget(usbStatusLabel);
@@ -1578,50 +1100,27 @@ void MainWindow::createConnectedDevicesSection() {
     // 已连接设备列表区域
     deviceListWidget = new QWidget();
     deviceListWidget->setObjectName("DeviceListWidget");
-    deviceListWidget->setStyleSheet(
-        "QWidget#DeviceListWidget {"
-        "    background-color: #f0f0f0;"  // 设置背景色与侧边栏一致
-        "}"
-    );
     
     QVBoxLayout *deviceLayout = new QVBoxLayout(deviceListWidget);
     deviceLayout->setContentsMargins(15, 10, 15, 12);
-    deviceLayout->setSpacing(8);
+    deviceLayout->setSpacing(0);
     
     // 标题容器
     QWidget *titleContainer = new QWidget();
-    titleContainer->setStyleSheet(
-        "QWidget {"
-        "    background-color: #f0f0f0;"  // 设置标题容器背景色
-        "}"
-    );
+    titleContainer->setObjectName("DeviceTitleContainer");
+    titleContainer->setFixedHeight(24);  // 设置固定高度，确保完整显示
+    titleContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);  // 确保高度固定
+    
     QHBoxLayout *titleLayout = new QHBoxLayout(titleContainer);
-    titleLayout->setContentsMargins(0, 0, 0, 0);
+    titleLayout->setContentsMargins(0, 2, 0, 2);  // 调整内边距，给文字留出适当空间
     titleLayout->setSpacing(6);
     
     QLabel *deviceTitle = new QLabel("Connected Devices");
     deviceTitle->setObjectName("DeviceSectionTitle");
-    deviceTitle->setStyleSheet(
-        "QLabel#DeviceSectionTitle {"
-        "    font-size: 13px;"
-        "    font-weight: bold;"
-        "    color: #555;"
-        "    margin: 0;"
-        "    background-color: #f0f0f0;"  // 确保设备标题背景色一致
-        "}"
-    );
     
     // 设备数量标签
     QLabel *deviceCount = new QLabel("(0)");
     deviceCount->setObjectName("DeviceCount");
-    deviceCount->setStyleSheet(
-        "QLabel#DeviceCount {"
-        "    font-size: 12px;"
-        "    color: #888;"
-        "    margin: 0;"
-        "    background-color: #f0f0f0;"  // 确保数量标签背景色一致
-        "}"
-    );
     
     titleLayout->addWidget(deviceTitle);
     titleLayout->addWidget(deviceCount);
@@ -1630,32 +1129,6 @@ void MainWindow::createConnectedDevicesSection() {
     // 设备列表
     connectedDevicesList = new QListWidget();
     connectedDevicesList->setObjectName("ConnectedDevicesList");
-    connectedDevicesList->setStyleSheet(
-        "QListWidget#ConnectedDevicesList {"
-        "    border: 1px solid #e0e0e0;"
-        "    border-radius: 6px;"
-        "    background-color: white;"  // 列表保持白色背景便于阅读
-        "    font-size: 11px;"
-        "    selection-background-color: #e7ebf0;"
-        "    outline: none;"
-        "}"
-        "QListWidget#ConnectedDevicesList::item {"
-        "    padding: 8px 10px;"
-        "    border-bottom: 1px solid #f5f5f5;"
-        "    min-height: 16px;"
-        "    background-color: white;"  // 确保列表项背景为白色
-        "}"
-        "QListWidget#ConnectedDevicesList::item:hover {"
-        "    background-color: #f8f9ff;"
-        "}"
-        "QListWidget#ConnectedDevicesList::item:selected {"
-        "    background-color: #e7ebf0;"
-        "    color: #0070f9;"
-        "}"
-        "QListWidget#ConnectedDevicesList::item:last {"
-        "    border-bottom: none;"
-        "}"
-    );
     connectedDevicesList->setMaximumHeight(140);
     connectedDevicesList->setMinimumHeight(100);
     
@@ -1670,9 +1143,6 @@ void MainWindow::createConnectedDevicesSection() {
     deviceLayout->addWidget(connectedDevicesList);
     
     sidebarLayout->addWidget(deviceListWidget);
-    
-    // 添加弹性空间推到底部
-    sidebarLayout->addStretch();
 }
 
 void MainWindow::addConnectedDevice(const QString &deviceName, const QString &status, bool isConnected) {
@@ -1681,11 +1151,6 @@ void MainWindow::addConnectedDevice(const QString &deviceName, const QString &st
     // 创建自定义widget作为列表项
     QWidget *deviceWidget = new QWidget();
     deviceWidget->setObjectName("DeviceItem");
-    deviceWidget->setStyleSheet(
-        "QWidget#DeviceItem {"
-        "    background-color: white;"  // 设备项保持白色背景
-        "}"
-    );
     
     QVBoxLayout *itemLayout = new QVBoxLayout(deviceWidget);
     itemLayout->setContentsMargins(4, 4, 4, 4);
@@ -1693,28 +1158,16 @@ void MainWindow::addConnectedDevice(const QString &deviceName, const QString &st
     
     // 设备名称
     QLabel *nameLabel = new QLabel(deviceName);
-    nameLabel->setStyleSheet(
-        "QLabel {"
-        "    font-size: 11px;"
-        "    font-weight: bold;"
-        "    color: #333;"
-        "    margin: 0;"
-        "    background-color: white;"  // 确保名称标签背景为白色
-        "}"
-    );
+    nameLabel->setObjectName("DeviceNameLabel");
     
     // 状态容器
     QWidget *statusContainer = new QWidget();
-    statusContainer->setStyleSheet(
-        "QWidget {"
-        "    background-color: white;"  // 状态容器背景为白色
-        "}"
-    );
+    statusContainer->setObjectName("DeviceStatusContainer");
     QHBoxLayout *statusLayout = new QHBoxLayout(statusContainer);
     statusLayout->setContentsMargins(0, 0, 0, 0);
     statusLayout->setSpacing(5);
     
-    // 状态图标
+    // 状态图标 - 保留动态样式（颜色根据连接状态变化）
     QLabel *statusIcon = new QLabel();
     statusIcon->setFixedSize(10, 10);
     statusIcon->setStyleSheet(QString(
@@ -1724,14 +1177,13 @@ void MainWindow::addConnectedDevice(const QString &deviceName, const QString &st
         "}"
     ).arg(isConnected ? "#4CAF50" : "#FF9800"));
     
-    // 状态文本
+    // 状态文本 - 保留动态样式（颜色根据连接状态变化）
     QLabel *statusLabel = new QLabel(status);
     statusLabel->setStyleSheet(QString(
         "QLabel {"
         "    font-size: 10px;"
         "    color: %1;"
         "    margin: 0;"
-        "    background-color: white;"  // 确保状态文本背景为白色
         "}"
     ).arg(isConnected ? "#4CAF50" : "#FF9800"));
     
@@ -1744,7 +1196,7 @@ void MainWindow::addConnectedDevice(const QString &deviceName, const QString &st
     
     // 设置item尺寸
     QSize itemSize = deviceWidget->sizeHint();
-    itemSize.setHeight(qMax(itemSize.height(), 45));
+    itemSize.setHeight(qMax(itemSize.height(), 56));
     item->setSizeHint(itemSize);
     connectedDevicesList->addItem(item);
     connectedDevicesList->setItemWidget(item, deviceWidget);
@@ -1800,12 +1252,723 @@ void MainWindow::createSidebarSeparator() {
     separator->setObjectName("SidebarSeparator");
     separator->setFrameStyle(QFrame::HLine | QFrame::Sunken);
     separator->setFixedHeight(1);
-    separator->setStyleSheet(
-        "QFrame#SidebarSeparator {"
-        "    color: #e0e0e0;"
-        "    background-color: #e0e0e0;"
-        "    margin: 12px 20px;"
-        "}"
-    );
     sidebarLayout->addWidget(separator);
 }
+
+// WiFiSetupWidget 实现
+WiFiSetupWidget::WiFiSetupWidget(const QString &deviceType, QWidget *parent)
+    : QWidget(parent), m_deviceType(deviceType)
+{
+    setupUI();
+    retranslateUI();
+}
+
+void WiFiSetupWidget::setupUI()
+{
+    setObjectName("WiFiSetupContent");
+    
+    // 创建滚动区域
+    QScrollArea *scrollArea = new QScrollArea();
+    scrollArea->setObjectName("WiFiScrollArea");
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    scrollArea->setFrameStyle(QFrame::NoFrame);
+    
+    // 创建内容容器
+    QWidget *contentContainer = new QWidget();
+    contentContainer->setObjectName("WiFiContentContainer");
+    contentContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    
+    QVBoxLayout *mainLayout = new QVBoxLayout(contentContainer);
+    mainLayout->setAlignment(Qt::AlignTop);
+    mainLayout->setSpacing(12);
+    mainLayout->setContentsMargins(20, 15, 20, 15);
+    
+    // 标题
+    m_titleLabel = new QLabel();
+    m_titleLabel->setObjectName("WiFiSetupTitle");
+    m_titleLabel->setAlignment(Qt::AlignCenter);
+    m_titleLabel->setFixedHeight(32);
+    
+    // 描述
+    m_descLabel = new QLabel();
+    m_descLabel->setObjectName("WiFiSetupDesc");
+    m_descLabel->setAlignment(Qt::AlignCenter);
+    m_descLabel->setWordWrap(true);
+    m_descLabel->setFixedHeight(40);
+    
+    // 创建水平布局
+    QHBoxLayout *contentLayout = new QHBoxLayout();
+    contentLayout->setSpacing(15);
+    
+    // WiFi 设置表单 (左侧)
+    m_wifiGroupBox = new QGroupBox();
+    
+    QFormLayout *formLayout = new QFormLayout(m_wifiGroupBox);
+    formLayout->setSpacing(10);
+    formLayout->setContentsMargins(15, 15, 15, 15);
+    
+    // WiFi 网络名称输入
+    m_wifiNameEdit = new QLineEdit();
+    m_wifiNameEdit->setObjectName("WiFiNameEdit");
+    m_wifiNameEdit->setFixedHeight(32);
+    
+    // WiFi 密码输入
+    m_wifiPasswordEdit = new QLineEdit();
+    m_wifiPasswordEdit->setObjectName("WiFiPasswordEdit");
+    m_wifiPasswordEdit->setEchoMode(QLineEdit::Password);
+    m_wifiPasswordEdit->setFixedHeight(32);
+    
+    // 显示密码复选框
+    m_showPasswordCheckBox = new QCheckBox();
+    m_showPasswordCheckBox->setObjectName("ShowPasswordCheckBox");
+    
+    // 设备状态指示器
+    m_wifiStatusLabel = new QLabel();
+    m_wifiStatusLabel->setObjectName("WiFiStatusLabel");
+    m_wifiStatusLabel->setWordWrap(true);
+    m_wifiStatusLabel->setMaximumHeight(50);
+    
+    // 按钮容器
+    QWidget *buttonContainer = new QWidget();
+    QHBoxLayout *buttonLayout = new QHBoxLayout(buttonContainer);
+    buttonLayout->setContentsMargins(0, 0, 0, 0);
+    buttonLayout->setSpacing(8);
+    
+    // 清除输入按钮
+    m_clearButton = new QPushButton();
+    m_clearButton->setObjectName("ClearButton");
+    m_clearButton->setFixedHeight(30);
+    
+    // 发送配置按钮
+    m_sendConfigButton = new QPushButton();
+    m_sendConfigButton->setObjectName("SendConfigButton");
+    m_sendConfigButton->setFixedHeight(30);
+    
+    buttonLayout->addWidget(m_clearButton);
+    buttonLayout->addStretch();
+    buttonLayout->addWidget(m_sendConfigButton);
+    
+    // WiFi 历史列表 (右侧)
+    m_historyGroupBox = new QGroupBox();
+    m_historyGroupBox->setMaximumWidth(220);
+    m_historyGroupBox->setMinimumWidth(180);
+    
+    QVBoxLayout *historyLayout = new QVBoxLayout(m_historyGroupBox);
+    historyLayout->setContentsMargins(12, 12, 12, 12);
+    historyLayout->setSpacing(8);
+    
+    // 创建历史列表
+    m_historyListWidget = new QListWidget();
+    m_historyListWidget->setObjectName("WiFiHistoryList");
+    m_historyListWidget->setFixedHeight(200);
+    
+    // 添加示例历史记录
+    QListWidgetItem *item1 = new QListWidgetItem();
+    item1->setText("📶 Home_WiFi\n🕐 2024-08-04 10:30");
+    item1->setData(Qt::UserRole, "Home_WiFi");
+    m_historyListWidget->addItem(item1);
+    
+    // 清除历史按钮
+    m_clearHistoryButton = new QPushButton();
+    m_clearHistoryButton->setObjectName("ClearHistoryButton");
+    m_clearHistoryButton->setFixedHeight(26);
+    
+    historyLayout->addWidget(m_historyListWidget);
+    historyLayout->addWidget(m_clearHistoryButton);
+    
+    // 创建标签
+    m_networkNameLabel = new QLabel();
+    m_passwordLabel = new QLabel();
+    m_statusLabel = new QLabel();
+    
+    // 添加到表单布局
+    formLayout->addRow(m_networkNameLabel, m_wifiNameEdit);
+    formLayout->addRow(m_passwordLabel, m_wifiPasswordEdit);
+    formLayout->addRow("", m_showPasswordCheckBox);
+    formLayout->addRow("", buttonContainer);
+    formLayout->addRow(m_statusLabel, m_wifiStatusLabel);
+    
+    // 设备连接状态提示
+    m_deviceStatusLabel = new QLabel();
+    m_deviceStatusLabel->setAlignment(Qt::AlignCenter);
+    m_deviceStatusLabel->setFixedHeight(18);
+    
+    // 添加配置表单和历史列表到水平布局
+    contentLayout->addWidget(m_wifiGroupBox, 3);
+    contentLayout->addWidget(m_historyGroupBox, 2);
+    
+    // 添加到主布局
+    mainLayout->addWidget(m_titleLabel);
+    mainLayout->addSpacing(5);
+    mainLayout->addWidget(m_descLabel);
+    mainLayout->addSpacing(8);
+    mainLayout->addLayout(contentLayout);
+    mainLayout->addSpacing(5);
+    mainLayout->addWidget(m_deviceStatusLabel);
+    
+    // 设置滚动区域
+    scrollArea->setWidget(contentContainer);
+    
+    // 创建最终容器
+    QVBoxLayout *finalLayout = new QVBoxLayout(this);
+    finalLayout->setContentsMargins(0, 0, 0, 0);
+    finalLayout->addWidget(scrollArea);
+    
+    // 连接信号
+    connect(m_sendConfigButton, &QPushButton::clicked, this, &WiFiSetupWidget::onSendConfigClicked);
+    connect(m_clearButton, &QPushButton::clicked, this, &WiFiSetupWidget::onClearClicked);
+    connect(m_showPasswordCheckBox, &QCheckBox::toggled, this, &WiFiSetupWidget::onShowPasswordToggled);
+    connect(m_historyListWidget, &QListWidget::itemClicked, this, &WiFiSetupWidget::onHistoryItemClicked);
+    connect(m_clearHistoryButton, &QPushButton::clicked, this, &WiFiSetupWidget::onClearHistoryClicked);
+    
+    // 验证输入
+    connect(m_wifiNameEdit, &QLineEdit::textChanged, this, &WiFiSetupWidget::validateInputs);
+    connect(m_wifiPasswordEdit, &QLineEdit::textChanged, this, &WiFiSetupWidget::validateInputs);
+    
+    // 初始验证
+    validateInputs();
+}
+
+void WiFiSetupWidget::retranslateUI()
+{
+    m_titleLabel->setText(tr("Configure %1 WiFi Settings").arg(m_deviceType));
+    m_descLabel->setText(tr("Enter your WiFi network credentials to configure the %1 device.\n"
+                           "The settings will be sent to the device via USB connection.").arg(m_deviceType));
+    
+    m_wifiGroupBox->setTitle(tr("WiFi Configuration"));
+    m_historyGroupBox->setTitle(tr("Connection History"));
+    
+    m_networkNameLabel->setText(tr("Network Name:"));
+    m_passwordLabel->setText(tr("Password:"));
+    m_statusLabel->setText(tr("Status:"));
+    
+    m_wifiNameEdit->setPlaceholderText(tr("Enter WiFi network name"));
+    m_wifiPasswordEdit->setPlaceholderText(tr("Enter WiFi password"));
+    m_showPasswordCheckBox->setText(tr("Show password"));
+    
+    m_clearButton->setText(tr("Clear"));
+    m_sendConfigButton->setText(tr("Send to Device"));
+    m_clearHistoryButton->setText(tr("Clear History"));
+    
+    m_wifiStatusLabel->setText(tr("Ready to send WiFi configuration to device"));
+    m_deviceStatusLabel->setText(tr("💻 Ensure your device is connected via USB"));
+}
+
+void WiFiSetupWidget::onSendConfigClicked()
+{
+    QString wifiName = m_wifiNameEdit->text().trimmed();
+    QString wifiPassword = m_wifiPasswordEdit->text();
+    
+    if (wifiName.isEmpty()) {
+        m_wifiStatusLabel->setText(tr("❌ Please enter a WiFi network name"));
+        m_wifiStatusLabel->setStyleSheet("QLabel { font-size: 12px; color: #d32f2f; }");
+        return;
+    }
+    
+    if (wifiPassword.isEmpty()) {
+        m_wifiStatusLabel->setText(tr("❌ Please enter a WiFi password"));
+        m_wifiStatusLabel->setStyleSheet("QLabel { font-size: 12px; color: #d32f2f; }");
+        return;
+    }
+    
+    // 显示发送中状态
+    m_wifiStatusLabel->setText(tr("📡 Sending WiFi configuration to device..."));
+    m_wifiStatusLabel->setStyleSheet("QLabel { font-size: 12px; color: #ff9800; }");
+    
+    // 模拟发送过程
+    QTimer::singleShot(2000, [this, wifiName]() {
+        m_wifiStatusLabel->setText(tr("✅ Configuration sent successfully!\nDevice will connect to: %1").arg(wifiName));
+        m_wifiStatusLabel->setStyleSheet("QLabel { font-size: 12px; color: #388e3c; }");
+        
+        // 添加到历史记录
+        addToHistory(wifiName);
+        
+        // 发射成功信号
+        emit configurationSuccess(m_deviceType, wifiName);
+        
+    });
+}
+
+void WiFiSetupWidget::onClearClicked()
+{
+    m_wifiNameEdit->clear();
+    m_wifiPasswordEdit->clear();
+    m_showPasswordCheckBox->setChecked(false);
+    
+    // 重置状态标签
+    m_wifiStatusLabel->setText(tr("Ready to send WiFi configuration to device"));
+    m_wifiStatusLabel->setStyleSheet("QLabel { font-size: 12px; color: #666; }");
+    
+    // 重新验证输入
+    validateInputs();
+}
+
+void WiFiSetupWidget::onShowPasswordToggled(bool checked)
+{
+    m_wifiPasswordEdit->setEchoMode(checked ? QLineEdit::Normal : QLineEdit::Password);
+}
+
+void WiFiSetupWidget::onHistoryItemClicked(QListWidgetItem *item)
+{
+    if (!item) return;
+    
+    // 从历史记录中获取WiFi网络名称
+    QString wifiName = item->data(Qt::UserRole).toString();
+    if (!wifiName.isEmpty()) {
+        m_wifiNameEdit->setText(wifiName);
+        m_wifiPasswordEdit->setFocus(); // 焦点移到密码输入框
+        
+        // 更新状态
+        m_wifiStatusLabel->setText(tr("📝 Selected from history: %1").arg(wifiName));
+        m_wifiStatusLabel->setStyleSheet("QLabel { font-size: 12px; color: #2196F3; }");
+    }
+}
+
+void WiFiSetupWidget::onClearHistoryClicked()
+{
+        m_historyListWidget->clear();
+        
+        // 显示清除成功提示
+        m_wifiStatusLabel->setText(tr("🗑️ WiFi history cleared successfully"));
+        m_wifiStatusLabel->setStyleSheet("QLabel { font-size: 12px; color: #4CAF50; }");
+        
+        // 3秒后恢复默认状态
+        QTimer::singleShot(3000, [this]() {
+            m_wifiStatusLabel->setText(tr("Ready to send WiFi configuration to device"));
+            m_wifiStatusLabel->setStyleSheet("QLabel { font-size: 12px; color: #666; }");
+        });
+}
+
+void WiFiSetupWidget::validateInputs()
+{
+    QString wifiName = m_wifiNameEdit->text().trimmed();
+    QString wifiPassword = m_wifiPasswordEdit->text();
+    
+    // 启用/禁用发送按钮
+    bool isValid = !wifiName.isEmpty() && !wifiPassword.isEmpty();
+    m_sendConfigButton->setEnabled(isValid);
+    
+    // 更新发送按钮样式
+    if (isValid) {
+        m_sendConfigButton->setStyleSheet(
+            "QPushButton#SendConfigButton {"
+            "    background-color: #0070f9;"
+            "    border: none;"
+            "    border-radius: 6px;"
+            "    padding: 8px 16px;"
+            "    font-size: 13px;"
+            "    color: white;"
+            "    font-weight: bold;"
+            "}"
+            "QPushButton#SendConfigButton:hover {"
+            "    background-color: #005acc;"
+            "}"
+        );
+    } else {
+        m_sendConfigButton->setStyleSheet(
+            "QPushButton#SendConfigButton {"
+            "    background-color: #cccccc;"
+            "    border: none;"
+            "    border-radius: 6px;"
+            "    padding: 8px 16px;"
+            "    font-size: 13px;"
+            "    color: #888;"
+            "    font-weight: bold;"
+            "}"
+        );
+    }
+    
+    // 更新清除按钮状态
+    bool hasContent = !wifiName.isEmpty() || !wifiPassword.isEmpty();
+    m_clearButton->setEnabled(hasContent);
+    
+    if (hasContent) {
+        m_clearButton->setStyleSheet(
+            "QPushButton#ClearButton {"
+            "    background-color: #f0f0f0;"
+            "    border: 1px solid #ddd;"
+            "    border-radius: 6px;"
+            "    padding: 8px 16px;"
+            "    font-size: 13px;"
+            "    font-weight: 500;"
+            "    color: #333;"
+            "}"
+            "QPushButton#ClearButton:hover {"
+            "    background-color: #e0e0e0;"
+            "}"
+        );
+    } else {
+        m_clearButton->setStyleSheet(
+            "QPushButton#ClearButton {"
+            "    background-color: #f8f8f8;"
+            "    border: 1px solid #eee;"
+            "    border-radius: 6px;"
+            "    padding: 8px 16px;"
+            "    font-size: 13px;"
+            "    font-weight: 500;"
+            "    color: #999;"
+            "}"
+        );
+    }
+}
+
+void WiFiSetupWidget::addToHistory(const QString &wifiName)
+{
+    // 检查是否已经存在于历史记录中
+    if (isWifiNameInHistory(wifiName)) {
+        // 如果已存在，移除旧记录并添加到顶部
+        for (int i = 0; i < m_historyListWidget->count(); ++i) {
+            QListWidgetItem *item = m_historyListWidget->item(i);
+            if (item && item->data(Qt::UserRole).toString() == wifiName) {
+                delete m_historyListWidget->takeItem(i);
+                break;
+            }
+        }
+    }
+    
+    // 创建新的历史记录项
+    QListWidgetItem *newItem = new QListWidgetItem();
+    QString currentTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
+    newItem->setText(QString("📶 %1\n🕐 %2").arg(wifiName, currentTime));
+    newItem->setData(Qt::UserRole, wifiName);
+    
+    // 添加到列表顶部
+    m_historyListWidget->insertItem(0, newItem);
+    
+    // 限制历史记录数量（例如最多保存10条）
+    const int maxHistoryItems = 10;
+    while (m_historyListWidget->count() > maxHistoryItems) {
+        delete m_historyListWidget->takeItem(m_historyListWidget->count() - 1);
+    }
+    
+    // 高亮新添加的项目（可选）
+    m_historyListWidget->setCurrentItem(newItem);
+    
+    // 显示添加成功的提示
+    QTimer::singleShot(1000, [this, wifiName]() {
+        m_wifiStatusLabel->setText(tr("📋 Added '%1' to connection history").arg(wifiName));
+        m_wifiStatusLabel->setStyleSheet("QLabel { font-size: 12px; color: #2196F3; }");
+        
+        // 3秒后恢复默认状态
+        QTimer::singleShot(3000, [this]() {
+            m_wifiStatusLabel->setText(tr("Ready to send WiFi configuration to device"));
+            m_wifiStatusLabel->setStyleSheet("QLabel { font-size: 12px; color: #666; }");
+        });
+    });
+}
+
+bool WiFiSetupWidget::isWifiNameInHistory(const QString &wifiName)
+{
+    for (int i = 0; i < m_historyListWidget->count(); ++i) {
+        QListWidgetItem *item = m_historyListWidget->item(i);
+        if (item && item->data(Qt::UserRole).toString() == wifiName) {
+            return true;
+        }
+    }
+    return false;
+}
+
+FaceConfigWidget::FaceConfigWidget(const QString &deviceType, QWidget *parent)
+    : QWidget(parent), m_deviceType(deviceType)
+{
+    setupUI();
+    retranslateUI();
+}
+
+void FaceConfigWidget::setupUI()
+{
+    setObjectName("FaceConfigContent");
+    
+    // 创建滚动区域
+    QScrollArea *scrollArea = new QScrollArea();
+    scrollArea->setObjectName("WiFiScrollArea");
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    scrollArea->setFrameStyle(QFrame::NoFrame);
+    
+    // 创建内容容器
+    QWidget *contentContainer = new QWidget();
+    contentContainer->setObjectName("FaceConfigContentContainer");
+    contentContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    
+    QVBoxLayout *mainLayout = new QVBoxLayout(contentContainer);
+    mainLayout->setAlignment(Qt::AlignTop);
+    mainLayout->setSpacing(15);
+    mainLayout->setContentsMargins(20, 15, 20, 15);
+    
+    // 标题
+    m_titleLabel = new QLabel();
+    m_titleLabel->setObjectName("WiFiSetupTitle");  // 替代 FaceConfigTitle
+    m_titleLabel->setAlignment(Qt::AlignCenter);
+    m_titleLabel->setFixedHeight(32);
+    
+    // 描述
+    m_descLabel = new QLabel();
+    m_descLabel->setObjectName("WiFiSetupDesc");    // 替代 FaceConfigDesc
+    m_descLabel->setAlignment(Qt::AlignCenter);
+    m_descLabel->setWordWrap(true);
+    m_descLabel->setFixedHeight(40);
+    
+    // 创建主要内容布局
+    QHBoxLayout *contentLayout = new QHBoxLayout();
+    contentLayout->setSpacing(20);
+    
+    // 左侧：图像预览区域
+    QVBoxLayout *leftLayout = new QVBoxLayout();
+    leftLayout->setSpacing(10);
+    
+    // 图像预览标签
+    m_previewLabel = new QLabel();
+    m_previewLabel->setObjectName("FacePreviewLabel");
+    m_previewLabel->setFixedSize(280, 280);
+    m_previewLabel->setAlignment(Qt::AlignCenter);
+    m_previewLabel->setStyleSheet(
+        "QLabel#FacePreviewLabel {"
+        "    border: 2px solid #e0e0e0;"
+        "    border-radius: 8px;"
+        "    background-color: #f8f8f8;"
+        "    color: #666;"
+        "    font-size: 14px;"
+        "}"
+    );
+    m_previewLabel->setText("Preview Image\n(280 x 280)");
+    
+    // IP显示控件
+    QGroupBox *ipGroupBox = new QGroupBox();
+    ipGroupBox->setObjectName("IPGroupBox");
+    ipGroupBox->setTitle("Device Information");
+    ipGroupBox->setFixedHeight(60);
+    
+    QHBoxLayout *ipLayout = new QHBoxLayout(ipGroupBox);
+    ipLayout->setContentsMargins(10, 10, 10, 10);
+    
+    QLabel *ipLabel = new QLabel("IP Address:");
+    ipLabel->setObjectName("IPLabel");
+    ipLabel->setStyleSheet("QLabel { font-size: 12px; color: #333; }");
+    
+    m_ipDisplayLabel = new QLabel("192.168.1.100");
+    m_ipDisplayLabel->setObjectName("IPDisplayLabel");
+    m_ipDisplayLabel->setStyleSheet(
+        "QLabel {"
+        "    font-size: 12px;"
+        "    color: #0070f9;"
+        "    font-weight: bold;"
+        "    background-color: #f0f8ff;"
+        "    padding: 4px 8px;"
+        "    border-radius: 4px;"
+        "    border: 1px solid #cce7ff;"
+        "}"
+    );
+    
+    ipLayout->addWidget(ipLabel);
+    ipLayout->addWidget(m_ipDisplayLabel);
+    ipLayout->addStretch();
+    
+    leftLayout->addWidget(m_previewLabel);
+    leftLayout->addWidget(ipGroupBox);
+    leftLayout->addStretch();
+    
+    // 右侧：控制面板
+    QVBoxLayout *rightLayout = new QVBoxLayout();
+    rightLayout->setSpacing(15);
+    
+    // 亮度调整控件
+    QGroupBox *brightnessGroupBox = new QGroupBox();
+    brightnessGroupBox->setObjectName("BrightnessGroupBox");
+    brightnessGroupBox->setTitle("Brightness Control");
+    brightnessGroupBox->setFixedHeight(80);
+    
+    QVBoxLayout *brightnessLayout = new QVBoxLayout(brightnessGroupBox);
+    brightnessLayout->setContentsMargins(10, 10, 10, 10);
+    brightnessLayout->setSpacing(8);
+    
+    QHBoxLayout *brightnessControlLayout = new QHBoxLayout();
+    
+    QLabel *brightnessMinLabel = new QLabel("Dark");
+    brightnessMinLabel->setStyleSheet("QLabel { font-size: 10px; color: #666; }");
+    
+    m_brightnessSlider = new QSlider(Qt::Horizontal);
+    m_brightnessSlider->setObjectName("BrightnessSlider");
+    m_brightnessSlider->setRange(0, 100);
+    m_brightnessSlider->setValue(50);
+    m_brightnessSlider->setFixedHeight(20);
+    
+    QLabel *brightnessMaxLabel = new QLabel("Bright");
+    brightnessMaxLabel->setStyleSheet("QLabel { font-size: 10px; color: #666; }");
+    
+    m_brightnessValueLabel = new QLabel("50%");
+    m_brightnessValueLabel->setObjectName("BrightnessValueLabel");
+    m_brightnessValueLabel->setStyleSheet("QLabel { font-size: 11px; color: #333; font-weight: bold; }");
+    m_brightnessValueLabel->setFixedWidth(35);
+    m_brightnessValueLabel->setAlignment(Qt::AlignCenter);
+    
+    // 连接亮度滑块信号
+    connect(m_brightnessSlider, &QSlider::valueChanged, this, [this](int value) {
+        m_brightnessValueLabel->setText(QString("%1%").arg(value));
+        // TODO: 在这里可以添加实际的亮度控制逻辑
+        // onBrightnessChanged(value);
+    });
+    
+    brightnessControlLayout->addWidget(brightnessMinLabel);
+    brightnessControlLayout->addWidget(m_brightnessSlider);
+    brightnessControlLayout->addWidget(brightnessMaxLabel);
+    brightnessControlLayout->addWidget(m_brightnessValueLabel);
+    
+    brightnessLayout->addLayout(brightnessControlLayout);
+    
+    // 旋转角度调整控件
+    QGroupBox *rotationGroupBox = new QGroupBox();
+    rotationGroupBox->setObjectName("RotationGroupBox");
+    rotationGroupBox->setTitle("Rotation Control");
+    rotationGroupBox->setFixedHeight(80);
+    
+    QVBoxLayout *rotationLayout = new QVBoxLayout(rotationGroupBox);
+    rotationLayout->setContentsMargins(10, 10, 10, 10);
+    rotationLayout->setSpacing(8);
+    
+    QHBoxLayout *rotationControlLayout = new QHBoxLayout();
+    
+    QLabel *rotationMinLabel = new QLabel("0°");
+    rotationMinLabel->setStyleSheet("QLabel { font-size: 10px; color: #666; }");
+    
+    m_rotationSlider = new QSlider(Qt::Horizontal);
+    m_rotationSlider->setObjectName("RotationSlider");
+    m_rotationSlider->setRange(0, 360);
+    m_rotationSlider->setValue(0);
+    m_rotationSlider->setFixedHeight(20);
+    
+    QLabel *rotationMaxLabel = new QLabel("360°");
+    rotationMaxLabel->setStyleSheet("QLabel { font-size: 10px; color: #666; }");
+    
+    m_rotationValueLabel = new QLabel("0°");
+    m_rotationValueLabel->setObjectName("RotationValueLabel");
+    m_rotationValueLabel->setStyleSheet("QLabel { font-size: 11px; color: #333; font-weight: bold; }");
+    m_rotationValueLabel->setFixedWidth(35);
+    m_rotationValueLabel->setAlignment(Qt::AlignCenter);
+    
+    // 连接旋转滑块信号
+    connect(m_rotationSlider, &QSlider::valueChanged, this, [this](int value) {
+        m_rotationValueLabel->setText(QString("%1°").arg(value));
+        // TODO: 在这里可以添加实际的旋转控制逻辑
+        // onRotationChanged(value);
+    });
+    
+    rotationControlLayout->addWidget(rotationMinLabel);
+    rotationControlLayout->addWidget(m_rotationSlider);
+    rotationControlLayout->addWidget(rotationMaxLabel);
+    rotationControlLayout->addWidget(m_rotationValueLabel);
+    
+    rotationLayout->addLayout(rotationControlLayout);
+    
+    // 性能模式选择控件
+    QGroupBox *performanceGroupBox = new QGroupBox();
+    performanceGroupBox->setObjectName("PerformanceGroupBox");
+    performanceGroupBox->setTitle("Performance Mode");
+    performanceGroupBox->setFixedHeight(65);
+    
+    QVBoxLayout *performanceLayout = new QVBoxLayout(performanceGroupBox);
+    performanceLayout->setContentsMargins(10, 10, 10, 10);
+    
+    m_performanceModeComboBox = new QComboBox();
+    m_performanceModeComboBox->setObjectName("PerformanceModeComboBox");
+    m_performanceModeComboBox->setFixedHeight(30);
+    m_performanceModeComboBox->addItem("Normal Mode");
+    m_performanceModeComboBox->addItem("Power Saving Mode");
+    m_performanceModeComboBox->addItem("Performance Mode");
+    m_performanceModeComboBox->setCurrentIndex(0);
+    
+    performanceLayout->addWidget(m_performanceModeComboBox);
+    
+    // 校准按钮组
+    QGroupBox *calibrationGroupBox = new QGroupBox();
+    calibrationGroupBox->setObjectName("CalibrationGroupBox");
+    calibrationGroupBox->setTitle("Calibration Controls");
+    calibrationGroupBox->setFixedHeight(120);
+    
+    QVBoxLayout *calibrationLayout = new QVBoxLayout(calibrationGroupBox);
+    calibrationLayout->setContentsMargins(10, 10, 10, 10);
+    calibrationLayout->setSpacing(8);
+    
+    // 校准模式选择
+    QHBoxLayout *calibrationModeLayout = new QHBoxLayout();
+    QLabel *calibrationModeLabel = new QLabel("Mode:");
+    calibrationModeLabel->setStyleSheet("QLabel { font-size: 12px; color: #333; }");
+    calibrationModeLabel->setFixedWidth(40);
+    
+    m_calibrationModeComboBox = new QComboBox();
+    m_calibrationModeComboBox->setObjectName("CalibrationModeComboBox");
+    m_calibrationModeComboBox->setFixedHeight(28);
+    m_calibrationModeComboBox->addItem("Quick Calibration");
+    m_calibrationModeComboBox->addItem("Standard Calibration");
+    m_calibrationModeComboBox->addItem("Precision Calibration");
+    m_calibrationModeComboBox->setCurrentIndex(1);
+    
+    calibrationModeLayout->addWidget(calibrationModeLabel);
+    calibrationModeLayout->addWidget(m_calibrationModeComboBox);
+    
+    QHBoxLayout *calibrationButtonLayout = new QHBoxLayout();
+    calibrationButtonLayout->setSpacing(8);
+    
+    m_startCalibrationButton = new QPushButton();
+    m_startCalibrationButton->setObjectName("StartCalibrationButton");
+    m_startCalibrationButton->setFixedHeight(32);
+    m_startCalibrationButton->setText("Start");
+    // 移除 setStyleSheet，使用 QSS 中的样式
+    
+    m_stopCalibrationButton = new QPushButton();
+    m_stopCalibrationButton->setObjectName("StopCalibrationButton");
+    m_stopCalibrationButton->setFixedHeight(32);
+    m_stopCalibrationButton->setText("Stop");
+    m_stopCalibrationButton->setEnabled(false);
+    // 移除 setStyleSheet，使用 QSS 中的样式
+    
+    m_resetCalibrationButton = new QPushButton();
+    m_resetCalibrationButton->setObjectName("ResetCalibrationButton");
+    m_resetCalibrationButton->setFixedHeight(32);
+    m_resetCalibrationButton->setText("Reset");
+    // 移除 setStyleSheet，使用 QSS 中的样式
+    
+    calibrationButtonLayout->addWidget(m_startCalibrationButton);
+    calibrationButtonLayout->addWidget(m_stopCalibrationButton);
+    calibrationButtonLayout->addWidget(m_resetCalibrationButton);
+    
+    calibrationLayout->addLayout(calibrationModeLayout);
+    calibrationLayout->addLayout(calibrationButtonLayout);
+    
+    // 添加所有控件到右侧布局
+    rightLayout->addWidget(brightnessGroupBox);
+    rightLayout->addWidget(rotationGroupBox);
+    rightLayout->addWidget(performanceGroupBox);
+    rightLayout->addWidget(calibrationGroupBox);
+    rightLayout->addStretch();
+    
+    // 添加左右布局到内容布局
+    contentLayout->addLayout(leftLayout, 1);
+    contentLayout->addLayout(rightLayout, 1);
+    
+    // 添加到主布局
+    mainLayout->addWidget(m_titleLabel);
+    mainLayout->addSpacing(5);
+    mainLayout->addWidget(m_descLabel);
+    mainLayout->addSpacing(10);
+    mainLayout->addLayout(contentLayout);
+    
+    // 设置滚动区域
+    scrollArea->setWidget(contentContainer);
+    
+    // 创建最终容器
+    QVBoxLayout *finalLayout = new QVBoxLayout(this);
+    finalLayout->setContentsMargins(0, 0, 0, 0);
+    finalLayout->addWidget(scrollArea);
+}
+
+void FaceConfigWidget::retranslateUI()
+{
+    m_titleLabel->setText(tr("Configure %1 Settings").arg(m_deviceType));
+    m_descLabel->setText(tr("Adjust camera settings and calibrate your %1 device.\n"
+                           "Monitor the live preview and fine-tune parameters for optimal performance.").arg(m_deviceType));
+}
+

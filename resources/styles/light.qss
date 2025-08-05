@@ -1,3 +1,8 @@
+* {
+    outline: none;
+}
+
+/* 基础样式 */
 QWidget {
     background-color: #ffffff;
 }
@@ -16,64 +21,60 @@ QMainWindow#MainPage QWidget#centralWidget {
     border-radius: 12px;
 }
 
-/* 中央窗口部件 */
 QMainWindow#MainPage QFrame#centralWidget {
     background-color: #ffffff;
     border-radius: 12px;
 }
 
-/* 侧边栏 */
+/* 侧边栏样式 */
 QMainWindow#MainPage QWidget#sidebarWidget {
-    background-color: #f0f3f8;
+    background-color: #f0f0f0;
     border-top-left-radius: 12px;
     border-bottom-left-radius: 12px;
 }
 
-/* 标题栏 */
+/* 标题栏样式 */
 QMainWindow#MainPage QWidget#titleBarWidget {
-    background-color: #f0f3f8;
+    background-color: #f0f0f0;
     border: none;
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
 }
 
-/* 标题栏左侧区域 */
 QMainWindow#MainPage QWidget#titleLeftArea {
-    background-color: #f0f3f8;
+    background-color: #f0f0f0;
     border-top-left-radius: 12px;
 }
 
-/* 标题栏右侧区域 */
 QMainWindow#MainPage QWidget#titleRightArea {
     background-color: white;
     border-top-right-radius: 12px;
 }
 
-/* 标题标签 */
 QMainWindow#MainPage QLabel#titleLabel {
-    background-color: #f0f3f8;
-    font-size: 14px;
+    background-color: #f0f0f0;
+    font-size: 16px;
     font-weight: bold;
     color: #333333;
 }
 
-/* 侧边栏项 - 默认状态 */
+/* 侧边栏项样式 */
 QMainWindow#MainPage QWidget#SiderBarItem {
-    background-color: #f0f3f8;
+    background-color: #f0f0f0;
 }
 
 QMainWindow#MainPage QLabel#sidebarIconLabel {
-    background-color: #f0f3f8;
+    background-color: #f0f0f0;
 }
 
-/* 侧边栏项文本标签 - 默认状态 */
 QMainWindow#MainPage QLabel#sidebarTextLabel {
     font-size: 14px;
-    color: #666666;
-    background-color: #f0f3f8;
+    font-weight: 500;
+    color: #333333;
+    background-color: #f0f0f0;
 }
 
-/* 按钮通用样式 */
+/* 标题栏按钮样式 */
 QMainWindow#MainPage QPushButton {
     border: none;
     background-color: transparent;
@@ -83,7 +84,6 @@ QMainWindow#MainPage QPushButton:hover {
     background-color: #e0e0e0;
 }
 
-/* 关闭按钮特殊样式 */
 QMainWindow#MainPage QPushButton#closeButton:hover {
     background-color: #ff5555;
 }
@@ -94,13 +94,12 @@ QMainWindow#MainPage QStackedWidget#contentStack {
     border-bottom-right-radius: 12px;
 }
 
-/* 下拉菜单 */
+/* 下拉菜单样式 */
 QWidget#DropdownMenu {
     background-color: white;
     border-radius: 8px;
 }
 
-/* 菜单项 */
 QWidget#MenuItem {
     background-color: transparent;
     padding: 10px 20px;
@@ -110,11 +109,13 @@ QWidget#MenuItem:hover {
     background-color: #f0f0f0;
 }
 
-/* 菜单项文字 */
 QLabel#MenuItemText {
     color: #333333;
     font-size: 14px;
+    font-weight: 400;
 }
+
+/* USB状态区域样式 */
 QMainWindow#MainPage QWidget#USBStatusWidget {
     background-color: #f0f0f0;
 }
@@ -123,16 +124,18 @@ QMainWindow#MainPage QLabel#USBSectionTitle {
     background-color: #f0f0f0;
     font-size: 13px;
     font-weight: bold;
-    color: #555;
+    color: #333;
+    margin: 0;
 }
 
 QMainWindow#MainPage QLabel#USBStatusLabel {
     background-color: #f0f0f0;
     font-size: 12px;
-    color: #777;
+    color: #666;
+    margin: 0;
 }
 
-/* 设备列表区域 */
+/* 设备列表区域样式 */
 QMainWindow#MainPage QWidget#DeviceListWidget {
     background-color: #f0f0f0;
 }
@@ -141,23 +144,25 @@ QMainWindow#MainPage QLabel#DeviceSectionTitle {
     background-color: #f0f0f0;
     font-size: 13px;
     font-weight: bold;
-    color: #555;
+    color: #333;
+    margin: 0;
 }
 
 QMainWindow#MainPage QLabel#DeviceCount {
     background-color: #f0f0f0;
-    font-size: 12px;
-    color: #888;
+    font-size: 11px;
+    color: #666;
+    margin: 0;
 }
 
-/* 已连接设备列表 */
+/* 已连接设备列表样式 - 添加内边距以显示圆角 */
 QMainWindow#MainPage QListWidget#ConnectedDevicesList {
     border: 1px solid #e0e0e0;
     border-radius: 6px;
     background-color: white;
     font-size: 11px;
-    selection-background-color: #e7ebf0;
     outline: none;
+    padding: 4px;  /* 添加内边距，让圆角效果更明显 */
 }
 
 QMainWindow#MainPage QListWidget#ConnectedDevicesList::item {
@@ -165,6 +170,8 @@ QMainWindow#MainPage QListWidget#ConnectedDevicesList::item {
     border-bottom: 1px solid #f5f5f5;
     min-height: 16px;
     background-color: white;
+    border-radius: 4px;  /* 给列表项也添加小圆角 */
+    margin: 1px 0;  /* 添加小的垂直边距 */
 }
 
 QMainWindow#MainPage QListWidget#ConnectedDevicesList::item:hover {
@@ -176,9 +183,33 @@ QMainWindow#MainPage QListWidget#ConnectedDevicesList::item:selected {
     color: #0070f9;
 }
 
-/* 设备项内容 */
+QMainWindow#MainPage QListWidget#ConnectedDevicesList::item:last {
+    border-bottom: none;  /* 移除最后一项的底部边框 */
+}
+
+/* 如果希望第一个和最后一个项目有特殊的圆角处理 */
+QMainWindow#MainPage QListWidget#ConnectedDevicesList::item:first {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
+QMainWindow#MainPage QListWidget#ConnectedDevicesList::item:last {
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    border-bottom: none;
+}
+
+/* 设备项内容样式 */
 QMainWindow#MainPage QWidget#DeviceItem {
-    background-color: white;
+    background-color: transparent;
+}
+
+QMainWindow#MainPage QLabel#DeviceNameLabel {
+    font-size: 11px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+    background-color: transparent;  /* 改为透明 */
 }
 
 /* 分隔线样式 */
@@ -186,4 +217,544 @@ QMainWindow#MainPage QFrame#SidebarSeparator {
     color: #e0e0e0;
     background-color: #e0e0e0;
     margin: 12px 20px;
+}
+
+/* Guide Widget 样式 */
+QMainWindow#MainPage QLabel#GuideTitle {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    margin: 5px 0;
+    background-color: transparent;
+}
+
+QMainWindow#MainPage QPushButton#GuidePrevButton {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+}
+
+QMainWindow#MainPage QPushButton#GuidePrevButton:hover {
+    background-color: #e0e0e0;
+}
+
+QMainWindow#MainPage QPushButton#GuidePrevButton:disabled {
+    background-color: #f8f8f8;
+    color: #999;
+}
+
+QMainWindow#MainPage QPushButton#GuideNextButton {
+    background-color: #0070f9;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+    color: white;
+    font-weight: bold;
+}
+
+QMainWindow#MainPage QPushButton#GuideNextButton:hover {
+    background-color: #005acc;
+}
+
+/* WiFi 设置页面滚动区域样式 */
+QMainWindow#MainPage QScrollArea#WiFiScrollArea {
+    background-color: transparent;
+    border: none;
+}
+
+/* 公共滚动条样式 - 简洁统一 */
+QScrollBar:vertical {
+    background-color: #f5f5f5;
+    width: 10px;
+    border: none;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #d0d0d0;
+    border-radius: 5px;
+    min-height: 20px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: #a0a0a0;
+}
+
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    height: 0px;
+    border: none;
+}
+
+QScrollBar:horizontal {
+    background-color: #f5f5f5;
+    height: 10px;
+    border: none;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:horizontal {
+    background-color: #d0d0d0;
+    border-radius: 5px;
+    min-width: 20px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background-color: #a0a0a0;
+}
+
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
+    width: 0px;
+    border: none;
+}
+
+/* 垂直滚动条 */
+QScrollBar:vertical {
+    border: none;
+    background: transparent;
+    width: 10px;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:vertical {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    min-height: 20px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+QScrollBar::handle:vertical:pressed {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+/* 隐藏滚动条箭头 */
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    border: none;
+    background: none;
+    height: 0;
+}
+
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
+    background: transparent;
+}
+
+/* 水平滚动条 */
+QScrollBar:horizontal {
+    border: none;
+    background: transparent;
+    height: 10px;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:horizontal {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    min-width: 20px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+QScrollBar::handle:horizontal:pressed {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
+    border: none;
+    background: none;
+    width: 0;
+}
+
+QScrollBar::add-page:horizontal,
+QScrollBar::sub-page:horizontal {
+    background: transparent;
+}
+
+/* 滚动条角落 */
+QScrollBar::corner {
+    background: transparent;
+}
+
+/* WiFi 页面标题和描述 */
+QMainWindow#MainPage QLabel#WiFiSetupTitle {
+    font-size: 22px;  /* 从18px增加到22px */
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+    background-color: transparent;
+}
+
+QMainWindow#MainPage QLabel#WiFiSetupDesc {
+    font-size: 15px;  /* 从13px增加到15px */
+    color: #666;
+    line-height: 1.4;  /* 增加行高以适应更大字体 */
+    margin: 0;
+    background-color: transparent;
+}
+
+/* WiFi GroupBox 样式 */
+QMainWindow#MainPage QGroupBox {
+    font-size: 14px;  /* 从13px增加到14px */
+    font-weight: bold;
+    color: #333;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    margin-top: 8px;
+    padding-top: 8px;
+    background-color: white;
+}
+
+QMainWindow#MainPage QGroupBox::title {
+    left: 10px;
+    padding: 0 6px 0 6px;
+    background-color: white;
+}
+
+/* WiFi 输入框样式 */
+QMainWindow#MainPage QLineEdit#WiFiNameEdit,
+QMainWindow#MainPage QLineEdit#WiFiPasswordEdit {
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 14px;  /* 从13px增加到14px */
+    background-color: white;
+}
+
+QMainWindow#MainPage QLineEdit#WiFiNameEdit:focus,
+QMainWindow#MainPage QLineEdit#WiFiPasswordEdit:focus {
+    border-color: #0070f9;
+    outline: none;
+}
+
+/* WiFi 复选框样式 */
+QMainWindow#MainPage QCheckBox#ShowPasswordCheckBox {
+    font-size: 13px;  /* 从12px增加到13px */
+    color: #666;
+}
+
+QMainWindow#MainPage QCheckBox#ShowPasswordCheckBox::indicator {
+    width: 14px;
+    height: 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 3px;
+    background-color: white;
+}
+
+QMainWindow#MainPage QCheckBox#ShowPasswordCheckBox::indicator:checked {
+    background-color: #0070f9;
+    border-color: #0070f9;
+}
+
+QMainWindow#MainPage QCheckBox#ShowPasswordCheckBox::indicator:hover {
+    border-color: #0070f9;
+}
+
+/* WiFi 状态标签 */
+QMainWindow#MainPage QLabel#WiFiStatusLabel {
+    font-size: 13px;  /* 从12px增加到13px */
+    color: #666;
+    margin: 0;
+    background-color: white;
+}
+
+/* WiFi 按钮样式 */
+QMainWindow#MainPage QPushButton#ClearButton {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 14px;  /* 从13px增加到14px */
+    color: #333;
+}
+
+QMainWindow#MainPage QPushButton#ClearButton:hover {
+    background-color: #e0e0e0;
+}
+
+QMainWindow#MainPage QPushButton#ClearButton:pressed {
+    background-color: #d0d0d0;
+}
+
+QMainWindow#MainPage QPushButton#SendConfigButton {
+    background-color: #0070f9;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 14px;  /* 从13px增加到14px */
+    color: white;
+    font-weight: bold;
+}
+
+QMainWindow#MainPage QPushButton#SendConfigButton:hover {
+    background-color: #005acc;
+}
+
+QMainWindow#MainPage QPushButton#SendConfigButton:pressed {
+    background-color: #004499;
+}
+
+QMainWindow#MainPage QPushButton#SendConfigButton:disabled {
+    background-color: #cccccc;
+    color: #999;
+}
+
+/* WiFi 历史列表样式 */
+QMainWindow#MainPage QListWidget#WiFiHistoryList {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background-color: white;
+    font-size: 12px;  /* 从11px增加到12px */
+    outline: none;
+}
+
+QMainWindow#MainPage QListWidget#WiFiHistoryList::item {
+    padding: 6px;
+    border-bottom: 1px solid #f0f0f0;
+    background-color: white;
+}
+
+QMainWindow#MainPage QListWidget#WiFiHistoryList::item:hover {
+    background-color: #f8f9ff;
+}
+
+QMainWindow#MainPage QListWidget#WiFiHistoryList::item:selected {
+    background-color: #e7ebf0;
+    color: #0070f9;
+}
+
+QMainWindow#MainPage QPushButton#ClearHistoryButton {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;  /* 从11px增加到12px */
+    color: #666;
+}
+
+/* WiFi 表单标签样式 */
+QMainWindow#MainPage QFormLayout QLabel {
+    font-size: 13px;  /* 从12px增加到13px */
+    color: #333;
+    font-weight: bold;
+    background-color: white;
+}
+
+/* WiFi 设备状态提示标签 */
+QMainWindow#MainPage QLabel#WiFiDeviceStatusLabel {
+    font-size: 12px;  /* 从11px增加到12px */
+    color: #888;
+    font-style: italic;
+    background-color: transparent;
+}
+
+/* 开始页面样式 */
+QMainWindow#MainPage QLabel#WelcomeLabel {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin: 20px;
+    background-color: transparent;
+}
+
+QMainWindow#MainPage QLabel#DescLabel {
+    font-size: 16px;
+    color: #666;
+    margin: 10px;
+    background-color: transparent;
+}
+
+QMainWindow#MainPage QLabel#FaceTrackerText,
+QMainWindow#MainPage QLabel#EyeTrackerText {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    background-color: transparent;
+}
+
+QMainWindow#MainPage QLabel#FaceTrackerDesc,
+QMainWindow#MainPage QLabel#EyeTrackerDesc {
+    font-size: 12px;
+    color: #666;
+    background-color: transparent;
+}
+
+/* USB状态容器 */
+QMainWindow#MainPage QWidget#USBStatusContainer {
+    background-color: #f0f0f0;
+}
+
+/* 设备标题容器 */
+QMainWindow#MainPage QWidget#DeviceTitleContainer {
+    background-color: #f0f0f0;
+}
+
+/* 设备状态容器（在列表项中的） */
+QMainWindow#MainPage QWidget#DeviceStatusContainer {
+    background-color: transparent;  /* 改为透明 */
+}
+
+/* 确保所有相关的子组件背景色正确 */
+QMainWindow#MainPage QWidget#USBStatusContainer * {
+    background-color: #f0f0f0;
+}
+
+QMainWindow#MainPage QWidget#DeviceTitleContainer * {
+    background-color: #f0f0f0;
+}
+
+QMainWindow#MainPage QWidget#DeviceStatusContainer * {
+    background-color: transparent;  /* 改为透明 */
+}
+
+/* 校准按钮样式 */
+QMainWindow#MainPage QPushButton#StartCalibrationButton {
+    background-color: #4CAF50;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+QMainWindow#MainPage QPushButton#StartCalibrationButton:hover {
+    background-color: #45a049;
+}
+
+QMainWindow#MainPage QPushButton#StartCalibrationButton:pressed {
+    background-color: #3d8b40;
+}
+
+QMainWindow#MainPage QPushButton#StopCalibrationButton {
+    background-color: #f44336;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+QMainWindow#MainPage QPushButton#StopCalibrationButton:hover {
+    background-color: #d32f2f;
+}
+
+QMainWindow#MainPage QPushButton#StopCalibrationButton:pressed {
+    background-color: #b71c1c;
+}
+
+QMainWindow#MainPage QPushButton#StopCalibrationButton:disabled {
+    background-color: #cccccc;
+    color: #999;
+}
+
+QMainWindow#MainPage QPushButton#ResetCalibrationButton {
+    background-color: #ff9800;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+QMainWindow#MainPage QPushButton#ResetCalibrationButton:hover {
+    background-color: #f57c00;
+}
+
+QMainWindow#MainPage QPushButton#ResetCalibrationButton:pressed {
+    background-color: #ef6c00;
+}
+
+/* 滑块样式 */
+QMainWindow#MainPage QSlider {
+    background-color: transparent;
+}
+
+QMainWindow#MainPage QSlider::groove:horizontal {
+    border: 1px solid #e0e0e0;
+    height: 6px;
+    background-color: #f0f0f0;
+    border-radius: 3px;
+}
+
+QMainWindow#MainPage QSlider::handle:horizontal {
+    background-color: #0070f9;
+    border: 2px solid #0070f9;
+    width: 16px;
+    height: 16px;
+    border-radius: 9px;
+    margin: -6px 0;
+}
+
+QMainWindow#MainPage QSlider::handle:horizontal:hover {
+    background-color: #005acc;
+    border-color: #005acc;
+}
+
+QMainWindow#MainPage QSlider::handle:horizontal:pressed {
+    background-color: #004499;
+    border-color: #004499;
+}
+
+/* 下拉框样式 */
+QMainWindow#MainPage QComboBox {
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 4px 8px;
+    background-color: white;
+    font-size: 13px;
+    color: #333;
+}
+
+QMainWindow#MainPage QComboBox:focus {
+    border-color: #0070f9;
+    outline: none;
+}
+
+QMainWindow#MainPage QComboBox:hover {
+    border-color: #0070f9;
+}
+
+QMainWindow#MainPage QComboBox::drop-down {
+    border: none;
+    width: 20px;
+}
+
+QMainWindow#MainPage QComboBox::down-arrow {
+    image: url(:/resources/resources/images/chevron-down-solid-full.png);
+    width: 12px;
+    height: 12px;
+}
+
+QMainWindow#MainPage QComboBox QAbstractItemView {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background-color: white;
+    selection-background-color: #e7ebf0;
+    outline: none;
+}
+
+QMainWindow#MainPage QComboBox QAbstractItemView::item {
+    padding: 6px 8px;
+    min-height: 20px;
+}
+
+QMainWindow#MainPage QComboBox QAbstractItemView::item:hover {
+    background-color: #f8f9ff;
+}
+
+QMainWindow#MainPage QComboBox QAbstractItemView::item:selected {
+    background-color: #e7ebf0;
+    color: #0070f9;
 }
