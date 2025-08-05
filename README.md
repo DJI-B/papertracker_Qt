@@ -9,6 +9,7 @@
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)]()
 [![OpenCV](https://img.shields.io/badge/OpenCV-4.11.0-blue.svg)](https://opencv.org/)
 [![ONNX Runtime](https://img.shields.io/badge/ONNX%20Runtime-1.22.0-orange.svg)](https://onnxruntime.ai/)
+[![State-of-the-art Shitcode](https://img.shields.io/static/v1?label=State-of-the-art&message=Shitcode&color=7B5804)](https://github.com/trekhleb/state-of-the-art-shitcode)
 
 </div>
 
