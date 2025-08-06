@@ -16,6 +16,7 @@
 #include <QPushButton>
 #include <QPixmap>
 #include <QEvent>
+#include <QMap>
 #include "eye_tracker_window.hpp"
 #include "face_tracker_window.hpp"
 #include "updater.hpp"
@@ -25,9 +26,12 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QListWidget>
+#include "serial.hpp"
 
+class SerialPortManager;
 class CustomMenu;
 class GuideWidget;
+class QListWidgetItem;
 // 在 main_window.h 中添加新的布局结构
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -80,12 +84,9 @@ private:
     QLabel *eyeText = nullptr;
     QLabel *eyeDesc = nullptr;
 
-    // 在 MainWindow 类中添加新的成员变量声明（需要在头文件中添加）
-    QWidget *deviceListWidget = nullptr;
-    QWidget *usbStatusWidget = nullptr;
-    QListWidget *connectedDevicesList = nullptr;
-    QLabel *usbStatusLabel = nullptr;
-    QLabel *usbStatusIcon = nullptr;
+    // 设备管理相关
+    QMap<QString, QWidget*> deviceTabs = {}; // 存储设备名称到侧边栏tab的映射
+    QMap<QString, QWidget*> deviceContentPages = {}; // 存储设备名称到内容页面的映射
 
     QWidget *wifiContentWidget = nullptr;
     QScrollArea *wifiScrollArea = nullptr;
@@ -103,6 +104,9 @@ private:
     QListWidget *historyListWidget = nullptr;
     QPushButton *clearHistoryButton = nullptr;
     QLabel *deviceStatusLabel = nullptr;
+
+    QProgressDialog *m_searchProgress = nullptr;
+     std::shared_ptr<SerialPortManager> m_serialManager;  // 串口管理器复用
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
@@ -133,16 +137,27 @@ private:
     QWidget* createFaceStep2Content();
     void updateFacePreviewImage(const QPixmap &pixmap);
     QWidget* createFaceConfigStep(const QString &deviceType);
-
     void createSidebarSeparator();
-    void createDeviceStatusSection();
-    void createConnectedDevicesSection();
-    void addConnectedDevice(const QString &deviceName, const QString &status, bool isConnected);
-    void updateDeviceCount();
-    void updateUSBStatus(bool connected);
-    void checkUSBConnection();
-    void onWiFiConfigurationSuccess(const QString &deviceType, const QString &wifiName);
 
+    // 设备管理方法
+    void addDeviceTab(const QString &deviceName, const QString &deviceType);
+    void removeDeviceTab(const QString &deviceName);
+    void clearAllDeviceTabs();
+    QWidget* createDeviceContentPage(const QString &deviceName, const QString &deviceType);
+    void startDeviceSetupFlow(const QString &deviceType);
+    void onDeviceConnected(const QString &deviceName, const QString &deviceType);
+    void onDeviceDisconnected(const QString &deviceName);
+    void onWiFiConfigurationSuccess(const QString &deviceType, const QString &wifiName);
+    void scanForDevices();
+    void showNoDeviceFoundMessage();
+    void updateDeviceStatus(const QString &deviceName, const QString &ipAddress, int batteryLevel);
+    QWidget* createEyeTrackerConfig(const QString &deviceName, const QString &deviceType);
+    QWidget* createGenericDeviceConfig(const QString &deviceName, const QString &deviceType);
+
+    void onDeviceNeedsWifiConfig(const QString &deviceName, const QString &deviceType);
+    void addDeviceTabWithConfigStatus(const QString &deviceName, const QString &deviceType, const QString &status);
+    QWidget* createDeviceContentPageWithStatus(const QString &deviceName, const QString &deviceType, const QString &status);
+    
 private slots:
     void onMinimizeButtonClicked();
     void onCloseButtonClicked();
@@ -157,6 +172,8 @@ private slots:
 
         // 侧边栏点击处理
     void onSidebarItemClicked(const QString &itemText);
+
+    void onScanDevicesButtonClicked();
 };
 
 // 引导界面类
@@ -215,7 +232,7 @@ class WiFiSetupWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit WiFiSetupWidget(const QString &deviceType, QWidget *parent = nullptr);
+    explicit WiFiSetupWidget(const QString &deviceType, std::shared_ptr<SerialPortManager> serialManager, QWidget *parent = nullptr);
     void retranslateUI();
 
 signals:
@@ -253,6 +270,8 @@ private:
     QLabel *m_networkNameLabel;
     QLabel *m_passwordLabel;
     QLabel *m_statusLabel;
+
+    std::shared_ptr<SerialPortManager> m_serialManager;
 };
 
 class FaceConfigWidget : public QWidget
