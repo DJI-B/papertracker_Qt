@@ -81,34 +81,29 @@ MainWindow::MainWindow(QWidget *parent)
                 }, Qt::QueuedConnection);
             }
         );
-        m_serialManager->registerCallback(
+        // 注册WiFi错误回调 - 设备需要配置WiFi时会收到
+    m_serialManager->registerCallback(
         PACKET_WIFI_ERROR,
         [this](int version) {
             // 根据 version 判断设备类型
             QString deviceType;
-            QString deviceId = QTime::currentTime().toString("hhmmss");
-            QString deviceName;
             switch (version) {
                 case FACE_VERSION:
                     deviceType = "Face Tracker";
-                    deviceName = QString("Face Tracker #%1").arg(deviceId);
                     break;
                 case LEFT_VERSION:
                     deviceType = "Eye Tracker";
-                    deviceName = QString("Left Eye #%1").arg(deviceId);
                     break;
                 case RIGHT_VERSION:
                     deviceType = "Eye Tracker";
-                    deviceName = QString("Right Eye #%1").arg(deviceId);
                     break;
                 default:
                     deviceType = "Unknown Device";
-                    deviceName = QString("Device #%1").arg(deviceId);
             }
 
             // 主线程处理WiFi配置需求
             QMetaObject::invokeMethod(this, [=]() {
-                onDeviceNeedsWifiConfig(deviceName, deviceType);
+                showWifiConfigPrompt(deviceType);
             }, Qt::QueuedConnection);
         }
     );
@@ -116,6 +111,36 @@ MainWindow::MainWindow(QWidget *parent)
             LOG_INFO("串口原始数据: {}", data)
     });
     setupUI();
+}
+
+// 显示WiFi配置提示
+void MainWindow::showWifiConfigPrompt(const QString &deviceType) {
+    // 显示WiFi配置需求对话框
+    int result = QMessageBox::question(this, tr("发现设备"),
+        tr("检测到 %1 设备！\n该设备尚未配置WiFi网络。\n是否立即进行WiFi配置？")
+        .arg(deviceType),
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::Yes);
+
+    if (result == QMessageBox::Yes) {
+        // 用户选择配置WiFi，启动WiFi配置流程
+        startDeviceSetupFlow(deviceType);
+    } else {
+        // 用户选择不配置，显示提示信息
+        QMessageBox::information(this, tr("提示"),
+            tr("您可以稍后通过点击 \"Add New Device\" 来配置此设备。"));
+    }
+}
+
+// 在WiFi配置成功后的处理
+void MainWindow::onWiFiConfigurationSuccess(const QString &deviceType, const QString &wifiName) {
+    // WiFi配置成功后，显示成功消息
+    QMessageBox::information(this, tr("WiFi配置完成"),
+        tr("%1 设备的WiFi配置已完成。\n网络: %2\n\n设备将自动连接到WiFi网络，连接成功后会自动出现在设备列表中。")
+        .arg(deviceType, wifiName));
+    
+    // 返回到主页面等待设备连接
+    contentStack->setCurrentWidget(defaultContentWidget);
 }
 
 MainWindow::~MainWindow()
@@ -178,26 +203,6 @@ void MainWindow::setupUI() {
     // 添加一些示例设备用于测试
     onDeviceConnected("Face Tracker #001", "Face Tracker");
     onDeviceConnected("Eye Tracker #002", "Eye Tracker");
-}
-
-// 在WiFi配置成功后，添加设备到侧边栏的功能
-void MainWindow::onWiFiConfigurationSuccess(const QString &deviceType, const QString &wifiName) {
-    // 当WiFi配置成功时，生成设备名称并添加到侧边栏
-    QString deviceId = QDateTime::currentDateTime().toString("hhmmss");
-    QString deviceName = QString("%1 #%2").arg(deviceType, deviceId);
-
-    // 添加设备到侧边栏
-    onDeviceConnected(deviceName, deviceType);
-
-    // 自动切换到新设备的配置页面
-    if (deviceContentPages.contains(deviceName)) {
-        contentStack->setCurrentWidget(deviceContentPages[deviceName]);
-
-        // 选中新添加的设备tab
-        if (deviceTabs.contains(deviceName)) {
-            setSelectedItem(deviceTabs[deviceName]);
-        }
-    }
 }
 
 void MainWindow::setupTitleBar() {
@@ -1097,7 +1102,7 @@ void MainWindow::addDeviceTab(const QString &deviceName, const QString &deviceTy
     QLabel *textLabel = new QLabel(deviceName);
     textLabel->setObjectName("sidebarTextLabel");
 
-    // 状态指示器（小绿点）
+    // 状态指示器（绿色表示已连接）
     QLabel *statusDot = new QLabel();
     statusDot->setObjectName("deviceStatusDot");
     statusDot->setFixedSize(8, 8);
@@ -1140,7 +1145,7 @@ void MainWindow::addDeviceTab(const QString &deviceName, const QString &deviceTy
     textLabel->installEventFilter(this);
     statusDot->installEventFilter(this);
 
-    // 创建对应的内容页面（这里可以根据设备类型创建不同的配置页面）
+    // 创建对应的内容页面
     QWidget *deviceContentPage = createDeviceContentPage(deviceName, deviceType);
     contentStack->addWidget(deviceContentPage);
     deviceContentPages[deviceName] = deviceContentPage;
@@ -2143,15 +2148,18 @@ void MainWindow::scanForDevices() {
             // 启动心跳，保持连接
             m_serialManager->start_heartbeat_timer();
 
-            // 显示搜索状态
-            QTimer::singleShot(5000, [this]() {
-                // 5秒后如果没有收到任何设备响应，显示未找到设备的消息
-                if (deviceTabs.isEmpty()) {
-                    showNoDeviceFoundMessage();
-                }
+            // 显示搜索状态消息
+            QMessageBox::information(this, tr("设备扫描"),
+                tr("开始扫描设备...\n请确保设备已通过USB连接。"));
+
+            // 设置一个超时，如果一段时间内没有收到任何响应
+            QTimer::singleShot(10000, [this]() {
+                // 10秒后如果没有收到任何设备响应，显示未找到设备的消息
+                showNoDeviceFoundMessage();
             });
         } else {
-            showNoDeviceFoundMessage();
+            QMessageBox::warning(this, tr("连接失败"),
+                tr("无法打开串口连接。\n请检查设备连接和驱动程序。"));
         }
     } catch (const std::exception& e) {
         QMessageBox::critical(this, tr("错误"),
@@ -2189,26 +2197,18 @@ void MainWindow::updateDeviceStatus(const QString &deviceName, const QString &ip
 }
 
 void MainWindow::showNoDeviceFoundMessage() {
-    // 在界面上显示未找到设备的提示
-    QMessageBox::information(this, tr("设备搜索"),
-        tr("未发现连接的设备。\n请确保设备已通过USB连接并正确安装驱动程序。"));
+    // 检查是否已经有设备连接（避免误报）
+    if (deviceTabs.isEmpty()) {
+        QMessageBox::information(this, tr("扫描完成"),
+            tr("扫描完成，未发现连接的设备。\n\n请检查：\n1. 设备是否已通过USB连接\n2. 驱动程序是否正确安装\n3. 设备是否已开机"));
+    }
 }
+
 
 void MainWindow::onScanDevicesButtonClicked() {
-    // 使用指针而不是局部变量
-    QProgressDialog *progress = new QProgressDialog(tr("正在搜索设备..."), tr("取消"), 0, 0, this);
-    progress->setWindowModality(Qt::WindowModal);
-    progress->setMinimumDuration(0);
-    progress->show();
-
-    // 在后台线程中执行设备搜索
-    QTimer::singleShot(100, [this, progress]() {
-        scanForDevices();
-        progress->close();
-        progress->deleteLater();  // 安全删除
-    });
+    // 开始扫描设备
+    scanForDevices();
 }
-
 
 void MainWindow::onDeviceNeedsWifiConfig(const QString &deviceName, const QString &deviceType) {
     // 显示WiFi配置需求对话框

@@ -158,6 +158,9 @@ private:
     void addDeviceTabWithConfigStatus(const QString &deviceName, const QString &deviceType, const QString &status);
     QWidget* createDeviceContentPageWithStatus(const QString &deviceName, const QString &deviceType, const QString &status);
     
+    // 新增方法：处理WiFi配置提示
+    void showWifiConfigPrompt(const QString &deviceType);
+
 private slots:
     void onMinimizeButtonClicked();
     void onCloseButtonClicked();
