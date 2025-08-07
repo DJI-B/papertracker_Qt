@@ -18,8 +18,6 @@ WiFiSetupWidget::WiFiSetupWidget(const QString &deviceType, std::shared_ptr<Seri
 
 void WiFiSetupWidget::setupUI()
 {
-    setObjectName("WiFiSetupWidget");
-
     // 创建滚动区域
     QScrollArea *scrollArea = new QScrollArea();
     scrollArea->setObjectName("WiFiScrollArea");
@@ -30,7 +28,7 @@ void WiFiSetupWidget::setupUI()
 
     // 创建内容容器
     QWidget *contentContainer = new QWidget();
-    contentContainer->setObjectName("WiFiSetupContentContainer");
+    contentContainer->setObjectName("contentWidget");
     contentContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
     QVBoxLayout *mainLayout = new QVBoxLayout(contentContainer);

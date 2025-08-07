@@ -7,6 +7,7 @@
 #include <QEvent>
 #include <QMouseEvent>
 #include <QFrame>
+#include <QSizePolicy>
 
 SidebarWidget::SidebarWidget(QWidget *parent)
     : QWidget(parent)
@@ -16,19 +17,33 @@ SidebarWidget::SidebarWidget(QWidget *parent)
 
 void SidebarWidget::setupUI()
 {
-    setObjectName("sidebarWidget");
     setFixedWidth(200);
+    
+    // 为 SidebarWidget 创建主布局
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->setSpacing(0);
+    
+    // 创建主容器 widget
+    QWidget *mainWidget = new QWidget();
+    mainWidget->setObjectName("SidebarWidget");
 
-    sidebarLayout = new QVBoxLayout(this);
+    // 为主容器创建布局
+    sidebarLayout = new QVBoxLayout(mainWidget);
     sidebarLayout->setAlignment(Qt::AlignTop);
     sidebarLayout->setSpacing(0);
     sidebarLayout->setContentsMargins(0, 0, 0, 0);
+    
+    // 将主容器添加到 SidebarWidget 的布局中
+    mainLayout->addWidget(mainWidget);
 
-    // 创建"添加设备"选项
+    // 创建"添加设备"选项   
     createSidebarItem(":/resources/resources/images/vr-cardboard-solid-full.png", "Add Device");
-
-    // 添加分隔线
+    
+    // 创建分隔线
     createSidebarSeparator();
+    
+    // 添加弹性空间，确保内容在顶部对齐
     sidebarLayout->addStretch();
 }
 
@@ -63,18 +78,7 @@ void SidebarWidget::createSidebarItem(const QString &iconPath, const QString &te
     layout->addWidget(textLabel);
     layout->addStretch();
 
-    // 设置样式
-    item->setStyleSheet(
-        "QWidget#SiderBarItem {"
-        "    background-color: transparent;"
-        "    border-radius: 4px;"
-        "}"
-        "QLabel#sidebarTextLabel {"
-        "    color: #333;"
-        "    font-size: 14px;"
-        "    font-weight: 400;"
-        "}"
-    );
+    // 样式由 light.qss 控制，不需要硬编码
 
     // 安装事件过滤器
     item->installEventFilter(this);
@@ -93,12 +97,7 @@ void SidebarWidget::createSidebarSeparator()
     separator->setFrameShape(QFrame::HLine);
     separator->setFrameShadow(QFrame::Sunken);
     separator->setFixedHeight(1);
-    separator->setStyleSheet(
-        "QFrame#sidebarSeparator {"
-        "    color: #e0e0e0;"
-        "    margin: 8px 16px;"
-        "}"
-    );
+    // 样式由 light.qss 控制
     sidebarLayout->addWidget(separator);
 }
 
@@ -140,7 +139,8 @@ void SidebarWidget::addDeviceTab(const QString &deviceName, const QString &devic
     // 状态指示器
     QLabel *statusLabel = new QLabel("●");
     statusLabel->setObjectName("deviceStatusLabel");
-    statusLabel->setStyleSheet("QLabel { color: #28a745; font-size: 12px; }"); // 绿色表示在线
+    // 初始状态样式，具体样式由 light.qss 控制
+    statusLabel->setStyleSheet("QLabel { color: #28a745; font-size: 12px; }");
 
     // 添加到布局
     layout->addWidget(iconLabel);
@@ -148,28 +148,37 @@ void SidebarWidget::addDeviceTab(const QString &deviceName, const QString &devic
     layout->addStretch();
     layout->addWidget(statusLabel);
 
-    // 设置样式
-    deviceTab->setStyleSheet(
-        "QWidget#DeviceTab {"
-        "    background-color: transparent;"
-        "    border-radius: 4px;"
-        "}"
-        "QLabel#deviceNameLabel {"
-        "    color: #333;"
-        "    font-size: 12px;"
-        "    font-weight: 400;"
-        "}"
-    );
-
     // 安装事件过滤器
     deviceTab->installEventFilter(this);
     iconLabel->installEventFilter(this);
     nameLabel->installEventFilter(this);
     statusLabel->installEventFilter(this);
 
-    // 插入到分隔线前面
-    int separatorIndex = sidebarLayout->count() - 2; // 分隔线和stretch的位置
-    sidebarLayout->insertWidget(separatorIndex, deviceTab);
+    // 找到分隔线的位置，在分隔线后插入设备标签页
+    int insertIndex = -1;
+    for (int i = 0; i < sidebarLayout->count(); ++i) {
+        QLayoutItem *item = sidebarLayout->itemAt(i);
+        if (item && item->widget()) {
+            QWidget *widget = item->widget();
+            if (widget->objectName() == "sidebarSeparator") {
+                insertIndex = i + 1;  // 在分隔线后插入
+                break;
+            }
+        }
+    }
+
+    // 如果找到分隔线，在其后插入；否则在末尾插入（但要在stretch之前）
+    if (insertIndex >= 0) {
+        sidebarLayout->insertWidget(insertIndex, deviceTab);
+    } else {
+        // 在stretch之前插入
+        int stretchIndex = sidebarLayout->count() - 1;
+        if (stretchIndex >= 0) {
+            sidebarLayout->insertWidget(stretchIndex, deviceTab);
+        } else {
+            sidebarLayout->addWidget(deviceTab);
+        }
+    }
 
     // 存储映射
     deviceTabs[deviceName] = deviceTab;
@@ -183,16 +192,15 @@ void SidebarWidget::removeDeviceTab(const QString &deviceName)
     }
 
     QWidget *deviceTab = deviceTabs[deviceName];
-    
+
     // 从布局和列表中移除
     sidebarLayout->removeWidget(deviceTab);
     sidebarItems.removeAll(deviceTab);
     deviceTabs.remove(deviceName);
-    
+
     // 删除widget
     deviceTab->deleteLater();
 }
-
 void SidebarWidget::clearAllDeviceTabs()
 {
     // 移除所有设备标签页
@@ -205,30 +213,83 @@ void SidebarWidget::clearAllDeviceTabs()
     deviceTabs.clear();
 }
 
+void SidebarWidget::updateDeviceType(const QString &deviceName, const QString &deviceType)
+{
+    if (!deviceTabs.contains(deviceName)) {
+        return;
+    }
+
+    QWidget *deviceTab = deviceTabs[deviceName];
+
+    // 更新设备类型属性
+    deviceTab->setProperty("deviceType", deviceType);
+
+    // 查找设备标签中的各个组件
+    QList<QLabel*> labels = deviceTab->findChildren<QLabel*>();
+    for (QLabel *label : labels) {
+        // 更新设备图标
+        if (label->objectName() == "deviceIconLabel") {
+            QString iconPath = getDeviceIcon(deviceType);
+            if (!iconPath.isEmpty()) {
+                QPixmap iconPixmap(iconPath);
+                if (!iconPixmap.isNull()) {
+                    label->setPixmap(iconPixmap.scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+                }
+            }
+        }
+
+        // 更新设备名称显示（如果设备类型改变，可以调整显示名称）
+        else if (label->objectName() == "deviceNameLabel") {
+            // 保持原有设备名称，但可以根据需要进行调整
+            // 例如：如果从 "WiFi配置中" 变为具体设备类型，可以更新显示文本
+            if (deviceType == "Face Tracker") {
+                // 可以选择保持原名称或者更新为更友好的显示名称
+                // label->setText(deviceName); // 保持原名称
+            } else if (deviceType == "Eye Tracker") {
+                // 同样保持原名称或进行相应调整
+                // label->setText(deviceName); // 保持原名称
+            }
+            // 目前保持原有名称不变
+        }
+
+        // 更新连接状态指示器
+        else if (label->objectName() == "deviceStatusLabel") {
+            if (deviceType == "WiFi配置中") {
+                // WiFi配置中 - 橙色
+                label->setStyleSheet("QLabel { color: #ffc107; font-size: 12px; }");
+                label->setToolTip("设备正在配置WiFi网络");
+            } else if (deviceType == "Face Tracker" || deviceType == "Eye Tracker") {
+                // 已连接 - 绿色
+                label->setStyleSheet("QLabel { color: #28a745; font-size: 12px; }");
+                label->setToolTip("设备已连接");
+            } else {
+                // 未知状态 - 灰色
+                label->setStyleSheet("QLabel { color: #6c757d; font-size: 12px; }");
+                label->setToolTip("设备状态未知");
+            }
+        }
+    }
+}
+
 void SidebarWidget::setSelectedItem(QWidget *selectedItem)
 {
     // 取消之前选中项的选中状态
     for (QWidget *item : sidebarItems) {
         if (item->property("selected").toBool()) {
             item->setProperty("selected", false);
-            item->setStyleSheet(""); // 清除样式
+            // 清除内联样式，让QSS生效
+            item->setStyleSheet("");
+            // 强制样式更新
         }
     }
 
     // 设置新的选中项
-    selectedItem->setProperty("selected", true);
-    selectedItem->setStyleSheet(
-        "QWidget#SiderBarItem, QWidget#DeviceTab {"
-        "    background-color: #e7ebf0;"
-        "}"
-        "QLabel#sidebarIconLabel, QLabel#deviceIconLabel {"
-        "    background-color: #e7ebf0;"
-        "}"
-        "QLabel#sidebarTextLabel, QLabel#deviceNameLabel {"
-        "    background-color: #e7ebf0;"
-        "    color: #0070f9;"
-        "}"
-    );
+    if (selectedItem) {
+        selectedItem->setProperty("selected", true);
+        // 清除内联样式，让QSS生效
+        selectedItem->setStyleSheet("");
+        // 强制样式更新
+    }
 }
 
 QString SidebarWidget::getDeviceIcon(const QString &deviceType) const
@@ -237,8 +298,10 @@ QString SidebarWidget::getDeviceIcon(const QString &deviceType) const
         return ":/resources/resources/images/face-smile-regular-full.png";
     } else if (deviceType == "Eye Tracker") {
         return ":/resources/resources/images/eye-regular-full.png";
+    } else if (deviceType == "WiFi配置中") {
+        return ":/resources/resources/images/vr-cardboard-solid-full.png"; // WiFi配置中使用默认图标
     } else {
-        return ":/resources/resources/images/vr-cardboard-solid-full.png";
+        return ":/resources/resources/images/vr-cardboard-solid-full.png"; // 默认图标
     }
 }
 
@@ -269,17 +332,11 @@ bool SidebarWidget::eventFilter(QObject *obj, QEvent *event)
                 }
             }
         } else if (event->type() == QEvent::Enter) {
-            if (!itemWidget->property("selected").toBool()) {
-                itemWidget->setStyleSheet(
-                    "QWidget#SiderBarItem, QWidget#DeviceTab {"
-                    "    background-color: #f5f5f5;"
-                    "}"
-                );
-            }
+            // 悬停效果由 QSS 的 :hover 伪状态控制
+            // 不需要手动设置样式
         } else if (event->type() == QEvent::Leave) {
-            if (!itemWidget->property("selected").toBool()) {
-                itemWidget->setStyleSheet("");
-            }
+            // 离开效果由 QSS 自动处理
+            // 不需要手动设置样式
         }
     }
 

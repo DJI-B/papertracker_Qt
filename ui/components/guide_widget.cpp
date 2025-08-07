@@ -12,8 +12,6 @@ GuideWidget::GuideWidget(const QString &title, int totalSteps, QWidget *parent)
 
 void GuideWidget::setupUI()
 {
-    setObjectName("GuideWidget");
-
     m_mainLayout = new QVBoxLayout(this);
     m_mainLayout->setContentsMargins(20, 15, 20, 20);
     m_mainLayout->setSpacing(10);

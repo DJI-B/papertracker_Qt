@@ -229,13 +229,6 @@ void TitleBarWidget::addMenuItem(const QString &iconPath, const QString &text, c
     itemLayout->addStretch();
     itemLayout->addWidget(rightIconLabel);
 
-    // 设置初始样式
-    menuItem->setStyleSheet(
-        "QWidget#MenuItem {"
-        "    background-color: transparent;"
-        "    border-radius: 4px;"
-        "}"
-    );
 
     // 添加到菜单
     customMenu->addItem(menuItem);

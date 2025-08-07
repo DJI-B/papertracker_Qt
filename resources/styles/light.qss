@@ -21,16 +21,9 @@ QMainWindow#MainPage QWidget#centralWidget {
     border-radius: 12px;
 }
 
-QMainWindow#MainPage QFrame#centralWidget {
-    background-color: #ffffff;
-    border-radius: 12px;
-}
-
-/* 侧边栏样式 */
-QMainWindow#MainPage QWidget#sidebarWidget {
+QWidget#SidebarWidget {
     background-color: #f0f0f0;
-    border-top-left-radius: 12px;
-    border-bottom-left-radius: 12px;
+	border-bottom-left-radius: 12px;
 }
 
 /* 标题栏样式 */
@@ -58,34 +51,83 @@ QMainWindow#MainPage QLabel#titleLabel {
     color: #333333;
 }
 
-/* 侧边栏项样式 */
-QMainWindow#MainPage QWidget#SiderBarItem {
-    background-color: #f0f0f0;
+/* 普通侧边栏项 */
+QWidget#SiderBarItem {
+    background-color: transparent;
+    border-radius: 4px;
 }
 
-QMainWindow#MainPage QLabel#sidebarIconLabel {
-    background-color: #f0f0f0;
+QWidget#SiderBarItem:hover {
+    background-color: #f5f5f5;
 }
 
-QMainWindow#MainPage QLabel#sidebarTextLabel {
-    font-size: 14px;
-    font-weight: 500;
-    color: #333333;
-    background-color: #f0f0f0;
+QWidget#SiderBarItem[selected="true"] {
+    background-color: #e7ebf0;
 }
 
-/* 标题栏按钮样式 */
-QMainWindow#MainPage QPushButton {
-    border: none;
+QWidget#SiderBarItem[selected="true"] QLabel#sidebarTextLabel {
+    color: #0070f9;
+}
+
+QLabel#sidebarIconLabel {
     background-color: transparent;
 }
 
-QMainWindow#MainPage QPushButton:hover {
+ QLabel#sidebarTextLabel {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333333;
+    background-color: transparent;
+}
+
+/* 设备标签页 */
+QWidget#DeviceTab {
+    background-color: transparent;
+    border-radius: 4px;
+}
+
+QWidget#DeviceTab:hover {
+    background-color: #f5f5f5;
+}
+
+QWidget#DeviceTab[selected="true"] {
+    background-color: #e7ebf0;
+}
+
+QWidget#DeviceTab[selected="true"] QLabel#deviceNameLabel {
+    color: #0070f9;
+}
+
+ QLabel#deviceIconLabel {
+    background-color: transparent;
+}
+
+ QLabel#deviceNameLabel {
+    font-size: 12px;
+    font-weight: 400;
+    color: #333333;
+    background-color: transparent;
+}
+
+ QLabel#deviceStatusLabel {
+    background-color: transparent;
+}
+
+/* 标题栏按钮样式 */
+QPushButton {
+    border: none;
+    background-color: transparent;
+    border-radius: 4px;
+    padding: 6px 12px;
+}
+
+QPushButton:hover {
     background-color: #e0e0e0;
 }
 
-QMainWindow#MainPage QPushButton#closeButton:hover {
+QPushButton#closeButton:hover {
     background-color: #ff5555;
+    color: white;
 }
 
 /* 内容堆栈 */
@@ -93,6 +135,13 @@ QMainWindow#MainPage QStackedWidget#contentStack {
     background-color: white;
     border-bottom-right-radius: 12px;
 }
+
+/* 内容堆栈 */
+QMainWindow#MainPage QWidget#contentWidget {
+    background-color: white;
+    border-bottom-right-radius: 12px;
+}
+
 
 /* 下拉菜单样式 */
 QWidget#DropdownMenu {
@@ -213,7 +262,7 @@ QMainWindow#MainPage QLabel#DeviceNameLabel {
 }
 
 /* 分隔线样式 */
-QMainWindow#MainPage QFrame#SidebarSeparator {
+QFrame#sidebarSeparator {
     color: #e0e0e0;
     background-color: #e0e0e0;
     margin: 12px 20px;
@@ -265,6 +314,7 @@ QMainWindow#MainPage QPushButton#GuideNextButton:hover {
 QMainWindow#MainPage QScrollArea#WiFiScrollArea {
     background-color: transparent;
     border: none;
+	border-bottom-right-radius: 12px;
 }
 
 /* 公共滚动条样式 - 简洁统一 */
@@ -561,19 +611,30 @@ QMainWindow#MainPage QLabel#WiFiDeviceStatusLabel {
 }
 
 /* 开始页面样式 */
-QMainWindow#MainPage QLabel#WelcomeLabel {
-    font-size: 24px;
+QMainWindow#MainPage QLabel#welcomeLabel {
+    font-size: 32px;
     font-weight: bold;
     color: #333;
     margin: 20px;
     background-color: transparent;
 }
 
-QMainWindow#MainPage QLabel#DescLabel {
+QMainWindow#MainPage QLabel#descLabel {
     font-size: 16px;
     color: #666;
     margin: 10px;
     background-color: transparent;
+}
+
+QMainWindow#MainPage QLabel#instructionLabel {
+    font-size: 16px;
+    color: #555;
+    margin-top: 30px;
+    line-height: 1.8;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 30px;
 }
 
 QMainWindow#MainPage QLabel#FaceTrackerText,

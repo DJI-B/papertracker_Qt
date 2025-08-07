@@ -17,6 +17,29 @@ bool DeviceManager::hasDevice(const QString &deviceName) const
     return m_deviceTypes.contains(deviceName);
 }
 
+QString DeviceManager::getDeviceType(const QString &deviceName) const
+{
+    return m_deviceTypes.value(deviceName, "Unknown");
+}
+
+void DeviceManager::updateDeviceType(const QString &deviceName, const QString &deviceType)
+{
+    if (m_deviceTypes.contains(deviceName)) {
+        m_deviceTypes[deviceName] = deviceType;
+        
+        // 如果设备类型改变了，需要重新创建配置页面
+        if (m_devicePages.contains(deviceName)) {
+            QWidget *oldPage = m_devicePages[deviceName];
+            QWidget *newPage = createDeviceConfigPage(deviceName, deviceType);
+            m_devicePages[deviceName] = newPage;
+            
+            if (oldPage) {
+                oldPage->deleteLater();
+            }
+        }
+    }
+}
+
 void DeviceManager::addDevice(const QString &deviceName, const QString &deviceType)
 {
     if (hasDevice(deviceName)) {

@@ -29,6 +29,10 @@ public:
 
     // 添加设备存在性检查方法
     bool hasDevice(const QString &deviceName) const;
+    
+    // 获取和更新设备类型
+    QString getDeviceType(const QString &deviceName) const;
+    void updateDeviceType(const QString &deviceName, const QString &deviceType);
 
     // 获取设备配置页面
     QWidget* getDeviceConfigPage(const QString &deviceName);

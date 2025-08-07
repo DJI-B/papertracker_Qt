@@ -25,6 +25,7 @@ public:
     void addDeviceTab(const QString &deviceName, const QString &deviceType);
     void removeDeviceTab(const QString &deviceName);
     void clearAllDeviceTabs();
+    void updateDeviceType(const QString &deviceName, const QString &deviceType);
     
     void setSelectedItem(QWidget *selectedItem);
 

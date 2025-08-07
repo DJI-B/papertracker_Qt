@@ -58,6 +58,7 @@ private:
     void setupSerialManager();
     void createContentPages();
     void createDefaultContent();
+    void loadStyleSheet();
     
     // WiFi配置相关
     void showWifiConfigPrompt(const QString &wifiName, const QString &wifiPassword);
