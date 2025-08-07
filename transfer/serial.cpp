@@ -392,7 +392,7 @@ PacketType SerialPortManager::parsePacket(const std::string& packet)
                 {
                     LOG_INFO("(网络连接中): 当前WIFI为 {}, 密码为 {}, 如果长时间连接失败，请检查是否有误", match[1].str(), match[2].str());
                 }
-                handlePacket(PACKET_WIFI_CONFIRM, {match[1].str(), match[2].str()});
+                handlePacket(PACKET_WIFI_ERROR, {match[1].str(), match[2].str()});
                 return PACKET_WIFI_ERROR;
             }
             break;
@@ -741,4 +741,19 @@ void SerialPortManager::handlePacket(PacketType packetType, const std::vector<st
 void SerialPortManager::registerRawDataCallback(std::function<void(const std::string&)> callback)
 {
     rawDataCallback = callback;
+}
+
+std::string SerialPortManager::getCurrentPortName()
+{
+    if (!currentPort.empty()) {
+        return currentPort;
+    }
+    
+    // 如果currentPort为空，尝试从serialPort获取
+    if (serialPort && serialPort->isOpen()) {
+        return serialPort->portName().toStdString();
+    }
+    
+    // 如果都没有，尝试查找ESP32-S3端口
+    return FindEsp32S3Port();
 }

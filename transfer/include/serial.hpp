@@ -43,6 +43,8 @@ public:
     explicit SerialPortManager(QObject *parent = nullptr);
     ~SerialPortManager() override;
     void registerRawDataCallback(std::function<void(const std::string&)> callback);
+    std::string getCurrentPortName();
+
     template<typename Func>
     void registerCallback(PacketType packetType, Func&& callback) {
         registerCallbackImpl(packetType, std::forward<Func>(callback), &Func::operator());

@@ -4,12 +4,12 @@
 #include <QMessageBox>
 #include <QProgressDialog>
 #include <face_inference.hpp>
-#include <main_window.h>
 #include <QApplication>
 #include <updater.hpp>
 #include <QDir>
 #include <QDebug>
-#include "main_window_new.h"
+#include "main_window_refactored.h"
+#include "translator_manager.h"
 
 int main(int argc, char *argv[]) {
     system("chcp 65001");

@@ -334,8 +334,30 @@ add_library(
         ui/eye_tracker_window.cpp
         ui/BubbleTipWidget.cpp
         ui/include/BubbleTipWidget.h
-        ui/include/main_window_new.h
-        ui/main_window_new.cpp
+        # 重构后的组件
+        ui/include/main_window_refactored.h
+        ui/main_window_refactored.cpp
+        # 组件基类
+        ui/include/components/widget_component_base.h
+        ui/components/widget_component_base.cpp
+        # 标题栏组件
+        ui/include/components/title_bar_widget.h
+        ui/components/title_bar_widget.cpp
+        # 侧边栏组件
+        ui/include/components/sidebar_widget.h
+        ui/components/sidebar_widget.cpp
+        # WiFi设置组件
+        ui/include/components/wifi_setup_widget.h
+        ui/components/wifi_setup_widget.cpp
+        # 面部配置组件
+        ui/include/components/face_config_widget.h
+        ui/components/face_config_widget.cpp
+        # 引导界面组件
+        ui/include/components/guide_widget.h
+        ui/components/guide_widget.cpp
+        # 设备管理器
+        ui/include/managers/device_manager.h
+        ui/managers/device_manager.cpp
 )
 
 target_include_directories(
