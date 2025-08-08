@@ -11,9 +11,9 @@ WidgetComponentBase::WidgetComponentBase(QWidget *parent)
 
 void WidgetComponentBase::applyDefaultStyle()
 {
-    // 应用基本样式
+    // 应用基本样式，但不影响按钮等控件
     setStyleSheet(
-        "QWidget {"
+        "WidgetComponentBase {"
         "    background-color: #ffffff;"
         "    font-family: 'Segoe UI', Arial, sans-serif;"
         "}"
@@ -23,6 +23,7 @@ void WidgetComponentBase::applyDefaultStyle()
         "    border-radius: 6px;"
         "    margin-top: 10px;"
         "    padding-top: 5px;"
+        "    background-color: transparent;"
         "}"
         "QGroupBox::title {"
         "    subcontrol-origin: margin;"

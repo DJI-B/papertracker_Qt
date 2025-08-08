@@ -8,6 +8,7 @@
 #include <QMouseEvent>
 #include <QFrame>
 #include <QSizePolicy>
+#include <QStyle>
 
 SidebarWidget::SidebarWidget(QWidget *parent)
     : QWidget(parent)
@@ -37,11 +38,18 @@ void SidebarWidget::setupUI()
     // 将主容器添加到 SidebarWidget 的布局中
     mainLayout->addWidget(mainWidget);
 
-    // 创建"添加设备"选项   
-    createSidebarItem(":/resources/resources/images/vr-cardboard-solid-full.png", "Add Device");
-    
+    // 创建"主界面"选项
+    createSidebarItem(":/resources/resources/images/vr-cardboard-solid-full.png", "主界面");
+
     // 创建分隔线
     createSidebarSeparator();
+    
+    // 添加设备区域标题
+    QLabel *deviceSectionTitle = new QLabel("已连接设备");
+    deviceSectionTitle->setObjectName("DeviceSectionTitle");
+    deviceSectionTitle->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    deviceSectionTitle->setContentsMargins(16, 10, 16, 5);
+    sidebarLayout->addWidget(deviceSectionTitle);
     
     // 添加弹性空间，确保内容在顶部对齐
     sidebarLayout->addStretch();
@@ -154,20 +162,20 @@ void SidebarWidget::addDeviceTab(const QString &deviceName, const QString &devic
     nameLabel->installEventFilter(this);
     statusLabel->installEventFilter(this);
 
-    // 找到分隔线的位置，在分隔线后插入设备标签页
+    // 找到设备区域标题的位置，在标题后插入设备标签页
     int insertIndex = -1;
     for (int i = 0; i < sidebarLayout->count(); ++i) {
         QLayoutItem *item = sidebarLayout->itemAt(i);
         if (item && item->widget()) {
             QWidget *widget = item->widget();
-            if (widget->objectName() == "sidebarSeparator") {
-                insertIndex = i + 1;  // 在分隔线后插入
+            if (widget->objectName() == "DeviceSectionTitle") {
+                insertIndex = i + 1;  // 在设备区域标题后插入
                 break;
             }
         }
     }
 
-    // 如果找到分隔线，在其后插入；否则在末尾插入（但要在stretch之前）
+    // 如果找到设备区域标题，在其后插入；否则在末尾插入（但要在stretch之前）
     if (insertIndex >= 0) {
         sidebarLayout->insertWidget(insertIndex, deviceTab);
     } else {
@@ -341,4 +349,15 @@ bool SidebarWidget::eventFilter(QObject *obj, QEvent *event)
     }
 
     return QWidget::eventFilter(obj, event);
+}
+
+void SidebarWidget::clearDeviceSelection()
+{
+    // 清除所有设备标签的选中状态
+    for (auto it = deviceTabs.begin(); it != deviceTabs.end(); ++it) {
+        QWidget *deviceTab = it.value();
+        deviceTab->setProperty("selected", false);
+        deviceTab->style()->unpolish(deviceTab);
+        deviceTab->style()->polish(deviceTab);
+    }
 }

@@ -1,11 +1,30 @@
 #include "components/wifi_setup_widget.h"
 #include "serial.hpp"
-#include <QScrollArea>
+#include <QApplication>
+#include <QWidget>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QListWidgetItem>
-#include <QSettings>
+#include <QFormLayout>
+#include <QGroupBox>
+#include <QLineEdit>
+#include <QCheckBox>
+#include <QPushButton>
+#include <QLabel>
+#include <QListWidget>
+#include <QScrollArea>
+#include <QFrame>
 #include <QMessageBox>
+#include <QSettings>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QListWidgetItem>
+#include <QSplitter>
+#include <QDateTime>
+
+// 静态常量定义
+const QString WiFiSetupWidget::SETTINGS_GROUP = "WiFiHistory";
+const QString WiFiSetupWidget::WIFI_HISTORY_KEY = "history";
 
 WiFiSetupWidget::WiFiSetupWidget(const QString &deviceType, std::shared_ptr<SerialPortManager> serialManager, QWidget *parent)
     : WidgetComponentBase(parent)
@@ -13,232 +32,235 @@ WiFiSetupWidget::WiFiSetupWidget(const QString &deviceType, std::shared_ptr<Seri
     , m_serialManager(serialManager)
 {
     setupUI();
+    loadWiFiHistory();
     retranslateUI();
+}
+
+WiFiSetupWidget::~WiFiSetupWidget()
+{
+    saveWiFiHistory();
 }
 
 void WiFiSetupWidget::setupUI()
 {
     // 创建滚动区域
-    QScrollArea *scrollArea = new QScrollArea();
-    scrollArea->setObjectName("WiFiScrollArea");
-    scrollArea->setWidgetResizable(true);
-    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    scrollArea->setFrameStyle(QFrame::NoFrame);
-
+    m_scrollArea = new QScrollArea(this);
+    m_scrollArea->setObjectName("WiFiScrollArea");
+    m_scrollArea->setWidgetResizable(true);
+    m_scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    
     // 创建内容容器
-    QWidget *contentContainer = new QWidget();
-    contentContainer->setObjectName("contentWidget");
-    contentContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    m_contentWidget = new QWidget();
+    m_contentWidget->setObjectName("contentWidget");
+    
+    // 主布局
+    QVBoxLayout *outerLayout = new QVBoxLayout(this);
+    outerLayout->setContentsMargins(0, 0, 0, 0);
+    outerLayout->addWidget(m_scrollArea);
+    
+    // 内容主布局
+    m_mainLayout = new QHBoxLayout(m_contentWidget);
+    m_mainLayout->setContentsMargins(30, 30, 30, 30);
+    m_mainLayout->setSpacing(40);
+    
+    // 设置左右面板
+    setupLeftPanel();
+    setupRightPanel();
+    
+    // 添加到主布局，设置比例
+    m_mainLayout->addLayout(m_leftLayout, 2);  // 左侧占2/3
+    m_mainLayout->addLayout(m_rightLayout, 1); // 右侧占1/3
+    
+    // 设置滚动区域内容
+    m_scrollArea->setWidget(m_contentWidget);
+}
 
-    QVBoxLayout *mainLayout = new QVBoxLayout(contentContainer);
-    mainLayout->setAlignment(Qt::AlignTop);
-    mainLayout->setSpacing(15);
-    mainLayout->setContentsMargins(20, 15, 20, 15);
-
-    // 标题
+void WiFiSetupWidget::setupLeftPanel()
+{
+    m_leftLayout = new QVBoxLayout();
+    m_leftLayout->setSpacing(20);
+    
+    // 标题和描述
     m_titleLabel = new QLabel();
     m_titleLabel->setObjectName("WiFiSetupTitle");
-    m_titleLabel->setAlignment(Qt::AlignCenter);
-    m_titleLabel->setFixedHeight(32);
-
-    // 描述
+    m_titleLabel->setWordWrap(true);
+    
     m_descLabel = new QLabel();
     m_descLabel->setObjectName("WiFiSetupDesc");
-    m_descLabel->setAlignment(Qt::AlignCenter);
     m_descLabel->setWordWrap(true);
-    m_descLabel->setFixedHeight(40);
-
-    // 创建水平布局来分割WiFi配置和历史记录
-    QHBoxLayout *contentLayout = new QHBoxLayout();
-    contentLayout->setSpacing(20);
-
+    
     // WiFi配置组
     m_wifiGroupBox = new QGroupBox();
-    m_wifiGroupBox->setObjectName("WiFiConfigGroupBox");
-
-    QVBoxLayout *wifiLayout = new QVBoxLayout(m_wifiGroupBox);
-    wifiLayout->setSpacing(8);
-    wifiLayout->setContentsMargins(15, 15, 15, 15);
-
-    // 表单布局
-    QFormLayout *formLayout = new QFormLayout();
-    formLayout->setSpacing(8);
-    formLayout->setLabelAlignment(Qt::AlignRight | Qt::AlignVCenter);
-
-    // 网络名称标签和输入框
-    m_networkNameLabel = new QLabel();
-    m_networkNameLabel->setObjectName("NetworkNameLabel");
-
+    m_wifiGroupBox->setObjectName("WiFiConfigGroup");
+    
+    m_formLayout = new QFormLayout(m_wifiGroupBox);
+    m_formLayout->setSpacing(15);
+    m_formLayout->setContentsMargins(20, 20, 20, 20);
+    
+    // WiFi名称输入框
     m_wifiNameEdit = new QLineEdit();
     m_wifiNameEdit->setObjectName("WiFiNameEdit");
-    m_wifiNameEdit->setFixedHeight(32);
-    m_wifiNameEdit->setPlaceholderText("Enter WiFi network name");
-
-    // 密码标签和输入框
-    m_passwordLabel = new QLabel();
-    m_passwordLabel->setObjectName("PasswordLabel");
-
+    m_wifiNameEdit->setPlaceholderText("请输入WiFi网络名称");
+    
+    // WiFi密码输入框
     m_wifiPasswordEdit = new QLineEdit();
     m_wifiPasswordEdit->setObjectName("WiFiPasswordEdit");
-    m_wifiPasswordEdit->setFixedHeight(32);
+    m_wifiPasswordEdit->setPlaceholderText("请输入WiFi密码");
     m_wifiPasswordEdit->setEchoMode(QLineEdit::Password);
-    m_wifiPasswordEdit->setPlaceholderText("Enter WiFi password");
-
+    
     // 显示密码复选框
     m_showPasswordCheckBox = new QCheckBox();
     m_showPasswordCheckBox->setObjectName("ShowPasswordCheckBox");
-
-    // 按钮容器
-    QWidget *buttonContainer = new QWidget();
-    QHBoxLayout *buttonLayout = new QHBoxLayout(buttonContainer);
-    buttonLayout->setContentsMargins(0, 0, 0, 0);
-    buttonLayout->setSpacing(8);
-
-    m_clearButton = new QPushButton();
-    m_clearButton->setObjectName("ClearButton");
-    m_clearButton->setFixedHeight(32);
-
-    m_sendConfigButton = new QPushButton();
-    m_sendConfigButton->setObjectName("SendConfigButton");
-    m_sendConfigButton->setFixedHeight(32);
-    m_sendConfigButton->setEnabled(false);
-
-    buttonLayout->addWidget(m_clearButton);
-    buttonLayout->addWidget(m_sendConfigButton);
-    buttonLayout->addStretch();
-
+    
     // 状态标签
     m_statusLabel = new QLabel();
-    m_statusLabel->setObjectName("StatusLabel");
-
-    m_wifiStatusLabel = new QLabel();
-    m_wifiStatusLabel->setObjectName("WiFiStatusLabel");
-    m_wifiStatusLabel->setWordWrap(true);
-    m_wifiStatusLabel->setFixedHeight(18);
-
+    m_statusLabel->setObjectName("WiFiStatusLabel");
+    m_statusLabel->setWordWrap(true);
+    
     // 添加到表单布局
-    formLayout->addRow(m_networkNameLabel, m_wifiNameEdit);
-    formLayout->addRow(m_passwordLabel, m_wifiPasswordEdit);
-    formLayout->addRow("", m_showPasswordCheckBox);
-    formLayout->addRow("", buttonContainer);
-    formLayout->addRow(m_statusLabel, m_wifiStatusLabel);
-
-    wifiLayout->addLayout(formLayout);
-
-    // 历史记录组
-    m_historyGroupBox = new QGroupBox();
-    m_historyGroupBox->setObjectName("WiFiHistoryGroupBox");
-
-    QVBoxLayout *historyLayout = new QVBoxLayout(m_historyGroupBox);
-    historyLayout->setSpacing(8);
-    historyLayout->setContentsMargins(15, 15, 15, 15);
-
-    m_historyListWidget = new QListWidget();
-    m_historyListWidget->setObjectName("WiFiHistoryList");
-    m_historyListWidget->setMaximumHeight(150);
-
-    m_clearHistoryButton = new QPushButton();
-    m_clearHistoryButton->setObjectName("ClearHistoryButton");
-    m_clearHistoryButton->setFixedHeight(28);
-
-    historyLayout->addWidget(m_historyListWidget);
-    historyLayout->addWidget(m_clearHistoryButton);
-
-    // 设备连接状态提示
-    m_deviceStatusLabel = new QLabel();
-    m_deviceStatusLabel->setAlignment(Qt::AlignCenter);
-    m_deviceStatusLabel->setFixedHeight(18);
-
-    // 添加配置表单和历史列表到水平布局
-    contentLayout->addWidget(m_wifiGroupBox, 3);
-    contentLayout->addWidget(m_historyGroupBox, 2);
-
-    // 添加到主布局
-    mainLayout->addWidget(m_titleLabel);
-    mainLayout->addSpacing(5);
-    mainLayout->addWidget(m_descLabel);
-    mainLayout->addSpacing(8);
-    mainLayout->addLayout(contentLayout);
-    mainLayout->addSpacing(5);
-    mainLayout->addWidget(m_deviceStatusLabel);
-
-    // 设置滚动区域
-    scrollArea->setWidget(contentContainer);
-
-    // 创建最终容器
-    QVBoxLayout *finalLayout = new QVBoxLayout(this);
-    finalLayout->setContentsMargins(0, 0, 0, 0);
-    finalLayout->addWidget(scrollArea);
-
+    m_formLayout->addRow("WiFi名称:", m_wifiNameEdit);
+    m_formLayout->addRow("WiFi密码:", m_wifiPasswordEdit);
+    m_formLayout->addRow("", m_showPasswordCheckBox);
+    m_formLayout->addRow("状态:", m_statusLabel);
+    
+    // 按钮布局
+    m_buttonLayout = new QHBoxLayout();
+    m_buttonLayout->setSpacing(15);
+    
+    m_clearButton = new QPushButton();
+    m_clearButton->setObjectName("ClearButton");
+    
+    m_sendConfigButton = new QPushButton();
+    m_sendConfigButton->setObjectName("SendConfigButton");
+    
+    m_buttonLayout->addWidget(m_clearButton);
+    m_buttonLayout->addStretch();
+    m_buttonLayout->addWidget(m_sendConfigButton);
+    
+    // 添加到左侧布局
+    m_leftLayout->addWidget(m_titleLabel);
+    m_leftLayout->addWidget(m_descLabel);
+    m_leftLayout->addWidget(m_wifiGroupBox);
+    m_leftLayout->addLayout(m_buttonLayout);
+    m_leftLayout->addStretch();
+    
     // 连接信号
-    connect(m_sendConfigButton, &QPushButton::clicked, this, &WiFiSetupWidget::onSendConfigClicked);
-    connect(m_clearButton, &QPushButton::clicked, this, &WiFiSetupWidget::onClearClicked);
     connect(m_showPasswordCheckBox, &QCheckBox::toggled, this, &WiFiSetupWidget::onShowPasswordToggled);
-    connect(m_historyListWidget, &QListWidget::itemClicked, this, &WiFiSetupWidget::onHistoryItemClicked);
-    connect(m_clearHistoryButton, &QPushButton::clicked, this, &WiFiSetupWidget::onClearHistoryClicked);
+    connect(m_clearButton, &QPushButton::clicked, this, &WiFiSetupWidget::onClearClicked);
+    connect(m_sendConfigButton, &QPushButton::clicked, this, &WiFiSetupWidget::onSendConfigClicked);
     connect(m_wifiNameEdit, &QLineEdit::textChanged, this, &WiFiSetupWidget::validateInputs);
     connect(m_wifiPasswordEdit, &QLineEdit::textChanged, this, &WiFiSetupWidget::validateInputs);
 }
 
-void WiFiSetupWidget::retranslateUI()
+void WiFiSetupWidget::setupRightPanel()
 {
-    m_titleLabel->setText(tr("WiFi Configuration"));
-    m_descLabel->setText(tr("Configure WiFi settings for your tracking device"));
-    m_wifiGroupBox->setTitle(tr("WiFi Settings"));
-    m_historyGroupBox->setTitle(tr("Connection History"));
-    m_networkNameLabel->setText(tr("Network Name:"));
-    m_passwordLabel->setText(tr("Password:"));
-    m_showPasswordCheckBox->setText(tr("Show Password"));
-    m_clearButton->setText(tr("Clear"));
-    m_sendConfigButton->setText(tr("Send Configuration"));
-    m_clearHistoryButton->setText(tr("Clear History"));
-    m_statusLabel->setText(tr("Status:"));
-    m_wifiStatusLabel->setText(tr("Ready to configure"));
-    m_deviceStatusLabel->setText(tr("Please connect your device via USB cable"));
+    m_rightLayout = new QVBoxLayout();
+    m_rightLayout->setSpacing(15);
+    
+    // 历史记录组
+    m_historyGroupBox = new QGroupBox();
+    m_historyGroupBox->setObjectName("WiFiHistoryGroup");
+    
+    m_historyLayout = new QVBoxLayout(m_historyGroupBox);
+    m_historyLayout->setContentsMargins(15, 20, 15, 15);
+    m_historyLayout->setSpacing(10);
+    
+    // 历史记录数量标签
+    m_historyCountLabel = new QLabel();
+    m_historyCountLabel->setObjectName("WiFiHistoryCount");
+    
+    // 历史记录列表
+    m_historyList = new QListWidget();
+    m_historyList->setObjectName("WiFiHistoryList");
+    m_historyList->setAlternatingRowColors(true);
+    
+    // 清除历史按钮
+    m_clearHistoryButton = new QPushButton();
+    m_clearHistoryButton->setObjectName("ClearHistoryButton");
+    
+    // 添加到历史记录布局
+    m_historyLayout->addWidget(m_historyCountLabel);
+    m_historyLayout->addWidget(m_historyList);
+    m_historyLayout->addWidget(m_clearHistoryButton);
+    
+    // 添加到右侧布局
+    m_rightLayout->addWidget(m_historyGroupBox);
+    
+    // 连接信号
+    connect(m_historyList, &QListWidget::itemClicked, this, &WiFiSetupWidget::onHistoryItemClicked);
+    connect(m_clearHistoryButton, &QPushButton::clicked, this, &WiFiSetupWidget::onClearHistoryClicked);
 }
 
-void WiFiSetupWidget::updateWifiInfo(const QString &wifiName, const QString &wifiPassword)
+void WiFiSetupWidget::retranslateUI()
 {
-    if (!wifiName.isEmpty()) {
-        m_wifiNameEdit->setText(wifiName);
-    }
-    if (!wifiPassword.isEmpty()) {
-        m_wifiPasswordEdit->setText(wifiPassword);
-    }
+    m_titleLabel->setText("WiFi网络配置");
+    m_descLabel->setText("请输入要连接的WiFi网络信息，设备将自动连接到指定的网络。");
+    
+    m_wifiGroupBox->setTitle("网络设置");
+    m_showPasswordCheckBox->setText("显示密码");
+    m_clearButton->setText("清除");
+    m_sendConfigButton->setText("发送配置");
+    
+    m_historyGroupBox->setTitle("历史记录");
+    m_clearHistoryButton->setText("清除历史");
+    
+    updateConnectionStatus("等待配置...");
+    
+    // 更新历史记录数量
+    int count = m_historyList->count();
+    m_historyCountLabel->setText(QString("共 %1 条记录").arg(count));
+}
+
+void WiFiSetupWidget::setWiFiInfo(const QString &ssid, const QString &password)
+{
+    m_wifiNameEdit->setText(ssid);
+    m_wifiPasswordEdit->setText(password);
+    validateInputs();
 }
 
 void WiFiSetupWidget::onSendConfigClicked()
 {
-    QString wifiName = m_wifiNameEdit->text().trimmed();
-    QString wifiPassword = m_wifiPasswordEdit->text();
-
-    if (wifiName.isEmpty()) {
-        QMessageBox::warning(this, tr("Invalid Input"), tr("Please enter a WiFi network name."));
+    QString ssid = m_wifiNameEdit->text().trimmed();
+    QString password = m_wifiPasswordEdit->text();
+    
+    if (ssid.isEmpty()) {
+        QMessageBox::warning(this, "输入错误", "请输入WiFi网络名称！");
+        m_wifiNameEdit->setFocus();
         return;
     }
-
+    
+    if (password.length() < 8 && !password.isEmpty()) {
+        QMessageBox::warning(this, "输入错误", "WiFi密码长度不能少于8位！");
+        m_wifiPasswordEdit->setFocus();
+        return;
+    }
+    
+    // 发送配置到设备
     if (m_serialManager) {
         try {
-            // 发送WiFi配置信息
-            /*m_serialManager->send_wifi_info(wifiName.toStdString(), wifiPassword.toStdString());*/
-            
-            m_wifiStatusLabel->setText(tr("Configuration sent successfully"));
-            m_wifiStatusLabel->setStyleSheet("color: green;");
+            m_serialManager->sendWiFiConfig(ssid.toStdString(), password.toStdString());
+            updateConnectionStatus("正在发送配置...");
             
             // 添加到历史记录
-            addToHistory(wifiName);
+            addToHistory(ssid, password);
             
             // 发送成功信号
-            emit configurationSuccess(m_deviceType, wifiName);
+            emit configurationSuccess(m_deviceType, ssid);
+            
+            updateConnectionStatus("配置发送成功！设备正在连接网络...");
             
         } catch (const std::exception& e) {
-            m_wifiStatusLabel->setText(tr("Failed to send configuration: %1").arg(QString::fromStdString(e.what())));
-            m_wifiStatusLabel->setStyleSheet("color: red;");
+            QString error = QString("发送配置失败: %1").arg(e.what());
+            updateConnectionStatus(error);
+            emit configurationFailed(error);
+            QMessageBox::critical(this, "发送失败", error);
         }
     } else {
-        m_wifiStatusLabel->setText(tr("Serial manager not available"));
-        m_wifiStatusLabel->setStyleSheet("color: red;");
+        QString error = "串口管理器未初始化";
+        updateConnectionStatus(error);
+        emit configurationFailed(error);
+        QMessageBox::critical(this, "系统错误", error);
     }
 }
 
@@ -246,79 +268,147 @@ void WiFiSetupWidget::onClearClicked()
 {
     m_wifiNameEdit->clear();
     m_wifiPasswordEdit->clear();
-    m_wifiStatusLabel->setText(tr("Ready to configure"));
-    m_wifiStatusLabel->setStyleSheet("");
+    updateConnectionStatus("等待配置...");
+    m_wifiNameEdit->setFocus();
 }
 
-void WiFiSetupWidget::onShowPasswordToggled(bool checked)
+void WiFiSetupWidget::onShowPasswordToggled(bool show)
 {
-    m_wifiPasswordEdit->setEchoMode(checked ? QLineEdit::Normal : QLineEdit::Password);
+    m_wifiPasswordEdit->setEchoMode(show ? QLineEdit::Normal : QLineEdit::Password);
 }
 
 void WiFiSetupWidget::onHistoryItemClicked(QListWidgetItem *item)
 {
-    if (item) {
-        QString wifiName = item->text();
-        m_wifiNameEdit->setText(wifiName);
-        m_wifiPasswordEdit->clear(); // 出于安全考虑，不保存密码
-        m_wifiPasswordEdit->setFocus();
+    if (!item) return;
+    
+    // 从项目数据中获取WiFi信息
+    QVariant data = item->data(Qt::UserRole);
+    if (data.isValid()) {
+        QJsonObject wifiInfo = data.toJsonObject();
+        QString ssid = wifiInfo["ssid"].toString();
+        QString password = wifiInfo["password"].toString();
+        
+        // 填充到输入框
+        setWiFiInfo(ssid, password);
+        updateConnectionStatus("已从历史记录加载配置");
     }
 }
 
 void WiFiSetupWidget::onClearHistoryClicked()
 {
-    int result = QMessageBox::question(this, tr("Clear History"),
-        tr("Are you sure you want to clear all WiFi connection history?"),
-        QMessageBox::Yes | QMessageBox::No,
-        QMessageBox::No);
-
-    if (result == QMessageBox::Yes) {
-        m_historyListWidget->clear();
-        
-        // 清除设置中的历史记录
-        QSettings settings;
-        settings.remove("WiFiHistory");
+    if (m_wifiHistory.isEmpty()) {
+        return;
     }
+    
+    int ret = QMessageBox::question(this, "确认操作", 
+        "确定要清除所有WiFi历史记录吗？\n此操作无法撤销。",
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+    
+    if (ret == QMessageBox::Yes) {
+        m_wifiHistory = QJsonArray();
+        m_historyList->clear();
+        saveWiFiHistory();
+        
+        // 更新历史记录数量
+        m_historyCountLabel->setText("共 0 条记录");
+        updateConnectionStatus("历史记录已清除");
+    }
+}
+
+void WiFiSetupWidget::loadWiFiHistory()
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_GROUP);
+    
+    QByteArray data = settings.value(WIFI_HISTORY_KEY).toByteArray();
+    if (!data.isEmpty()) {
+        QJsonDocument doc = QJsonDocument::fromJson(data);
+        if (doc.isArray()) {
+            m_wifiHistory = doc.array();
+        }
+    }
+    
+    settings.endGroup();
+    
+    // 更新历史列表显示
+    m_historyList->clear();
+    for (int i = 0; i < m_wifiHistory.size(); ++i) {
+        QJsonObject wifiInfo = m_wifiHistory[i].toObject();
+        QString ssid = wifiInfo["ssid"].toString();
+        QString timestamp = wifiInfo["timestamp"].toString();
+        
+        // 创建列表项
+        QString displayText = QString("%1\n%2").arg(ssid, timestamp);
+        QListWidgetItem *item = new QListWidgetItem(displayText);
+        item->setData(Qt::UserRole, wifiInfo);
+        item->setToolTip(QString("SSID: %1\n时间: %2\n点击加载此配置").arg(ssid, timestamp));
+        
+        m_historyList->addItem(item);
+    }
+}
+
+void WiFiSetupWidget::saveWiFiHistory()
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_GROUP);
+    
+    QJsonDocument doc(m_wifiHistory);
+    settings.setValue(WIFI_HISTORY_KEY, doc.toJson(QJsonDocument::Compact));
+    
+    settings.endGroup();
+}
+
+void WiFiSetupWidget::addToHistory(const QString &ssid, const QString &password)
+{
+    // 检查是否已存在相同的SSID
+    for (int i = 0; i < m_wifiHistory.size(); ++i) {
+        QJsonObject obj = m_wifiHistory[i].toObject();
+        if (obj["ssid"].toString() == ssid) {
+            // 移除旧记录
+            m_wifiHistory.removeAt(i);
+            break;
+        }
+    }
+    
+    // 创建新记录
+    QJsonObject wifiInfo;
+    wifiInfo["ssid"] = ssid;
+    wifiInfo["password"] = password;
+    wifiInfo["timestamp"] = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+    
+    // 添加到数组开头
+    m_wifiHistory.prepend(wifiInfo);
+    
+    // 限制历史记录数量
+    while (m_wifiHistory.size() > MAX_HISTORY_COUNT) {
+        m_wifiHistory.removeLast();
+    }
+    
+    // 重新加载历史列表
+    loadWiFiHistory();
+    
+    // 更新历史记录数量
+    m_historyCountLabel->setText(QString("共 %1 条记录").arg(m_wifiHistory.size()));
+    
+    // 保存到设置
+    saveWiFiHistory();
+}
+
+void WiFiSetupWidget::updateConnectionStatus(const QString &status)
+{
+    m_statusLabel->setText(status);
 }
 
 void WiFiSetupWidget::validateInputs()
 {
-    QString wifiName = m_wifiNameEdit->text().trimmed();
-    bool isValid = !wifiName.isEmpty();
+    QString ssid = m_wifiNameEdit->text().trimmed();
+    bool isValid = !ssid.isEmpty();
     
     m_sendConfigButton->setEnabled(isValid);
-}
-
-void WiFiSetupWidget::addToHistory(const QString &wifiName)
-{
-    if (wifiName.isEmpty() || isWifiNameInHistory(wifiName)) {
-        return;
+    
+    if (ssid.isEmpty()) {
+        updateConnectionStatus("请输入WiFi网络名称");
+    } else {
+        updateConnectionStatus("配置已就绪，点击发送");
     }
-
-    // 添加到列表控件
-    m_historyListWidget->insertItem(0, wifiName);
-
-    // 限制历史记录数量
-    while (m_historyListWidget->count() > 10) {
-        QListWidgetItem *item = m_historyListWidget->takeItem(m_historyListWidget->count() - 1);
-        delete item;
-    }
-
-    // 保存到设置
-    QSettings settings;
-    QStringList history;
-    for (int i = 0; i < m_historyListWidget->count(); ++i) {
-        history << m_historyListWidget->item(i)->text();
-    }
-    settings.setValue("WiFiHistory", history);
-}
-
-bool WiFiSetupWidget::isWifiNameInHistory(const QString &wifiName)
-{
-    for (int i = 0; i < m_historyListWidget->count(); ++i) {
-        if (m_historyListWidget->item(i)->text() == wifiName) {
-            return true;
-        }
-    }
-    return false;
 }

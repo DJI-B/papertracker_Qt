@@ -280,13 +280,13 @@ void MainWindow::createDefaultContent()
     layout->setContentsMargins(50, 50, 50, 50);
 
     // 欢迎标题
-    QLabel *welcomeLabel = new QLabel("Welcome to PaperTracker");
+    QLabel *welcomeLabel = new QLabel("PaperTracker 主界面");
     welcomeLabel->setObjectName("welcomeLabel");
     welcomeLabel->setAlignment(Qt::AlignCenter);
     layout->addWidget(welcomeLabel);
 
     // 描述文本
-    QLabel *descLabel = new QLabel("您的追踪设备管理中心");
+    QLabel *descLabel = new QLabel("欢迎使用您的专业追踪设备管理中心");
     descLabel->setObjectName("descLabel");
     descLabel->setAlignment(Qt::AlignCenter);
     descLabel->setWordWrap(true);
@@ -294,10 +294,12 @@ void MainWindow::createDefaultContent()
 
     // 添加说明文本
     QLabel *instructionLabel = new QLabel(
+        "这里是您的设备管理主界面\n\n"
         "🔌 请通过USB连接您的追踪设备\n\n"
-        "📱 设备连接后将自动识别并出现在左侧边栏中\n\n"
+        "📱 设备连接后将自动识别并出现在左侧边栏的\"已连接设备\"区域\n\n"
         "⚙️ 点击左侧设备标签页即可进入相应的配置界面\n\n"
-        "🌐 支持面部追踪和眼部追踪设备的自动配置"
+        "🌐 支持面部追踪和眼部追踪设备的WiFi配置和参数调整\n\n"
+        "🏠 随时点击\"主界面\"返回此欢迎页面"
     );
     instructionLabel->setObjectName("instructionLabel");
     instructionLabel->setAlignment(Qt::AlignCenter);
@@ -363,8 +365,13 @@ void MainWindow::onNotificationRequested()
 // 侧边栏事件处理
 void MainWindow::onSidebarItemClicked(const QString &itemText)
 {
-    if (itemText == "Add Device") {
+    if (itemText == "主界面") {
         m_contentStack->setCurrentWidget(m_defaultContentWidget);
+        
+        // 取消所有设备标签的选中状态
+        if (m_sidebar) {
+            m_sidebar->clearDeviceSelection();
+        }
     }
 }
 
@@ -448,10 +455,10 @@ void MainWindow::onWifiConfigRequest(const QString &wifiName, const QString &wif
     lastRequestTime = currentTime;
 
     // 检查是否已经在WiFi配置页面
-    if (m_contentStack->currentWidget() == m_wifiConfigWidget) {
-        m_wifiConfigWidget->updateWifiInfo(wifiName, wifiPassword);
-        return;
-    }
+    // if (m_contentStack->currentWidget() == m_wifiConfigWidget) {
+    //     m_wifiConfigWidget->updateWifiInfo(wifiName, wifiPassword);
+    //     return;
+    // }
 
     showWifiConfigPrompt(wifiName, wifiPassword);
 }
@@ -482,6 +489,6 @@ void MainWindow::showWifiConfigPrompt(const QString &wifiName, const QString &wi
 
 void MainWindow::showWifiConfigPage(const QString &wifiName, const QString &wifiPassword)
 {
-    m_wifiConfigWidget->updateWifiInfo(wifiName, wifiPassword);
+    // m_wifiConfigWidget->updateWifiInfo(wifiName, wifiPassword);
     m_contentStack->setCurrentWidget(m_wifiConfigWidget);
 }

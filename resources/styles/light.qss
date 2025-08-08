@@ -2,22 +2,13 @@
     outline: none;
 }
 
-/* 基础样式 */
-QWidget {
-    background-color: #ffffff;
-}
-
-QMainWindow {
-    background-color: #ffffff;
-}
-
 QMainWindow#MainPage {
     border-radius: 12px;
 }
 
 /* 中央窗口部件 */
 QMainWindow#MainPage QWidget#centralWidget {
-    background-color: #ffffff;
+    background-color: transparent;
     border-radius: 12px;
 }
 
@@ -73,11 +64,13 @@ QLabel#sidebarIconLabel {
     background-color: transparent;
 }
 
- QLabel#sidebarTextLabel {
+/* 统一侧边栏文字样式 */
+QLabel#sidebarTextLabel {
     font-size: 14px;
     font-weight: 500;
     color: #333333;
     background-color: transparent;
+    font-family: 'Segoe UI', Arial, sans-serif;
 }
 
 /* 设备标签页 */
@@ -98,47 +91,54 @@ QWidget#DeviceTab[selected="true"] QLabel#deviceNameLabel {
     color: #0070f9;
 }
 
- QLabel#deviceIconLabel {
+QLabel#deviceIconLabel {
     background-color: transparent;
 }
 
- QLabel#deviceNameLabel {
-    font-size: 12px;
-    font-weight: 400;
+/* 统一设备名称标签样式 */
+QLabel#deviceNameLabel {
+    font-size: 14px;
+    font-weight: 500;
     color: #333333;
     background-color: transparent;
+    font-family: 'Segoe UI', Arial, sans-serif;
 }
 
- QLabel#deviceStatusLabel {
+/* 设备状态标签样式 */
+QLabel#deviceStatusLabel {
+    font-size: 11px;
+    font-weight: 400;
+    color: #666666;
     background-color: transparent;
+    font-family: 'Segoe UI', Arial, sans-serif;
 }
 
 /* 标题栏按钮样式 */
-QPushButton {
+QMainWindow#MainPage QWidget#titleBarWidget QPushButton {
     border: none;
     background-color: transparent;
     border-radius: 4px;
     padding: 6px 12px;
 }
 
-QPushButton:hover {
+QMainWindow#MainPage QWidget#titleBarWidget QPushButton:hover {
     background-color: #e0e0e0;
 }
 
-QPushButton#closeButton:hover {
+QMainWindow#MainPage QWidget#titleBarWidget QPushButton#closeButton:hover {
     background-color: #ff5555;
     color: white;
 }
 
 /* 内容堆栈 */
 QMainWindow#MainPage QStackedWidget#contentStack {
-    background-color: white;
+    background-color: transparent;
     border-bottom-right-radius: 12px;
 }
 
 /* 内容堆栈 */
 QMainWindow#MainPage QWidget#contentWidget {
-    background-color: white;
+    background-color: transparent;
     border-bottom-right-radius: 12px;
 }
 
@@ -202,6 +202,15 @@ QMainWindow#MainPage QLabel#DeviceCount {
     font-size: 11px;
     color: #666;
     margin: 0;
+}
+
+/* 设备区域标题样式 */
+QMainWindow#MainPage QLabel#DeviceSectionTitle {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666666;
+    background-color: transparent;
+    font-family: 'Segoe UI', Arial, sans-serif;
 }
 
 /* 已连接设备列表样式 - 添加内边距以显示圆角 */
@@ -439,7 +448,7 @@ QScrollBar::corner {
 }
 
 /* WiFi 页面标题和描述 */
-QMainWindow#MainPage QLabel#WiFiSetupTitle {
+QLabel#WiFiSetupTitle {
     font-size: 22px;  /* 从18px增加到22px */
     font-weight: bold;
     color: #333;
@@ -447,7 +456,7 @@ QMainWindow#MainPage QLabel#WiFiSetupTitle {
     background-color: transparent;
 }
 
-QMainWindow#MainPage QLabel#WiFiSetupDesc {
+QLabel#WiFiSetupDesc {
     font-size: 15px;  /* 从13px增加到15px */
     color: #666;
     line-height: 1.4;  /* 增加行高以适应更大字体 */
@@ -456,7 +465,8 @@ QMainWindow#MainPage QLabel#WiFiSetupDesc {
 }
 
 /* WiFi GroupBox 样式 */
-QMainWindow#MainPage QGroupBox {
+QGroupBox#WiFiConfigGroup,
+QGroupBox#WiFiHistoryGroup {
     font-size: 14px;  /* 从13px增加到14px */
     font-weight: bold;
     color: #333;
@@ -464,18 +474,19 @@ QMainWindow#MainPage QGroupBox {
     border-radius: 8px;
     margin-top: 8px;
     padding-top: 8px;
-    background-color: white;
+    background-color: transparent;
 }
 
-QMainWindow#MainPage QGroupBox::title {
+QGroupBox#WiFiConfigGroup::title,
+QGroupBox#WiFiHistoryGroup::title {
     left: 10px;
     padding: 0 6px 0 6px;
     background-color: white;
 }
 
 /* WiFi 输入框样式 */
-QMainWindow#MainPage QLineEdit#WiFiNameEdit,
-QMainWindow#MainPage QLineEdit#WiFiPasswordEdit {
+QLineEdit#WiFiNameEdit,
+QLineEdit#WiFiPasswordEdit {
     border: 2px solid #e0e0e0;
     border-radius: 6px;
     padding: 6px 10px;
@@ -483,19 +494,19 @@ QMainWindow#MainPage QLineEdit#WiFiPasswordEdit {
     background-color: white;
 }
 
-QMainWindow#MainPage QLineEdit#WiFiNameEdit:focus,
-QMainWindow#MainPage QLineEdit#WiFiPasswordEdit:focus {
+QLineEdit#WiFiNameEdit:focus,
+QLineEdit#WiFiPasswordEdit:focus {
     border-color: #0070f9;
     outline: none;
 }
 
 /* WiFi 复选框样式 */
-QMainWindow#MainPage QCheckBox#ShowPasswordCheckBox {
+QCheckBox#ShowPasswordCheckBox {
     font-size: 13px;  /* 从12px增加到13px */
     color: #666;
 }
 
-QMainWindow#MainPage QCheckBox#ShowPasswordCheckBox::indicator {
+QCheckBox#ShowPasswordCheckBox::indicator {
     width: 14px;
     height: 14px;
     border: 2px solid #e0e0e0;
@@ -503,25 +514,32 @@ QMainWindow#MainPage QCheckBox#ShowPasswordCheckBox::indicator {
     background-color: white;
 }
 
-QMainWindow#MainPage QCheckBox#ShowPasswordCheckBox::indicator:checked {
+QCheckBox#ShowPasswordCheckBox::indicator:checked {
     background-color: #0070f9;
     border-color: #0070f9;
 }
 
-QMainWindow#MainPage QCheckBox#ShowPasswordCheckBox::indicator:hover {
+QCheckBox#ShowPasswordCheckBox::indicator:hover {
     border-color: #0070f9;
 }
 
 /* WiFi 状态标签 */
-QMainWindow#MainPage QLabel#WiFiStatusLabel {
+QLabel#WiFiStatusLabel {
     font-size: 13px;  /* 从12px增加到13px */
     color: #666;
     margin: 0;
     background-color: white;
 }
 
+/* WiFi 历史记录标签 */
+QLabel#WiFiHistoryCount {
+    font-size: 12px;
+    color: #666;
+    background-color: transparent;
+}
+
 /* WiFi 按钮样式 */
-QMainWindow#MainPage QPushButton#ClearButton {
+QPushButton#ClearButton {
     background-color: #f0f0f0;
     border: 1px solid #ddd;
     border-radius: 6px;
@@ -530,39 +548,39 @@ QMainWindow#MainPage QPushButton#ClearButton {
     color: #333;
 }
 
-QMainWindow#MainPage QPushButton#ClearButton:hover {
+QPushButton#ClearButton:hover {
     background-color: #e0e0e0;
 }
 
-QMainWindow#MainPage QPushButton#ClearButton:pressed {
+QPushButton#ClearButton:pressed {
     background-color: #d0d0d0;
 }
 
-QMainWindow#MainPage QPushButton#SendConfigButton {
+QPushButton#SendConfigButton {
     background-color: #0070f9;
     border: none;
     border-radius: 6px;
     padding: 6px 12px;
-    font-size: 14px;  /* 从13px增加到14px */
+    font-size: 14px;
     color: white;
     font-weight: bold;
 }
 
-QMainWindow#MainPage QPushButton#SendConfigButton:hover {
+QPushButton#SendConfigButton:hover {
     background-color: #005acc;
 }
 
-QMainWindow#MainPage QPushButton#SendConfigButton:pressed {
+QPushButton#SendConfigButton:pressed {
     background-color: #004499;
 }
 
-QMainWindow#MainPage QPushButton#SendConfigButton:disabled {
+QPushButton#SendConfigButton:disabled {
     background-color: #cccccc;
     color: #999;
 }
 
 /* WiFi 历史列表样式 */
-QMainWindow#MainPage QListWidget#WiFiHistoryList {
+QListWidget#WiFiHistoryList {
     border: 1px solid #e0e0e0;
     border-radius: 6px;
     background-color: white;
@@ -570,28 +588,38 @@ QMainWindow#MainPage QListWidget#WiFiHistoryList {
     outline: none;
 }
 
-QMainWindow#MainPage QListWidget#WiFiHistoryList::item {
+QListWidget#WiFiHistoryList::item {
     padding: 6px;
     border-bottom: 1px solid #f0f0f0;
     background-color: white;
 }
 
-QMainWindow#MainPage QListWidget#WiFiHistoryList::item:hover {
+QListWidget#WiFiHistoryList::item:hover {
     background-color: #f8f9ff;
 }
 
-QMainWindow#MainPage QListWidget#WiFiHistoryList::item:selected {
+QListWidget#WiFiHistoryList::item:selected {
     background-color: #e7ebf0;
     color: #0070f9;
 }
 
-QMainWindow#MainPage QPushButton#ClearHistoryButton {
+QPushButton#ClearHistoryButton {
     background-color: #f0f0f0;
     border: 1px solid #ddd;
     border-radius: 4px;
-    padding: 4px 8px;
+    padding: 6px 12px;
     font-size: 12px;  /* 从11px增加到12px */
     color: #666;
+    font-weight: 500;
+}
+
+QPushButton#ClearHistoryButton:hover {
+    background-color: #e0e0e0;
+    border-color: #ccc;
+}
+
+QPushButton#ClearHistoryButton:pressed {
+    background-color: #d0d0d0;
 }
 
 /* WiFi 表单标签样式 */
@@ -652,6 +680,11 @@ QMainWindow#MainPage QLabel#EyeTrackerDesc {
     background-color: transparent;
 }
 
+QWidget#ButtonContainer
+{
+	background-color: transparent;
+}
+
 /* USB状态容器 */
 QMainWindow#MainPage QWidget#USBStatusContainer {
     background-color: #f0f0f0;
@@ -664,19 +697,6 @@ QMainWindow#MainPage QWidget#DeviceTitleContainer {
 
 /* 设备状态容器（在列表项中的） */
 QMainWindow#MainPage QWidget#DeviceStatusContainer {
-    background-color: transparent;  /* 改为透明 */
-}
-
-/* 确保所有相关的子组件背景色正确 */
-QMainWindow#MainPage QWidget#USBStatusContainer * {
-    background-color: #f0f0f0;
-}
-
-QMainWindow#MainPage QWidget#DeviceTitleContainer * {
-    background-color: #f0f0f0;
-}
-
-QMainWindow#MainPage QWidget#DeviceStatusContainer * {
     background-color: transparent;  /* 改为透明 */
 }
 
