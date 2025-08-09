@@ -6,6 +6,7 @@
 #include "components/face_config_widget.h"
 #include "managers/device_manager.h"
 #include "serial.hpp"
+#include "roi_event.hpp"
 
 #include <QApplication>
 #include <QGraphicsDropShadowEffect>
@@ -19,6 +20,7 @@
 #include <QProgressDialog>
 #include <QMetaObject>
 #include <QFile>
+#include <QScrollArea>
 
 // 设备版本定义
 #define FACE_VERSION 1
@@ -72,9 +74,11 @@ void MainWindow::setupSerialManager()
                     break;
                 case LEFT_VERSION:
                     deviceType = "Eye Tracker";
+                    m_currentEyeVersion = LEFT_VERSION;
                     break;
                 case RIGHT_VERSION:
                     deviceType = "Eye Tracker";
+                    m_currentEyeVersion = RIGHT_VERSION;
                     break;
                 default:
                     deviceType = "Unknown Device";
@@ -88,6 +92,30 @@ void MainWindow::setupSerialManager()
                     m_deviceManager->updateDeviceStatus(deviceName, QString::fromStdString(ip), power);
                     // 更新侧边栏中的设备类型显示
                     m_sidebar->updateDeviceType(deviceName, deviceType);
+                    
+                    // 检查是否是等待WiFi配置完成的设备
+                    if (m_pendingWifiDevices.contains(deviceName)) {
+                        // 设备WiFi连接成功，切换到相应的配置页面
+                        QString originalDeviceType = m_pendingWifiDevices.value(deviceName);
+                        m_pendingWifiDevices.remove(deviceName);
+                        
+                        // 根据设备类型跳转到相应的配置页面
+                        if (deviceType == "Face Tracker") {
+                            m_contentStack->setCurrentWidget(m_faceGuideWidget);
+                        } else if (deviceType == "Eye Tracker") {
+                            m_contentStack->setCurrentWidget(m_eyeGuideWidget);
+                        } else {
+                            // 其他设备类型，使用设备管理器的配置页面
+                            QWidget *devicePage = m_deviceManager->getDeviceConfigPage(deviceName);
+                            if (devicePage) {
+                                // 如果设备页面不在栈中，添加它
+                                if (m_contentStack->indexOf(devicePage) == -1) {
+                                    m_contentStack->addWidget(devicePage);
+                                }
+                                m_contentStack->setCurrentWidget(devicePage);
+                            }
+                        }
+                    }
                 } else {
                     // 设备不存在，直接添加
                     onDeviceConnected(deviceName, deviceType);
@@ -242,19 +270,122 @@ void MainWindow::createContentPages()
     for (int i = 1; i <= 4; ++i) {
         QWidget *stepContent = new QWidget();
         QVBoxLayout *stepLayout = new QVBoxLayout(stepContent);
+        stepLayout->setContentsMargins(20, 20, 20, 20);
+        stepLayout->setSpacing(15);
         
-        QLabel *stepLabel = new QLabel(QString("Eye Tracker Setup - Step %1").arg(i));
-        stepLabel->setStyleSheet("QLabel { font-size: 16px; font-weight: bold; color: #333; margin: 20px; }");
-        stepLabel->setAlignment(Qt::AlignCenter);
-        
-        QLabel *descLabel = new QLabel(QString("Configure your eye tracker settings in step %1").arg(i));
-        descLabel->setStyleSheet("QLabel { font-size: 14px; color: #666; margin: 10px; }");
-        descLabel->setAlignment(Qt::AlignCenter);
-        descLabel->setWordWrap(true);
-        
-        stepLayout->addWidget(stepLabel);
-        stepLayout->addWidget(descLabel);
-        stepLayout->addStretch();
+        if (i == 1) {
+            // 第一步：ROI选择
+            // 创建滚动区域
+            m_eyeGuideScrollArea = new QScrollArea(stepContent);
+            m_eyeGuideScrollArea->setWidgetResizable(true);
+            m_eyeGuideScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+            m_eyeGuideScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+            m_eyeGuideScrollArea->setFrameStyle(QFrame::NoFrame);
+            
+            // 创建滚动内容区域
+            QWidget *scrollContent = new QWidget();
+            QVBoxLayout *scrollLayout = new QVBoxLayout(scrollContent);
+            scrollLayout->setContentsMargins(20, 20, 20, 20);
+            scrollLayout->setSpacing(15);
+            
+            QLabel *stepLabel = new QLabel("步骤 1：眼球区域选择 (ROI)");
+            stepLabel->setStyleSheet("QLabel { font-size: 18px; font-weight: bold; color: #333; margin: 10px 0; }");
+            stepLabel->setAlignment(Qt::AlignCenter);
+            
+            QLabel *descLabel = new QLabel("请在下方的图像预览区域中，用鼠标框选出眼球的区域。\n这将帮助系统更准确地追踪您的眼部运动。");
+            descLabel->setStyleSheet("QLabel { font-size: 14px; color: #666; margin: 10px 0; line-height: 1.5; }");
+            descLabel->setAlignment(Qt::AlignCenter);
+            descLabel->setWordWrap(true);
+            
+            // 创建图像预览区域
+            QWidget *previewArea = new QWidget();
+            QVBoxLayout *previewLayout = new QVBoxLayout(previewArea);
+            previewLayout->setContentsMargins(0, 10, 0, 10);
+            previewLayout->setSpacing(15);
+            previewLayout->setAlignment(Qt::AlignCenter);
+            
+            // 眼部预览标题（动态显示左眼或右眼）
+            QLabel *eyeTitle = new QLabel("眼部预览");
+            eyeTitle->setObjectName("eyePreviewTitle");
+            eyeTitle->setStyleSheet("QLabel { font-size: 16px; font-weight: bold; color: #444; }");
+            eyeTitle->setAlignment(Qt::AlignCenter);
+            
+            // 眼部预览图像
+            m_eyePreviewLabel = new QLabel();
+            m_eyePreviewLabel->setFixedSize(280, 280);
+            m_eyePreviewLabel->setAlignment(Qt::AlignCenter);
+            m_eyePreviewLabel->setStyleSheet(
+                "QLabel {"
+                "    border: 2px solid #0070f9;"
+                "    border-radius: 8px;"
+                "    background-color: #f8f9fa;"
+                "    color: #666;"
+                "    font-size: 12px;"
+                "}"
+            );
+            m_eyePreviewLabel->setText("等待设备连接...\n\n点击并拖拽鼠标\n框选眼球区域");
+            
+            previewLayout->addWidget(eyeTitle);
+            previewLayout->addWidget(m_eyePreviewLabel, 0, Qt::AlignCenter);
+            
+            // 设备信息显示
+            QLabel *deviceInfoLabel = new QLabel("设备类型：等待检测...");
+            deviceInfoLabel->setObjectName("deviceInfoLabel");
+            deviceInfoLabel->setStyleSheet("QLabel { font-size: 13px; color: #888; font-style: italic; }");
+            deviceInfoLabel->setAlignment(Qt::AlignCenter);
+            previewLayout->addWidget(deviceInfoLabel);
+            
+            // 操作提示
+            QLabel *instructionLabel = new QLabel(
+                "📝 操作说明：\n"
+                "• 设备连接后，将显示实时图像\n"
+                "• 用鼠标在图像上点击并拖拽，框选出眼球区域\n"
+                "• 尽量框选完整的眼球，避免包含过多背景\n"
+                "• 框选完成后，点击\"下一步\"继续"
+            );
+            instructionLabel->setStyleSheet(
+                "QLabel {"
+                "    background-color: #e8f4fd;"
+                "    border: 1px solid #b8daff;"
+                "    border-radius: 6px;"
+                "    padding: 15px;"
+                "    font-size: 13px;"
+                "    color: #0c5460;"
+                "    line-height: 1.4;"
+                "}"
+            );
+            instructionLabel->setWordWrap(true);
+            
+            scrollLayout->addWidget(stepLabel);
+            scrollLayout->addWidget(descLabel);
+            scrollLayout->addWidget(previewArea, 1);
+            scrollLayout->addWidget(instructionLabel);
+            scrollLayout->addStretch();
+            
+            // 设置滚动区域内容
+            m_eyeGuideScrollArea->setWidget(scrollContent);
+            
+            // 将滚动区域添加到步骤布局
+            stepLayout->addWidget(m_eyeGuideScrollArea);
+            
+            // 为图像预览标签添加ROI事件过滤器
+            setupROIEventFilters();
+            
+        } else {
+            // 其他步骤保持原样
+            QLabel *stepLabel = new QLabel(QString("Eye Tracker Setup - Step %1").arg(i));
+            stepLabel->setStyleSheet("QLabel { font-size: 16px; font-weight: bold; color: #333; margin: 20px; }");
+            stepLabel->setAlignment(Qt::AlignCenter);
+            
+            QLabel *descLabel = new QLabel(QString("Configure your eye tracker settings in step %1").arg(i));
+            descLabel->setStyleSheet("QLabel { font-size: 14px; color: #666; margin: 10px; }");
+            descLabel->setAlignment(Qt::AlignCenter);
+            descLabel->setWordWrap(true);
+            
+            stepLayout->addWidget(stepLabel);
+            stepLayout->addWidget(descLabel);
+            stepLayout->addStretch();
+        }
         
         m_eyeGuideWidget->setStepContent(i, stepContent);
     }
@@ -380,6 +511,13 @@ void MainWindow::onDeviceTabClicked(const QString &deviceName)
     if (m_deviceManager) {
         QString deviceType = m_deviceManager->getDeviceType(deviceName);
         
+        // 检查是否是等待WiFi配置完成的设备
+        if (m_pendingWifiDevices.contains(deviceName)) {
+            // 设备正在等待WiFi连接，保持在WiFi配置页面
+            m_contentStack->setCurrentWidget(m_wifiConfigWidget);
+            return;
+        }
+        
         // 如果是WiFi配置中的设备，跳转到WiFi配置页面
         if (deviceType == "WiFi配置中") {
             m_contentStack->setCurrentWidget(m_wifiConfigWidget);
@@ -433,11 +571,18 @@ void MainWindow::onDeviceDisconnected(const QString &deviceName)
 // WiFi配置事件处理
 void MainWindow::onWiFiConfigurationSuccess(const QString &deviceType, const QString &wifiName)
 {
+    // 获取当前正在配置的设备名称
+    std::string portName = m_serialManager->getCurrentPortName();
+    QString deviceName = QString("设备 (%1)").arg(QString::fromStdString(portName));
+    
+    // 将设备标记为等待WiFi连接完成
+    m_pendingWifiDevices.insert(deviceName, deviceType);
+    
     QMessageBox::information(this, tr("WiFi配置完成"),
-        tr("WiFi配置已完成。\n网络: %1\n\n设备将自动连接到WiFi网络，连接成功后会自动出现在设备列表中。")
+        tr("WiFi配置已发送成功。\n网络: %1\n\n设备正在连接WiFi网络，请等待设备连接完成后自动跳转到配置页面。")
         .arg(wifiName));
     
-    m_contentStack->setCurrentWidget(m_defaultContentWidget);
+    // 不再切换页面，保持在WiFi配置页面等待设备连接
 }
 
 void MainWindow::onWifiConfigRequest(const QString &wifiName, const QString &wifiPassword)
@@ -491,4 +636,96 @@ void MainWindow::showWifiConfigPage(const QString &wifiName, const QString &wifi
 {
     // m_wifiConfigWidget->updateWifiInfo(wifiName, wifiPassword);
     m_contentStack->setCurrentWidget(m_wifiConfigWidget);
+}
+
+void MainWindow::setupROIEventFilters()
+{
+    if (m_eyePreviewLabel) {
+        auto roiFilter = new ROIEventFilter([this](QRect rect, bool isEnd, int tag) {
+            onEyeROIChanged(rect, isEnd);
+        }, m_eyePreviewLabel, 0);
+        m_eyePreviewLabel->installEventFilter(roiFilter);
+    }
+    
+    // 更新设备信息显示
+    updateEyeDeviceInfo();
+}
+
+void MainWindow::updateEyeDeviceInfo()
+{
+    if (m_eyeGuideScrollArea) {
+        QLabel *eyeTitle = m_eyeGuideScrollArea->findChild<QLabel*>("eyePreviewTitle");
+        QLabel *deviceInfo = m_eyeGuideScrollArea->findChild<QLabel*>("deviceInfoLabel");
+        
+        if (eyeTitle && deviceInfo) {
+            QString eyeType = "眼部";
+            QString deviceTypeText = "设备类型：";
+            
+            if (m_currentEyeVersion == LEFT_VERSION) {
+                eyeType = "左眼";
+                deviceTypeText += "左眼追踪器";
+            } else if (m_currentEyeVersion == RIGHT_VERSION) {
+                eyeType = "右眼";
+                deviceTypeText += "右眼追踪器";
+            } else {
+                deviceTypeText += "等待检测...";
+            }
+            
+            eyeTitle->setText(eyeType + "预览");
+            deviceInfo->setText(deviceTypeText);
+        }
+    }
+}
+
+void MainWindow::onEyeROIChanged(QRect rect, bool isEnd)
+{
+    // 规范化矩形坐标
+    int x = rect.x();
+    int y = rect.y();
+    int width = rect.width();
+    int height = rect.height();
+    
+    // 规范化宽度和高度为正值
+    if (width < 0) {
+        x += width;
+        width = -width;
+    }
+    if (height < 0) {
+        y += height;
+        height = -height;
+    }
+    
+    // 裁剪坐标到图像边界内
+    if (x < 0) {
+        width += x;
+        x = 0;
+    }
+    if (y < 0) {
+        height += y;
+        y = 0;
+    }
+    
+    // 确保ROI不超出图像边界
+    if (x + width > 280) {
+        width = 280 - x;
+    }
+    if (y + height > 280) {
+        height = 280 - y;
+    }
+    
+    // 确保最终的宽度和高度为正值
+    width = qMax(0, width);
+    height = qMax(0, height);
+    
+    m_eyeRoiRect = QRect(x, y, width, height);
+    
+    if (isEnd) {
+        QString eyeType = "Eye";
+        if (m_currentEyeVersion == LEFT_VERSION) {
+            eyeType = "Left eye";
+        } else if (m_currentEyeVersion == RIGHT_VERSION) {
+            eyeType = "Right eye";
+        }
+        qDebug() << eyeType << "ROI selected:" << m_eyeRoiRect;
+    }
 }

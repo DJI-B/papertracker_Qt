@@ -8,6 +8,8 @@
 #include <QPoint>
 #include <QMap>
 #include <memory>
+#include <QLabel>
+#include <QScrollArea>
 
 // 前向声明
 class SerialPortManager;
@@ -63,6 +65,11 @@ private:
     // WiFi配置相关
     void showWifiConfigPrompt(const QString &wifiName, const QString &wifiPassword);
     void showWifiConfigPage(const QString &wifiName, const QString &wifiPassword);
+    
+    // ROI设置相关
+    void setupROIEventFilters();
+    void updateEyeDeviceInfo();
+    void onEyeROIChanged(QRect rect, bool isEnd);
 
     // UI 组件
     QWidget *m_centralFrame = nullptr;
@@ -80,6 +87,15 @@ private:
     // 管理器
     std::shared_ptr<SerialPortManager> m_serialManager;
     DeviceManager *m_deviceManager = nullptr;
+
+    // WiFi配置状态跟踪
+    QMap<QString, QString> m_pendingWifiDevices; // 设备名称 -> 设备类型，等待WiFi连接完成的设备
+
+    // 眼部追踪ROI相关
+    QLabel *m_eyePreviewLabel = nullptr;
+    QScrollArea *m_eyeGuideScrollArea = nullptr;
+    QRect m_eyeRoiRect;
+    int m_currentEyeVersion = 0; // 当前设备版本，用于确定是左眼还是右眼
 
     // 窗口拖动
     QPoint m_dragPosition;

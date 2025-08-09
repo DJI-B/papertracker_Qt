@@ -53,6 +53,7 @@ void SidebarWidget::setupUI()
     
     // 添加弹性空间，确保内容在顶部对齐
     sidebarLayout->addStretch();
+    setSelectedItem(sidebarItems.first());
 }
 
 void SidebarWidget::createSidebarItem(const QString &iconPath, const QString &text)
